@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<style></style>
+</head>
+<body>
+	<canvas id="chart" style="width:100%;max-width:600px"></canvas>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script type="text/javascript">
+		const canvas = document.querySelector('#chart').getContext('2d');
+        const label = []
+        const value = []
+        let max, min,data;
+        async function fetchData(){
+		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/5min/AAPL?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
+		await formatData()
+		createChart()
+
+        }
+		function formatData(){
+        data.forEach((item,index)=>{
+        	if(index <500){
+			const date = new Date(item.date);
+			label.push(date.getHours())
+			const price = ((item.close + item.open)/2).toFixed(2)
+			value.push(price)
+		}
+		})
+		max = Math.max.apply(null,data)
+		min = Math.min.apply(null,data)
+		}
+		
+		function createChart(){
+           
+const ctx = document.getElementById('chart').getContext('2d');
+const myChart = new Chart(ctx, {
+    type: 'line',
+
+    data: {
+        labels: label,
+        datasets: [{
+            label: 'stock price',
+            data: value,
+            backgroundColor: [
+                "black",
+            ],
+            borderColor:'black'
+
+        }]
+    },
+    options: {
+    	interaction: {
+            mode: 'point'
+        },
+    	elements:{
+    		point:{
+    			radius:0
+    		}
+    	},
+        scales: {
+        	y:{
+        	    suggestedMin: min-5,
+                suggestedMax: max+5
+        	}
+      
+        }
+    }
+});
+		}
+
+		window.onload =fetchData;
+	</script>
+</body>
+</html>
