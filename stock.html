@@ -1,5 +1,14 @@
-
-const canvas = document.querySelector('#chart').getContext('2d');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<style></style>
+</head>
+<body>
+	<canvas id="chart" style="width:100%;"></canvas>
+	<div id='info'></div>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script type="text/javascript">
+	const canvas = document.querySelector('#chart').getContext('2d');
         const label = []
         const value = []
         const validvalue = []
@@ -16,7 +25,7 @@ const toolTipDiv = document.querySelector('#customToolTip')
         	//if(index <500){
         	const nowdate = new Date();
 			const date = new Date(item.date);
-			if(nowdate.getDate() === date.getDate())
+			//if(nowdate.getDate() === date.getDate())
 			label.push(date.getHours())
 		validvalue.push(item)
 			
@@ -45,6 +54,7 @@ const ctx = document.getElementById('chart').getContext('2d');
         			context.save();
         			context.fillStyle = 'black'
         			const hoverpoint = this.tool._active[0];
+        			ctx.setLineDash([])
         			context.beginPath();
         			context.moveTo(this.tool._active[0].element.x,chart.chartArea.top);
         			context.lineTo(this.tool._active[0].element.x,chart.chartArea.bottom)
@@ -57,6 +67,54 @@ const ctx = document.getElementById('chart').getContext('2d');
     }
 }
 }
+var horizonalLinePlugin = {
+    id: 'horizontalLine',
+    afterDraw: function(chartInstance) {
+    var yScale = chartInstance.scales["y"];
+    // chartInstance.chart is undefined
+    //var canvas = chartInstance.chart;
+   // console.log(canvas);
+   // var ctx = canvas.ctx;
+    var index;
+    var line;
+    var style; 
+
+    if (chartInstance.options.horizontalLine) {
+      for (index = 0; index < chartInstance.options.horizontalLine.length; index++) {
+        line = chartInstance.options.horizontalLine[index];
+       
+        style ='white'
+
+        if (line.y) {
+          yValue = yScale.getPixelForValue(line.y);
+        } else {
+          yValue = 0;
+        }
+
+        ctx.lineWidth = 3;
+
+        if (yValue) {
+        	 ctx.setLineDash([5, 3])
+          ctx.beginPath();
+
+          ctx.moveTo(0, yValue);
+          ctx.lineTo(document.querySelector('#chart').width, yValue);
+          ctx.strokeStyle = style;
+          ctx.stroke();
+        }
+
+        if (line.text) {
+          ctx.fillStyle = style;
+          ctx.fillText(line.text, 0, yValue + ctx.lineWidth);
+        }
+      }
+      return;
+    }
+  }
+};
+
+
+Chart.register(horizonalLinePlugin);
 const myChart = new Chart(ctx, {
     type: 'line',
 
@@ -70,11 +128,28 @@ const myChart = new Chart(ctx, {
                 "rgba(50,2,30,0.9)",
             ],
             pointHoverRadius: 0,
-            borderColor:'black'
+             hoverBackgroundColor:'red',
+             hoverBorderColor:'green',
+            borderColor:'blue'
 
         }]
     },
     options: {
+    	tooltips: {enabled: false},
+hover: {mode: null},
+        "horizontalLine": [{
+      "y": 160,
+      "style": "black",
+      "text": "upper-limit"
+    }, {
+      "y": 150,
+      "style": "#00ff00",
+      "text": "avg"
+    }, {
+      "y": 48.8,
+      "style": "#0000ff",
+      "text": "lower-limit"
+    }],
 
     	interaction: {
             mode: 'index',
@@ -101,20 +176,31 @@ const myChart = new Chart(ctx, {
         },
         plugins: {
         	tooltip:{
-        		yAlign: "bottom"
+        		yAlign: "bottom",
+        		backgroundColor:'transparent',
+        		titleColor:'transparent',
+        		displayColors:false,
+        		bodyColor:'transparent',
+        		footerColor:'transparent',
+             callbacks: {
+    label: function(tooltipItem, data) {
+    	document.querySelector('#info').textContent = tooltipItem.raw
+					return tooltipItem;
+     
+    }
+},
         	}
         }
     },
     plugins: [annotation]
 
 });
-		}
+}
+		
 		window.onload =fetchData;
 
 
 
-
-
-
-
-
+	</script>
+</body>
+</html>
