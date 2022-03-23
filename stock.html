@@ -1,38 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<style></style>
-</head>
-<body>
-	<canvas id="chart" style="width:100%;max-width:600px"></canvas>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script type="text/javascript">
-		const canvas = document.querySelector('#chart').getContext('2d');
+
+const canvas = document.querySelector('#chart').getContext('2d');
         const label = []
         const value = []
+        const validvalue = []
+const toolTipDiv = document.querySelector('#customToolTip')
         let max, min,data;
         async function fetchData(){
-		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/5min/AAPL?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
+		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/5min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
 		await formatData()
 		createChart()
 
         }
 		function formatData(){
         data.forEach((item,index)=>{
-        	if(index <500){
+        	//if(index <500){
+        	const nowdate = new Date();
 			const date = new Date(item.date);
+			if(nowdate.getDate() === date.getDate())
 			label.push(date.getHours())
+		validvalue.push(item)
+			
+
 			const price = ((item.close + item.open)/2).toFixed(2)
 			value.push(price)
-		}
+		//}
 		})
-		max = Math.max.apply(null,data)
-		min = Math.min.apply(null,data)
+
+		//max = Math.max.apply(null,...validvalue.high)
+		const array = Object.values(validvalue)
+		console.log(array)
+		//min = Math.min.apply(null,...validvalue.low)
+		console.log(max,min)
 		}
 		
 		function createChart(){
            
 const ctx = document.getElementById('chart').getContext('2d');
+        	const annotation = {
+    		id:'annotationline',
+        	beforeDraw: chart =>{
+        		this.tool = chart.tooltip
+        		if(this.tool._active && this.tool._active.length){
+        			const context =  chart.ctx
+        			context.save();
+        			context.fillStyle = 'black'
+        			const hoverpoint = this.tool._active[0];
+        			context.beginPath();
+        			context.moveTo(this.tool._active[0].element.x,chart.chartArea.top);
+        			context.lineTo(this.tool._active[0].element.x,chart.chartArea.bottom)
+        			context.lineWidth =10;
+
+        			context.strokeStyle = 'black';
+        			context.stroke();
+        			context.restore()
+    
+    }
+}
+}
 const myChart = new Chart(ctx, {
     type: 'line',
 
@@ -41,34 +65,56 @@ const myChart = new Chart(ctx, {
         datasets: [{
             label: 'stock price',
             data: value,
+            fill: true,
             backgroundColor: [
-                "black",
+                "rgba(50,2,30,0.9)",
             ],
+            pointHoverRadius: 0,
             borderColor:'black'
 
         }]
     },
     options: {
+
     	interaction: {
-            mode: 'point'
+            mode: 'index',
+                  intersect: false,
+
         },
     	elements:{
     		point:{
-    			radius:0
+    			radius:0,
+    			pointHoverRadius: 5
     		}
     	},
+        hover:{
+           mode:'dataset',
+           intersect:false,
+
+        },
         scales: {
         	y:{
-        	    suggestedMin: min-5,
-                suggestedMax: max+5
+        	    suggestedMin: min,
+                suggestedMax: max
         	}
       
+        },
+        plugins: {
+        	tooltip:{
+        		yAlign: "bottom"
+        	}
         }
-    }
+    },
+    plugins: [annotation]
+
 });
 		}
-
 		window.onload =fetchData;
-	</script>
-</body>
-</html>
+
+
+
+
+
+
+
+
