@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<style>canvas{
+	<style>
+	canvas{
 	background-color: rgba(0,0,0,0.8);
 	width: 100%;
-	padding: 25px;
-}</style>
+	height: 100%;
+        padding: 25px;
+         }
+	</style>
 </head>
 <body>
 	<canvas id="chart" ></canvas>
 	<div id='info'></div>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script type="text/javascript">
-		const canvas = document.querySelector('#chart')
+const canvas = document.querySelector('#chart')
 		windowWidth = window.innerHeight;
         windowHeight = window.innerWidth;
 	     ctx = document.querySelector('#chart').getContext('2d');
-        label = []
         value = []
         validvalue = []
         toolTipDiv = document.querySelector('#customToolTip');
         let maxvalue,minvalue,data, newdata;
 
-        console.log(windowWidth)
-        console.log(windowHeight)
-
-         let valuesing = parseInt(window.getComputedStyle(canvas).getPropertyValue('height'))
-         console.log(valuesing)
+         let valuesing = parseInt(window.getComputedStyle(canvas).getPropertyValue('height'));
+         let label = []
 
         async function fetchData(){
 		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
@@ -58,7 +57,10 @@
        
 		maxvalue = Math.max.apply(null,value)
 		minvalue = Math.min.apply(null,value)
-		console.log(maxvalue)
+		//ternary statement only accept expression, so something like statement ? return .... : return ... will not work
+		label = label.map(i=>{
+			return (i<12 ? `${i}am` : `${i}pm`)
+		})
 		}
 
 
@@ -66,9 +68,7 @@
 
 function finddata(){
   				const latestdate = new Date(newdata[newdata.length-1][1].date).getDate()
-		console.log(latestdate)
 		for (let i =newdata.length-1;i>=0;i--){
-			console.log('x')
 			if( new Date(newdata[newdata.length-1][1].date).getDate()!= new Date(newdata[i][1].date).getDate()){
 			
 				return newdata[i][1].close;
@@ -80,25 +80,33 @@ function returnColor(){
 	//current stock price 
 	const currentprice = newdata[0][1].close
 	if(currentprice >= finddata()){
-		return "green"
+		return "lawngreen"
 	}else{
 		return "red"
 	}
 }
 
 
-function linearGarident(){
+function linearGarident(color){
+	console.log(color)
 	  const gradient = ctx.createLinearGradient(0,0,0,valuesing)
-	  if(returnColor() == "red"){
-        gradient.addColorStop(0,"rgba(255,0,0,0.9)");
-        gradient.addColorStop(0.5,"rgba(255,0,0,0.3)");
+	  if(color){
+       	gradient.addColorStop(0,"#52c4fa");
+        gradient.addColorStop(0.5,"rgba(82,196,250,0.2)");
        gradient.addColorStop(1,'transparent')
-   }else{
-   	    gradient.addColorStop(0,"rgba(0,255,0,0.9)");
-        gradient.addColorStop(0.5,"rgba(0,255,0,0.3)");
+       }
+	  else if(returnColor().includes("red")){
+        gradient.addColorStop(0,"rgba(255,0,0,0.8)");
+        gradient.addColorStop(0.35,"rgba(255,0,0,0.3)");
        gradient.addColorStop(1,'transparent')
-
+   }else if (returnColor().includes("green")){
+   	    gradient.addColorStop(0,"rgba(0,255,0,0.8)");
+        gradient.addColorStop(0.35,"rgba(0,255,0,0.3)");
+       gradient.addColorStop(1,'transparent')
    }
+
+   
+   console.log(gradient)
    return gradient
 
 }
@@ -112,29 +120,37 @@ const ctx = document.getElementById('chart').getContext('2d');
         		if(this.tool._active && this.tool._active.length){
         			const context =  chart.ctx
         			context.save();
-        			context.fillStyle = 'black'
         			const hoverpoint = this.tool._active[0];
         			ctx.setLineDash([])
         			context.beginPath();
-        			context.moveTo(this.tool._active[0].element.x,chart.chartArea.top);
-        			context.lineTo(this.tool._active[0].element.x,chart.chartArea.bottom)
-        			context.lineWidth =10;
 
-        			context.strokeStyle = 'black';
+        			context.moveTo(this.tool._active[0].element.x,chart.chartArea.top);
+        			context.lineTo(this.tool._active[0].element.x,chart.chartArea.bottom);
+        			 context.lineWidth =2.5;
+        			context.strokeStyle = '#52c4fa';
+
+
+        			
         			context.stroke();
         			context.restore()
+        			context.moveTo(this.tool._active[0].element.x, this.tool._active[0].element.y)
+        			context.globalCompositeOperation='destination-over';
+        			context.arc(this.tool._active[0].element.x, this.tool._active[0].element.y,12.5,0,2*Math.PI)
+
+        			context.fillStyle = '#52c4fa';
+        			context.fill()
+        		
+
+ 
     
     }
 }
 }
 var horizonalLinePlugin = {
     id: 'horizontalLine',
+    order:500,
     afterDraw: function(chartInstance) {
     var yScale = chartInstance.scales["y"];
-    // chartInstance.chart is undefined
-    //var ctx = chartInstance.chart;
-   // console.log(ctx);
-   // var ctx = ctx.ctx;
     var index;
     var line;
     var style; 
@@ -187,9 +203,10 @@ const myChart = new Chart(ctx, {
             fill: true,
             backgroundColor: linearGarident(),
             pointHoverRadius: 0,
-             hoverBackgroundColor:'red',
-             hoverBorderColor:'green',
-            borderColor:returnColor()
+             hoverBackgroundColor:linearGarident('color'),
+             hoverBorderColor:"rgba(82,196,250,0.8)",
+            borderColor:returnColor(),
+            order:2
 
         }]
     },
@@ -200,6 +217,9 @@ hover: {mode: null},
       "y": finddata(),
       "text":finddata()
     }],
+    legend: {
+            display: false
+         },
 
     	interaction: {
             mode: 'index',
@@ -210,6 +230,9 @@ hover: {mode: null},
     		point:{
     			radius:0,
     			pointHoverRadius: 5
+    		},
+    		line:{
+    			borderWidth:3.5
     		}
     	},
         hover:{
@@ -241,8 +264,12 @@ hover: {mode: null},
       
         },
         plugins: {
+        	legend:{
+        		display:false
+        	},
         	tooltip:{
         		yAlign: "bottom",
+        		order:2,
         		backgroundColor:'transparent',
         		titleColor:'transparent',
         		displayColors:false,
@@ -266,8 +293,6 @@ hover: {mode: null},
 }
 		
 		window.onload =fetchData;
-
-		
 
 
 
