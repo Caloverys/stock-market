@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<style></style>
+	<style>canvas{
+	background-color: rgba(0,0,0,0.8);
+}</style>
 </head>
 <body>
 	<canvas id="chart" style="width:100%;"></canvas>
 	<div id='info'></div>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script type="text/javascript">
-	const canvas = document.querySelector('#chart').getContext('2d');
+		const canvas = document.querySelector('#chart')
+	const ctx = document.querySelector('#chart').getContext('2d');
         const label = []
         const value = []
         const validvalue = []
+
 const toolTipDiv = document.querySelector('#customToolTip')
-        let max, min,data;
+        let maxvalue,minvalue,data;
+
+        const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height)
+        gradient.addColorStop(0,"red");
+        gradient.addColorStop(0.7,"red");
+       gradient.addColorStop(1,'rgba(255,0,0,0.4)')
+       ctx.fillStyle = gradient;
+       ctx.fillRect(0,0,canvas.width,canvas.height)
         async function fetchData(){
 		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/5min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
 		await formatData()
@@ -21,29 +32,36 @@ const toolTipDiv = document.querySelector('#customToolTip')
 
         }
 		function formatData(){
-        data.forEach((item,index)=>{
+			
+		const newdata = Object.entries(data).sort((([,a],[,b]) =>{
+		return new Date(a.date)- new Date(b.date)
+		}
+		))
+		console.log(newdata)
+       console.log(newdata)
+        newdata.forEach((item,index)=>{
         	//if(index <500){
         	const nowdate = new Date();
-			const date = new Date(item.date);
-			//if(nowdate.getDate() === date.getDate())
+			const date = new Date(item[1].date);
+			if(nowdate.getDate() === date.getDate()){
+	
 			label.push(date.getHours())
-		validvalue.push(item)
-			
 
-			const price = ((item.close + item.open)/2).toFixed(2)
+		    validvalue.push(item[1])
+		    const price = ((item[1].close + item[1].open)/2).toFixed(2)
 			value.push(price)
+	        }
+			
 		//}
 		})
 
-		//max = Math.max.apply(null,...validvalue.high)
-		const array = Object.values(validvalue)
-		console.log(array)
-		//min = Math.min.apply(null,...validvalue.low)
-		console.log(max,min)
+		maxvalue = Math.max.apply(null,value)
+		minvalue = Math.min.apply(null,value)
+		console.log(maxvalue)
 		}
-		
 		function createChart(){
-           
+  		console.log(label) 
+  		console.log(validvalue)        
 const ctx = document.getElementById('chart').getContext('2d');
         	const annotation = {
     		id:'annotationline',
@@ -72,9 +90,9 @@ var horizonalLinePlugin = {
     afterDraw: function(chartInstance) {
     var yScale = chartInstance.scales["y"];
     // chartInstance.chart is undefined
-    //var canvas = chartInstance.chart;
-   // console.log(canvas);
-   // var ctx = canvas.ctx;
+    //var ctx = chartInstance.chart;
+   // console.log(ctx);
+   // var ctx = ctx.ctx;
     var index;
     var line;
     var style; 
@@ -124,9 +142,7 @@ const myChart = new Chart(ctx, {
             label: 'stock price',
             data: value,
             fill: true,
-            backgroundColor: [
-                "rgba(50,2,30,0.9)",
-            ],
+            backgroundColor: gradient,
             pointHoverRadius: 0,
              hoverBackgroundColor:'red',
              hoverBorderColor:'green',
@@ -145,10 +161,6 @@ hover: {mode: null},
       "y": 150,
       "style": "#00ff00",
       "text": "avg"
-    }, {
-      "y": 48.8,
-      "style": "#0000ff",
-      "text": "lower-limit"
     }],
 
     	interaction: {
@@ -169,8 +181,24 @@ hover: {mode: null},
         },
         scales: {
         	y:{
-        	    suggestedMin: min,
-                suggestedMax: max
+               max: Math.ceil(maxvalue),
+               min: Math.floor(minvalue),
+               grid:{
+               	color:'rgba(255,255,255,0.4)'           	
+               },
+               ticks:{
+
+               	stepSize:2
+               }
+            
+        	},
+        	x:{
+        		grid:{
+        			color:"rgba(255,255,255,0.4)"
+        		},
+        		ticks:{
+        			stepSize:10
+        		}
         	}
       
         },
@@ -184,7 +212,9 @@ hover: {mode: null},
         		footerColor:'transparent',
              callbacks: {
     label: function(tooltipItem, data) {
-    	document.querySelector('#info').textContent = tooltipItem.raw
+    	console.log(tooltipItem);
+    	console.log(validvalue[tooltipItem.dataIndex])
+    	document.querySelector('#info').textContent = tooltipItem.raw+validvalue[tooltipItem.dataIndex].date
 					return tooltipItem;
      
     }
@@ -198,6 +228,8 @@ hover: {mode: null},
 }
 		
 		window.onload =fetchData;
+
+		
 
 
 
