@@ -28,11 +28,6 @@
          let valuesing = parseInt(window.getComputedStyle(canvas).getPropertyValue('height'))
          console.log(valuesing)
 
-        const gradient = ctx.createLinearGradient(0,0,0,valuesing)
-        console.log(ctx.canvas.height)
-        gradient.addColorStop(0,"rgba(255,0,0,0.9)");
-        gradient.addColorStop(0.5,"rgba(255,0,0,0.3)");
-       gradient.addColorStop(1,'transparent')
         async function fetchData(){
 		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
 		formatData()
@@ -89,6 +84,23 @@ function returnColor(){
 	}else{
 		return "red"
 	}
+}
+
+
+function linearGarident(){
+	  const gradient = ctx.createLinearGradient(0,0,0,valuesing)
+	  if(returnColor() == "red"){
+        gradient.addColorStop(0,"rgba(255,0,0,0.9)");
+        gradient.addColorStop(0.5,"rgba(255,0,0,0.3)");
+       gradient.addColorStop(1,'transparent')
+   }else{
+   	    gradient.addColorStop(0,"rgba(0,255,0,0.9)");
+        gradient.addColorStop(0.5,"rgba(0,255,0,0.3)");
+       gradient.addColorStop(1,'transparent')
+
+   }
+   return gradient
+
 }
 		function createChart(){
 
@@ -173,11 +185,11 @@ const myChart = new Chart(ctx, {
             label: 'stock price',
             data: value,
             fill: true,
-            backgroundColor: gradient,
+            backgroundColor: linearGarident(),
             pointHoverRadius: 0,
              hoverBackgroundColor:'red',
              hoverBorderColor:'green',
-            borderColor:'blue'
+            borderColor:returnColor()
 
         }]
     },
