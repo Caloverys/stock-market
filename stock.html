@@ -3,65 +3,95 @@
 <head>
 	<style>canvas{
 	background-color: rgba(0,0,0,0.8);
+	width: 100%;
+	padding: 25px;
 }</style>
 </head>
 <body>
-	<canvas id="chart" style="width:100%;"></canvas>
+	<canvas id="chart" ></canvas>
 	<div id='info'></div>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script type="text/javascript">
 		const canvas = document.querySelector('#chart')
-	const ctx = document.querySelector('#chart').getContext('2d');
-        const label = []
-        const value = []
-        const validvalue = []
+		windowWidth = window.innerHeight;
+        windowHeight = window.innerWidth;
+	     ctx = document.querySelector('#chart').getContext('2d');
+        label = []
+        value = []
+        validvalue = []
+        toolTipDiv = document.querySelector('#customToolTip');
+        let maxvalue,minvalue,data, newdata;
 
-const toolTipDiv = document.querySelector('#customToolTip')
-        let maxvalue,minvalue,data;
+        console.log(windowWidth)
+        console.log(windowHeight)
 
-        const gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height)
-        gradient.addColorStop(0,"red");
-        gradient.addColorStop(0.7,"red");
-       gradient.addColorStop(1,'rgba(255,0,0,0.4)')
-       ctx.fillStyle = gradient;
-       ctx.fillRect(0,0,canvas.width,canvas.height)
+         let valuesing = parseInt(window.getComputedStyle(canvas).getPropertyValue('height'))
+         console.log(valuesing)
+
+        const gradient = ctx.createLinearGradient(0,0,0,valuesing)
+        console.log(ctx.canvas.height)
+        gradient.addColorStop(0,"rgba(255,0,0,0.9)");
+        gradient.addColorStop(0.5,"rgba(255,0,0,0.3)");
+       gradient.addColorStop(1,'transparent')
         async function fetchData(){
-		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/5min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
-		await formatData()
+		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
+		formatData()
 		createChart()
 
         }
-		function formatData(){
-			
-		const newdata = Object.entries(data).sort((([,a],[,b]) =>{
-		return new Date(a.date)- new Date(b.date)
-		}
-		))
-		console.log(newdata)
-       console.log(newdata)
+		function formatData(){	
+		newdata = Object.entries(data).sort((([,a],[,b]) =>{
+			return new Date(a.date) - new Date(b.date)
+        }
+        ))
         newdata.forEach((item,index)=>{
         	//if(index <500){
         	const nowdate = new Date();
 			const date = new Date(item[1].date);
 			if(nowdate.getDate() === date.getDate()){
-	
+	        
 			label.push(date.getHours())
+
 
 		    validvalue.push(item[1])
 		    const price = ((item[1].close + item[1].open)/2).toFixed(2)
 			value.push(price)
-	        }
 			
-		//}
+		}
 		})
-
+		//only leave unique item in label
+       
 		maxvalue = Math.max.apply(null,value)
 		minvalue = Math.min.apply(null,value)
 		console.log(maxvalue)
 		}
+
+
+
+
+function finddata(){
+  				const latestdate = new Date(newdata[newdata.length-1][1].date).getDate()
+		console.log(latestdate)
+		for (let i =newdata.length-1;i>=0;i--){
+			console.log('x')
+			if( new Date(newdata[newdata.length-1][1].date).getDate()!= new Date(newdata[i][1].date).getDate()){
+			
+				return newdata[i][1].close;
+			}
+		} 
+}
+
+function returnColor(){
+	//current stock price 
+	const currentprice = newdata[0][1].close
+	if(currentprice >= finddata()){
+		return "green"
+	}else{
+		return "red"
+	}
+}
 		function createChart(){
-  		console.log(label) 
-  		console.log(validvalue)        
+
 const ctx = document.getElementById('chart').getContext('2d');
         	const annotation = {
     		id:'annotationline',
@@ -123,7 +153,8 @@ var horizonalLinePlugin = {
 
         if (line.text) {
           ctx.fillStyle = style;
-          ctx.fillText(line.text, 0, yValue + ctx.lineWidth);
+          ctx.fillText("Previous price", 0, yValue + ctx.lineWidth+8);
+          ctx.fillText(line.text, 0, yValue + ctx.lineWidth+20);
         }
       }
       return;
@@ -154,13 +185,8 @@ const myChart = new Chart(ctx, {
     	tooltips: {enabled: false},
 hover: {mode: null},
         "horizontalLine": [{
-      "y": 160,
-      "style": "black",
-      "text": "upper-limit"
-    }, {
-      "y": 150,
-      "style": "#00ff00",
-      "text": "avg"
+      "y": finddata(),
+      "text":finddata()
     }],
 
     	interaction: {
@@ -186,9 +212,8 @@ hover: {mode: null},
                grid:{
                	color:'rgba(255,255,255,0.4)'           	
                },
-               ticks:{
-
-               	stepSize:2
+               ticks:{     
+               maxTicksLimit:5
                }
             
         	},
@@ -197,7 +222,8 @@ hover: {mode: null},
         			color:"rgba(255,255,255,0.4)"
         		},
         		ticks:{
-        			stepSize:10
+        			//get number of unqiue item in y label
+        			maxTicksLimit:[...new Set(label)].length
         		}
         	}
       
