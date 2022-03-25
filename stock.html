@@ -1,24 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<style>
-	canvas{
-	background-color: rgba(0,0,0,0.8);
-	width: 100%;
-	height: 100%;
-        padding: 25px;
+    <style>
+    canvas{
+    background-color: rgba(0,0,0,0.8);
+    width: 80% !important;
+    height: 80% !important;
+    z-index: 1;
+
+        padding: 50px
+    }
+         #info{
+            position: fixed;
+            left: 40%;
+            z-index: 99;
+            top: 30px;
+            color: white;
+
+
          }
-	</style>
+    }
+    </style>
 </head>
 <body>
-	<canvas id="chart" ></canvas>
-	<div id='info'></div>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script type="text/javascript">
+    <div><canvas id="chart" ></canvas></div>
+    <div id='info'></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript">
 const canvas = document.querySelector('#chart')
-		windowWidth = window.innerHeight;
+        windowWidth = window.innerHeight;
         windowHeight = window.innerWidth;
-	     ctx = document.querySelector('#chart').getContext('2d');
+         ctx = document.querySelector('#chart').getContext('2d');
         value = []
         validvalue = []
         toolTipDiv = document.querySelector('#customToolTip');
@@ -28,79 +40,110 @@ const canvas = document.querySelector('#chart')
          let label = []
 
         async function fetchData(){
-		await fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
-		formatData()
-		createChart()
+            console.log('what')
+        await fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557").then(res =>res.json()).then(info =>data = info).then(()=>console.log(data))
+        formatData()
+        createChart()
 
         }
-		function formatData(){	
-		newdata = Object.entries(data).sort((([,a],[,b]) =>{
-			return new Date(a.date) - new Date(b.date)
+        function formatData(){  
+        newdata = Object.entries(data).sort((([,a],[,b]) =>{
+            return new Date(a.date) - new Date(b.date)
         }
         ))
+
         newdata.forEach((item,index)=>{
-        	//if(index <500){
-        	const nowdate = new Date();
-			const date = new Date(item[1].date);
-			if(nowdate.getDate() === date.getDate()){
-	        
-			label.push(date.getHours())
+            //if(index <500){
+            const nowdate = new Date();
+            const date = new Date(item[1].date);
+            if(nowdate.getDate() === date.getDate()){
+            
+            label.push(date.getHours())
 
 
-		    validvalue.push(item[1])
-		    const price = ((item[1].close + item[1].open)/2).toFixed(2)
-			value.push(price)
-			
-		}
-		})
-		//only leave unique item in label
-       
-		maxvalue = Math.max.apply(null,value)
-		minvalue = Math.min.apply(null,value)
-		//ternary statement only accept expression, so something like statement ? return .... : return ... will not work
-		label = label.map(i=>{
-			return (i<12 ? `${i}am` : `${i}pm`)
-		})
-		}
+            validvalue.push(item[1])
+            const price = ((item[1].close + item[1].open)/2).toFixed(2)
+            value.push(price)
+            
+        }
+        })
+        //only leave unique item in label
+        
+       addNullValue()
+        maxvalue = Math.max.apply(null,value)
+        minvalue = Math.min.apply(null,value)
+        
 
+        }
 
 
 
+function getMousePosition(event){
+    return event.clientX 
+
+}
+function addNullValue(){
+    const newestDate = new Date(newdata[newdata.length-1][1].date)
+    const expectedDate= new Date(newestDate.getFullYear(), newestDate.getMonth(),newestDate.getDate(),16)
+    const amountToAdd = (expectedDate - newestDate) / 1000 / 60;
+    const nullarray = Array(amountToAdd).fill(null)
+    //nullarray.push.apply(label, nullarray)
+    //ternary statement only accept expression, so something like statement ? return .... : return ... will not work
+    //value.push(59 - newestDate.getMinutes())
+    console.log(Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
+    label.push.apply(label,Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
+    console.log(expectedDate.getHours())
+    console.log(newestDate.getHours())
+    for(let i =newestDate.getHours();i<expectedDate.getHours();i++){
+       label.push.apply(label,Array(60).fill(i))
+    }
+   console.log(label)
+        console.log(label)
+        label = label.map(i=>{
+            if(i)
+            return (i<12 ? `${i}am` : `${i}pm`)
+
+        })
+}
 function finddata(){
-  				const latestdate = new Date(newdata[newdata.length-1][1].date).getDate()
-		for (let i =newdata.length-1;i>=0;i--){
-			if( new Date(newdata[newdata.length-1][1].date).getDate()!= new Date(newdata[i][1].date).getDate()){
-			
-				return newdata[i][1].close;
-			}
-		} 
+                const latestdate = new Date(newdata[newdata.length-1][1].date).getDate()
+        for (let i =newdata.length-1;i>=0;i--){
+            if( new Date(newdata[newdata.length-1][1].date).getDate()!= new Date(newdata[i][1].date).getDate()){
+            
+                return newdata[i][1].close;
+            }
+        } 
 }
 
 function returnColor(){
-	//current stock price 
-	const currentprice = newdata[0][1].close
-	if(currentprice >= finddata()){
-		return "lawngreen"
-	}else{
-		return "red"
-	}
+    //current stock price 
+    const currentprice = data[0].close;
+    console.log(data[0])
+    console.log( newdata[0][1])
+    console.log(currentprice)
+    console.log(finddata())
+    if(currentprice >= finddata()){
+        return "lawngreen"
+    }else{
+        return "red"
+    }
 }
 
 
 function linearGarident(color){
-	console.log(color)
-	  const gradient = ctx.createLinearGradient(0,0,0,valuesing)
-	  if(color){
-       	gradient.addColorStop(0,"#52c4fa");
+    console.log([...new Set(label)])
+      const gradient = ctx.createLinearGradient(0,0,0,valuesing)
+      if(color){
+        gradient.addColorStop(0,"#52c4fa");
         gradient.addColorStop(0.5,"rgba(82,196,250,0.2)");
        gradient.addColorStop(1,'transparent')
        }
-	  else if(returnColor().includes("red")){
+      else if(returnColor().includes("red")){
         gradient.addColorStop(0,"rgba(255,0,0,0.8)");
         gradient.addColorStop(0.35,"rgba(255,0,0,0.3)");
        gradient.addColorStop(1,'transparent')
    }else if (returnColor().includes("green")){
-   	    gradient.addColorStop(0,"rgba(0,255,0,0.8)");
+        gradient.addColorStop(0,"rgba(0,255,0,0.8)");
         gradient.addColorStop(0.35,"rgba(0,255,0,0.3)");
        gradient.addColorStop(1,'transparent')
    }
@@ -110,36 +153,40 @@ function linearGarident(color){
    return gradient
 
 }
-		function createChart(){
+        function createChart(){
 
+console.log(value)
 const ctx = document.getElementById('chart').getContext('2d');
-        	const annotation = {
-    		id:'annotationline',
-        	beforeDraw: chart =>{
-        		this.tool = chart.tooltip
-        		if(this.tool._active && this.tool._active.length){
-        			const context =  chart.ctx
-        			context.save();
-        			const hoverpoint = this.tool._active[0];
-        			ctx.setLineDash([])
-        			context.beginPath();
+            const annotation = {
+            id:'annotationline',
+            beforeDraw: function(chart){
+                this.tool = chart.tooltip
+                if(this.tool._active && this.tool._active.length){
+                    const context =  chart.ctx
+                    context.save();
+                    const hoverpoint = this.tool._active[0];
+                    ctx.setLineDash([])
+                    context.beginPath();
 
-        			context.moveTo(this.tool._active[0].element.x,chart.chartArea.top);
-        			context.lineTo(this.tool._active[0].element.x,chart.chartArea.bottom);
-        			 context.lineWidth =2.5;
-        			context.strokeStyle = '#52c4fa';
+                    context.moveTo(this.tool._active[0].element.x,chart.chartArea.top);
+                    context.lineTo(this.tool._active[0].element.x,chart.chartArea.bottom);
+                     context.lineWidth =2.5;
+                    context.strokeStyle = '#52c4fa';
+                    context.stroke();
+                    context.restore()
+                    context.moveTo(this.tool._active[0].element.x, this.tool._active[0].element.y)
+                    context.globalCompositeOperation='destination-over';
+                    context.arc(this.tool._active[0].element.x, this.tool._active[0].element.y,17.5,0,2*Math.PI)
 
-
-        			
-        			context.stroke();
-        			context.restore()
-        			context.moveTo(this.tool._active[0].element.x, this.tool._active[0].element.y)
-        			context.globalCompositeOperation='destination-over';
-        			context.arc(this.tool._active[0].element.x, this.tool._active[0].element.y,12.5,0,2*Math.PI)
-
-        			context.fillStyle = '#52c4fa';
-        			context.fill()
-        		
+                    context.fillStyle = '#52c4fa';
+                    context.fill()
+                    context.restore()
+                    context.fillStyle='white'
+                    console.log(this.tool._active[0].element.x)
+                    context.fillText('sb',this.tool._active[0].element.x,10) 
+                    context.fill()
+                    document.querySelector('#info')
+                
 
  
     
@@ -147,6 +194,7 @@ const ctx = document.getElementById('chart').getContext('2d');
 }
 }
 var horizonalLinePlugin = {
+
     id: 'horizontalLine',
     order:500,
     afterDraw: function(chartInstance) {
@@ -170,7 +218,7 @@ var horizonalLinePlugin = {
         ctx.lineWidth = 3;
 
         if (yValue) {
-        	 ctx.setLineDash([5, 3])
+             ctx.setLineDash([5, 3])
           ctx.beginPath();
 
           ctx.moveTo(0, yValue);
@@ -181,7 +229,7 @@ var horizonalLinePlugin = {
 
         if (line.text) {
           ctx.fillStyle = style;
-          ctx.fillText("Previous price", 0, yValue + ctx.lineWidth+8);
+          ctx.fillText("Previous Price", 0, yValue + ctx.lineWidth+8);
           ctx.fillText(line.text, 0, yValue + ctx.lineWidth+20);
         }
       }
@@ -196,7 +244,8 @@ const myChart = new Chart(ctx, {
     type: 'line',
 
     data: {
-        labels: label,
+        xLabels: label,
+        yLabels: [150,155,160],
         datasets: [{
             label: 'stock price',
             data: value,
@@ -211,7 +260,7 @@ const myChart = new Chart(ctx, {
         }]
     },
     options: {
-    	tooltips: {enabled: false},
+        tooltips: {enabled: false},
 hover: {mode: null},
         "horizontalLine": [{
       "y": finddata(),
@@ -221,81 +270,79 @@ hover: {mode: null},
             display: false
          },
 
-    	interaction: {
+        interaction: {
             mode: 'index',
                   intersect: false,
 
         },
-    	elements:{
-    		point:{
-    			radius:0,
-    			pointHoverRadius: 5
-    		},
-    		line:{
-    			borderWidth:3.5
-    		}
-    	},
+        elements:{
+            point:{
+                radius:0,
+                pointHoverRadius: 5
+            },
+            line:{
+                borderWidth:3.5
+            }
+        },
         hover:{
            mode:'dataset',
            intersect:false,
 
         },
         scales: {
-        	y:{
-               max: Math.ceil(maxvalue),
-               min: Math.floor(minvalue),
+            y:{         
+            max: maxvalue + 0.15,
+               min: minvalue - 0.15,
                grid:{
-               	color:'rgba(255,255,255,0.4)'           	
+                color:'rgba(255,255,255,0.4)'               
                },
                ticks:{     
                maxTicksLimit:5
                }
             
-        	},
-        	x:{
-        		grid:{
-        			color:"rgba(255,255,255,0.4)"
-        		},
-        		ticks:{
-        			//get number of unqiue item in y label
-        			maxTicksLimit:[...new Set(label)].length
-        		}
-        	}
+            },
+            x:{
+                grid:{
+                    color:"rgba(255,255,255,0.4)"
+                },
+                ticks:{
+                    //get number of unqiue item in y label
+                    maxTicksLimit:[...new Set(label)].length
+                }
+            }
       
         },
         plugins: {
-        	legend:{
-        		display:false
-        	},
-        	tooltip:{
-        		yAlign: "bottom",
-        		order:2,
-        		backgroundColor:'transparent',
-        		titleColor:'transparent',
-        		displayColors:false,
-        		bodyColor:'transparent',
-        		footerColor:'transparent',
+            legend:{
+                display:false
+            },
+            tooltip:{
+                yAlign: "bottom",
+                order:2,
+                backgroundColor:'transparent',
+                titleColor:'transparent',
+                displayColors:false,
+                bodyColor:'transparent',
+                footerColor:'transparent',
              callbacks: {
     label: function(tooltipItem, data) {
-    	console.log(tooltipItem);
-    	console.log(validvalue[tooltipItem.dataIndex])
-    	document.querySelector('#info').textContent = tooltipItem.raw+validvalue[tooltipItem.dataIndex].date
-					return tooltipItem;
+        document.querySelector('#info').textContent = tooltipItem.raw+validvalue[tooltipItem.dataIndex].date
+                    return tooltipItem;
      
     }
 },
-        	}
+            }
         }
     },
     plugins: [annotation]
 
 });
 }
-		
-		window.onload =fetchData;
+        
+        window.onload =fetchData;
 
 
 
-	</script>
+    </script>
 </body>
 </html>
