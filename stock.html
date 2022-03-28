@@ -5,27 +5,32 @@
      canvas{
    background-color: rgba(0,0,0,0.8);
     z-index: 1;
+    padding: 25px;
+    padding-top: 10vh;
+   
 
 
-       padding: 50px
+  
     }
          #info{
             position: fixed;
-            left: 40%;
             z-index: 99;
-            top: 30px;
+            top: 7%;
             color: white;
+            font-weight: bold;
+            visibility: hidden;
+             color: #52c4fa
 
 
          }
     #parentdiv{
-    	 height:80vh;
-    	 width: 80vw;
+         height:90vh;
+         width: 90vw;
     } 
     </style>
 </head>
 <body>
-    <div><canvas id="chart" ></canvas></div>
+    <div id='parentdiv'><canvas id="chart" ></canvas></div>
     <div id='info'></div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript">
@@ -35,9 +40,11 @@ windowHeight = window.innerWidth;
 ctx = document.querySelector('#chart').getContext('2d');
 value = []
 validvalue = []
-toolTipDiv = document.querySelector('#customToolTip');
-let maxvalue, minvalue, data, newdata;
-document.querySelector('canvas').style.height = `${windowHeight * 0.8}px !important`
+toolTipDiv = document.querySelector('#customToolTip')
+info = document.querySelector('#info');
+let maxvalue, minvalue, data, nowtime,newdata, clientX;
+let isInCanvas =false;
+document.querySelector('canvas').style.height = `${windowHeight }px !important`
 
 let valuesing = ctx.canvas.height;
 //parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'));
@@ -45,30 +52,35 @@ console.log(valuesing)
 //window.stop()
 let label = []
 
-async function fetchData() {
 
-
-  setTimeout(formatData, 0);
-  // createChart()
-
-}
 
 function fetchdata() {
   return fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557")
     .then(res => res.json())
 
 }
+//only screenX works here, clientX doesn't work expected.
+document.addEventListener('mousemove', e =>{
+  if(isInCanvas){
+  clientX = e.clientX;
+  console.log(clientX)
 
-function formatData(nowtime, fetchdata) {
-  console.log(data)
-  data = fetchdata
+}else{
+  info.style.visibility ='hidden'
+}
+})
+canvas.addEventListener('mouseenter',()=> isInCanvas = true )
+canvas.addEventListener('mouseleave',()=> isInCanvas = false )
+
+
+function formatData() {
   newdata = Object.entries(data).sort((([, a], [, b]) => {
     return new Date(a.date) - new Date(b.date)
   }))
-  console.log(nowtime.getDay())
+
+  console.log(newdata)
 
   if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
-    console.log(1)
     newdata.forEach((item, index) => {
       this.newdate = new Date(item[1].date);
       if (nowtime.getDate() === this.newdate.getDate()) {
@@ -90,10 +102,6 @@ function formatData(nowtime, fetchdata) {
 
       if (this.newdate.getDay() === 5) {
         label.push(this.newdate.getHours())
-
-
-
-
         validvalue.push(item[1])
         const price = ((item[1].close + item[1].open) / 2).toFixed(2)
         value.push(price)
@@ -150,10 +158,12 @@ function addNullValue() {
 }
 
 function finddata() {
+
   const latestdate = new Date(newdata[newdata.length - 1][1].date).getDate()
   for (let i = newdata.length - 1; i >= 0; i--) {
     if (new Date(newdata[newdata.length - 1][1].date).getDate() != new Date(newdata[i][1].date).getDate()) {
-
+      console.log(newdata[i][1].close)
+      
       return newdata[i][1].close;
     }
   }
@@ -176,7 +186,6 @@ function returnColor() {
 
 function linearGarident(color) {
   console.log([...new Set(label)])
-  console.log(parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height')))
   const gradient = ctx.createLinearGradient(0, 0, 0, parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height')))
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
@@ -200,10 +209,15 @@ function linearGarident(color) {
 
 }
 
+        function returnposition(e){
+          return e.screenY
+        }
+
 function createChart() {
 
   console.log(value)
   const ctx = document.getElementById('chart').getContext('2d');
+
   const annotation = {
     id: 'annotationline',
     beforeDraw: function(chart) {
@@ -227,14 +241,10 @@ function createChart() {
         context.fillStyle = '#52c4fa';
         context.fill()
         context.restore()
-        context.fillStyle = 'white'
-
-        context.fillText('sb', this.tool._active[0].element.x, 10)
-        context.fill()
-        document.querySelector('#info').style.left = this.tool._active[0].element.x + "px"
-
-
-
+        context.save()
+        console.log(this.tool._active[0].element.x)
+        info.style.visibility = 'visible'
+        info.style.left =clientX - info.offsetWidth/2+ "px"
 
       }
     }
@@ -244,7 +254,7 @@ function createChart() {
 
     id: 'horizontalLine',
     order: 500,
-    beforeTitle: function(chartInstance) {
+   afterDraw: function(chartInstance) {
       var yScale = chartInstance.scales["y"];
       var index;
       var line;
@@ -265,19 +275,20 @@ function createChart() {
           ctx.lineWidth = 3;
 
           if (yValue) {
-            ctx.setLineDash([5, 3])
+            //if(yValue < minvalue-0.15) yValue = minvalue 
+            console.log(yValue)  
             ctx.beginPath();
-
-            ctx.moveTo(0, yValue);
+            ctx.setLineDash([5, 3])
+            ctx.moveTo(45, yValue);
             ctx.lineTo(document.querySelector('#chart').width, yValue);
             ctx.strokeStyle = style;
             ctx.stroke();
-          }
+          } 
 
           if (line.text) {
             ctx.fillStyle = style;
-            ctx.fillText("Previous Price", 0, yValue + ctx.lineWidth + 8);
-            ctx.fillText(line.text, 0, yValue + ctx.lineWidth + 20);
+            ctx.fillText("Previous Price", 100, yValue + ctx.lineWidth + 8);
+            ctx.fillText(line.text, 100, yValue + ctx.lineWidth + 20);
           }
         }
         return;
@@ -316,7 +327,7 @@ function createChart() {
         mode: null
       },
       "horizontalLine": [{
-        "y": finddata(),
+        "y": finddata() > minvalue - 0.15 ? finddata() : minvalue - 0.1, 
         "text": finddata()
       }],
       legend: {
@@ -349,10 +360,10 @@ function createChart() {
             color: 'rgba(255,255,255,0.4)'
           },
           ticks: {
-            maxTicksLimit: 5,
+            maxTicksLimit: 6,
             max: maxvalue + 0.15,
             min: minvalue - 0.15,
-            stepSize: ((maxvalue - minvalue) / 5).toFixed(1)
+            stepSize: ((maxvalue - minvalue) / 5).toFixed(1) 
 
           }
 
@@ -364,7 +375,7 @@ function createChart() {
           },
           ticks: {
             //get number of unqiue item in y label
-            maxTicksLimit: [...new Set(label)].length
+            maxTicksLimit: [...new Set(label)].length 
           }
         }
 
@@ -383,7 +394,8 @@ function createChart() {
           footerColor: 'transparent',
           callbacks: {
             label: function(tooltipItem, data) {
-              document.querySelector('#info').textContent = tooltipItem.raw + validvalue[tooltipItem.dataIndex].date
+              document.querySelector('#info').textContent = tooltipItem.raw 
+              //document.querySelector('#info').textContent = tooltipItem.raw + validvalue[tooltipItem.dataIndex].date
               return tooltipItem;
 
             }
@@ -394,13 +406,16 @@ function createChart() {
     plugins: [annotation]
 
   });
+
 }
 
 window.onload = function() {
   Promise.all([getCurrentTime(), fetchdata()]).then(function(values) {
-    console.log(values[1])
-    formatData(values[0], values[1])
+    nowtime = new Date(values[0])
+    data=values[1]
+    formatData()
     createChart()
+      console.log(minvalue-0.1)
   })
 }
 
