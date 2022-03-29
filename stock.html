@@ -62,13 +62,7 @@ function fetchdata() {
 }
 //only screenX works here, clientX doesn't work expected.
 document.addEventListener('mousemove', e =>{
-  if(isInCanvas){
-  clientX = e.clientX;
-  //console.log(clientX)
-
-}else{
-  info.style.visibility ='hidden'
-}
+  isInCanvas ? clientX = e.clientX : info.style.visibility ='hidden'
 })
 canvas.addEventListener('mouseenter',()=> isInCanvas = true )
 canvas.addEventListener('mouseleave',()=> isInCanvas = false )
@@ -79,7 +73,6 @@ function formatData() {
     return new Date(a.date) - new Date(b.date)
   }))
 
-  console.log(newdata)
 
   if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
     newdata.forEach((item, index) => {
@@ -134,6 +127,7 @@ function addNullValue() {
   const newestDate = new Date(newdata[newdata.length - 1][1].date)
   const closedDate = new Date(newestDate.getFullYear(), newestDate.getMonth(), newestDate.getDate(), 16)
   const expectedDate = new Date(closedDate - 1000 * 60)
+  console.log(expectedDate)
   if (newestDate === expectedDate) return
   console.log(newestDate, expectedDate)
   const amountToAdd = (expectedDate - newestDate) / 1000 / 60;
@@ -141,16 +135,17 @@ function addNullValue() {
   //nullarray.push.apply(label, nullarray)
   //ternary statement only accept expression, so something like statement ? return .... : return ... will not work
   //value.push(59 - newestDate.getMinutes())
-  console.log(Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
+  //console.log(Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
   label.push.apply(label, Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
-  console.log(expectedDate.getHours())
+  //console.log(expectedDate.getHours())
+  //console.log(newestDate.getHours())
   console.log(newestDate.getHours())
-  for (let i = newestDate.getHours(); i < expectedDate.getHours(); i++) {
+  for (let i = newestDate.getHours() +1; i < 16; i++) {
+    console.log(i)
     label.push.apply(label, Array(60).fill(i))
-    console.log(Array(60).fill(i))
   }
-  console.log(label)
-  console.log(label)
+  console.log(label.filter(i=>i == 15))
+  console.log(label.filter(i=>i == 12))
   label = label.map(i => {
     if (i)
       return (i < 12 ? `${i}am` : `${i}pm`)
@@ -219,10 +214,10 @@ function createChart() {
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-    	const [paddingLeft,paddingRight] = [parseInt(window.getComputedStyle(canvas)['paddingLeft']),parseInt(window.getComputedStyle(canvas)["paddingRight"])]
-    	///console.log(paddingLeft)
-    	const canvasWidth_NoPadding =canvasWidth - paddingLeft - paddingRight
-    	//console.log(canvasWidth_NoPadding )
+      const [paddingLeft,paddingRight] = [parseInt(window.getComputedStyle(canvas)['paddingLeft']),parseInt(window.getComputedStyle(canvas)["paddingRight"])]
+      ///console.log(paddingLeft)
+      const canvasWidth_NoPadding =canvasWidth - paddingLeft - paddingRight
+      //console.log(canvasWidth_NoPadding )
       this.tool = chart.tooltip
       if (this.tool._active && this.tool._active.length) {
         const context = chart.ctx
@@ -247,11 +242,13 @@ function createChart() {
         //console.log(this.tool._active[0].element.x)
         info.style.visibility = 'visible'
         //console.log(clientX > canvasWidth_NoPadding)
-        if(parseInt(clientX) !== parseInt(this.tool._active[0].element.x) ) {
-        	//clientX = this.tool._active[0].element.x;
-        	console.log('fuck')
-        	console.log(parseInt(clientX),parseInt(this.tool._active[0].element.x) )
-        	console.log(parseInt(clientX) == parseInt(this.tool._active[0].element.x))
+        //console.log(myChart.chartArea)
+        console.log(clientX)
+        console.log( myChart.chartArea.width)
+        if(parseInt(clientX) < myChart.chartArea.left || parseInt(clientX) > myChart.chartArea.right  ) {
+          //clientX = this.tool._active[0].element.x;
+          console.log("what")
+        
         }
         info.style.left =clientX - info.offsetWidth/2+ "px"
 
@@ -296,8 +293,8 @@ function createChart() {
 
           if (line.text) {
             ctx.fillStyle = style;
-            ctx.fillText("Previous Price", canvasWidth-85, yValue + ctx.lineWidth + 8);
-            ctx.fillText(line.text, canvasWidth-85, yValue + ctx.lineWidth + 20);
+            ctx.fillText("Previous Price:", canvasWidth-80, yValue + ctx.lineWidth + 8);
+            ctx.fillText(line.text, canvasWidth-80, yValue + ctx.lineWidth + 20);
           }
         }
         return;
@@ -404,6 +401,7 @@ function createChart() {
           callbacks: {
             label: function(tooltipItem, data) {
               document.querySelector('#info').textContent = tooltipItem.raw 
+              console.log(tooltipItem.raw )
               //document.querySelector('#info').textContent = tooltipItem.raw + validvalue[tooltipItem.dataIndex].date
               return tooltipItem;
 
