@@ -37,18 +37,19 @@
 const canvas = document.querySelector('#chart')
 windowWidth = window.innerHeight;
 windowHeight = window.innerWidth;
-ctx = document.querySelector('#chart').getContext('2d');
+ctx = document.querySelector('#chart').getContext('2d')
+canvasHeight = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'))
+canvasWidth = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('width'))
+
+value = []
 value = []
 validvalue = []
 toolTipDiv = document.querySelector('#customToolTip')
 info = document.querySelector('#info');
 let maxvalue, minvalue, data, nowtime,newdata, clientX;
 let isInCanvas =false;
-document.querySelector('canvas').style.height = `${windowHeight }px !important`
-
-let valuesing = ctx.canvas.height;
-//parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'));
-console.log(valuesing)
+//document.querySelector('canvas').style.height = `${windowHeight }px !important`
+ 
 //window.stop()
 let label = []
 
@@ -63,7 +64,7 @@ function fetchdata() {
 document.addEventListener('mousemove', e =>{
   if(isInCanvas){
   clientX = e.clientX;
-  console.log(clientX)
+  //console.log(clientX)
 
 }else{
   info.style.visibility ='hidden'
@@ -186,7 +187,7 @@ function returnColor() {
 
 function linearGarident(color) {
   console.log([...new Set(label)])
-  const gradient = ctx.createLinearGradient(0, 0, 0, parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height')))
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
     gradient.addColorStop(0.5, "rgba(82,196,250,0.3)");
@@ -209,9 +210,6 @@ function linearGarident(color) {
 
 }
 
-        function returnposition(e){
-          return e.screenY
-        }
 
 function createChart() {
 
@@ -220,7 +218,11 @@ function createChart() {
 
   const annotation = {
     id: 'annotationline',
-    beforeDraw: function(chart) {
+    afterDraw: function(chart) {
+    	const [paddingLeft,paddingRight] = [parseInt(window.getComputedStyle(canvas)['paddingLeft']),parseInt(window.getComputedStyle(canvas)["paddingRight"])]
+    	///console.log(paddingLeft)
+    	const canvasWidth_NoPadding =canvasWidth - paddingLeft - paddingRight
+    	//console.log(canvasWidth_NoPadding )
       this.tool = chart.tooltip
       if (this.tool._active && this.tool._active.length) {
         const context = chart.ctx
@@ -236,14 +238,21 @@ function createChart() {
         context.restore()
         context.moveTo(this.tool._active[0].element.x, this.tool._active[0].element.y)
         context.globalCompositeOperation = 'destination-over';
-        context.arc(this.tool._active[0].element.x, this.tool._active[0].element.y, 17.5, 0, 2 * Math.PI)
+        context.arc(this.tool._active[0].element.x, this.tool._active[0].element.y, 12.5, 0, 2 * Math.PI)
 
         context.fillStyle = '#52c4fa';
         context.fill()
         context.restore()
         context.save()
-        console.log(this.tool._active[0].element.x)
+        //console.log(this.tool._active[0].element.x)
         info.style.visibility = 'visible'
+        //console.log(clientX > canvasWidth_NoPadding)
+        if(parseInt(clientX) !== parseInt(this.tool._active[0].element.x) ) {
+        	//clientX = this.tool._active[0].element.x;
+        	console.log('fuck')
+        	console.log(parseInt(clientX),parseInt(this.tool._active[0].element.x) )
+        	console.log(parseInt(clientX) == parseInt(this.tool._active[0].element.x))
+        }
         info.style.left =clientX - info.offsetWidth/2+ "px"
 
       }
@@ -276,7 +285,7 @@ function createChart() {
 
           if (yValue) {
             //if(yValue < minvalue-0.15) yValue = minvalue 
-            console.log(yValue)  
+            //console.log(yValue)  
             ctx.beginPath();
             ctx.setLineDash([5, 3])
             ctx.moveTo(45, yValue);
@@ -287,8 +296,8 @@ function createChart() {
 
           if (line.text) {
             ctx.fillStyle = style;
-            ctx.fillText("Previous Price", 100, yValue + ctx.lineWidth + 8);
-            ctx.fillText(line.text, 100, yValue + ctx.lineWidth + 20);
+            ctx.fillText("Previous Price", canvasWidth-85, yValue + ctx.lineWidth + 8);
+            ctx.fillText(line.text, canvasWidth-85, yValue + ctx.lineWidth + 20);
           }
         }
         return;
@@ -406,7 +415,7 @@ function createChart() {
     plugins: [annotation]
 
   });
-
+console.log(myChart.chartArea)
 }
 
 window.onload = function() {
@@ -418,8 +427,6 @@ window.onload = function() {
       console.log(minvalue-0.1)
   })
 }
-
-
     </script>
 </body>
 </html>
