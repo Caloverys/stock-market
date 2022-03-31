@@ -15,31 +15,31 @@
             top: 12.5%;
             color: #52c4fa;
             font-weight: bold;
-                	visibility: hidden;
+                  visibility: hidden;
 
 
 
          }
     #parentdiv{
-    	 height:90vh;
-    	 width: 90vw;
+       height:90vh;
+       width: 90vw;
     }
     #dateinfo{
-    	position: fixed;
-    	color: white;
-    	top: 5%;
-    	left: 40vw;
-    	visibility: hidden;
+      position: fixed;
+      color: white;
+      top: 5%;
+      left: 40vw;
+      visibility: hidden;
     }
     </style>
 </head>
 <body>
 <div id='parentdiv'>
-	 	<canvas id="chart"></canvas>
-	 </div>
-	 	<div id='info'></div>
-	 	<div id='dateinfo'></div>
-	 	<div id='customToolTip'></div>
+    <canvas id="chart"></canvas>
+   </div>
+    <div id='info'></div>
+    <div id='dateinfo'></div>
+    <div id='customToolTip'></div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript">
 
@@ -70,19 +70,19 @@ function fetchdata() {
 
 }
 //only screenX works here, clientX doesn't work expected.
-canvas.addEventListener('mousemove', e =>{
+document.addEventListener('mousemove', e =>{
   if(isInCanvas) clientX = e.clientX 
-  	else{
-  		info.style.visibility ='hidden'
-  		dateinfo.style.visibility ='hidden'
-  	}
+    else{
+      info.style.visibility ='hidden'
+      dateinfo.style.visibility ='hidden'
+    }
 
 })
 canvas.addEventListener('mousedown',function(){
 
 })
 canvas.addEventListener('mouseup',function(){
-	
+  
 })
 canvas.addEventListener('mouseenter',()=> isInCanvas = true )
 canvas.addEventListener('mouseleave',()=> isInCanvas = false )
@@ -91,18 +91,19 @@ canvas.addEventListener('mouseleave',()=> isInCanvas = false )
 function formatData() {
   newdata = Object.entries(data).sort((([, a], [, b]) => {
     return new Date(a.date) - new Date(b.date)
-  }))
+  })).map(i=>{ return i[1]})
+  console.log(newdata)
 
 
   if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
     newdata.forEach((item, index) => {
-      this.newdate = new Date(item[1].date);
+      this.newdate = new Date(item.date);
       if (nowtime.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours())
 
 
-        validvalue.push(item[1])
-        const price = ((item[1].close + item[1].open) / 2).toFixed(2)
+        validvalue.push(item)
+        const price = ((item.close + item.open) / 2).toFixed(2)
         value.push(price)
 
       }
@@ -110,14 +111,14 @@ function formatData() {
   } else {
     newdata.forEach((item, index) => {
       //if(index <500){;
-      this.newdate = new Date(item[1].date);
+      this.newdate = new Date(item.date);
       // console.log(this.newdate)
       // console.log(this.newdate.getDay())
 
       if (this.newdate.getDay() === 5) {
         label.push(this.newdate.getHours())
-        validvalue.push(item[1])
-        const price = ((item[1].close + item[1].open) / 2).toFixed(2)
+        validvalue.push(item)
+        const price = ((item.close + item.open) / 2).toFixed(2)
         value.push(price)
 
       }
@@ -144,7 +145,7 @@ function getCurrentTime() {
 
 
 function addNullValue() {
-  const newestDate = new Date(newdata[newdata.length - 1][1].date)
+  const newestDate = new Date(newdata[newdata.length - 1].date)
   const closedDate = new Date(newestDate.getFullYear(), newestDate.getMonth(), newestDate.getDate(), 16)
   const expectedDate = new Date(closedDate - 1000 * 60)
   console.log(expectedDate)
@@ -152,7 +153,7 @@ function addNullValue() {
   console.log(newestDate, expectedDate)
   const amountToAdd = (expectedDate - newestDate) / 1000 / 60;
   const nullarray = Array(amountToAdd).fill(null)
-  //nullarray.push.apply(label, nullarray)
+  newdata.push.apply(newdata, nullarray)
   //ternary statement only accept expression, so something like statement ? return .... : return ... will not work
   //value.push(59 - newestDate.getMinutes())
   //console.log(Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
@@ -164,8 +165,6 @@ function addNullValue() {
     console.log(i)
     label.push.apply(label, Array(60).fill(i))
   }
-  console.log(label.filter(i=>i == 15))
-  console.log(label.filter(i=>i == 12))
   label = label.map(i => {
     if (i)
       return (i < 12 ? `${i}am` : `${i}pm`)
@@ -174,13 +173,14 @@ function addNullValue() {
 }
 
 function finddata() {
+  console.log(newdata)
+  console.log(newdata[newdata.length - 1])
 
-  const latestdate = new Date(newdata[newdata.length - 1][1].date).getDate()
+  const latestdate = new Date(newdata[newdata.length - 1].date).getDate()
   for (let i = newdata.length - 1; i >= 0; i--) {
-    if (new Date(newdata[newdata.length - 1][1].date).getDate() != new Date(newdata[i][1].date).getDate()) {
-      console.log(newdata[i][1].close)
+    if (new Date(newdata[newdata.length - 1].date).getDate() != new Date(newdata[i][1].date).getDate()) {
       
-      return newdata[i][1].close;
+      return newdata[i].close;
     }
   }
 }
@@ -189,7 +189,6 @@ function returnColor() {
   //current stock price 
   const currentprice = data[0].close;
   console.log(data[0])
-  console.log(newdata[0][1])
   console.log(currentprice)
   console.log(finddata())
   if (currentprice >= finddata()) {
@@ -256,6 +255,7 @@ function createChart() {
         context.save()
         info.style.visibility = 'visible'
         dateinfo.style.visibility = 'visible'
+
         //console.log(this.tool._active[0].element.x)
 
         //console.log(clientX > canvasWidth_NoPadding)
@@ -373,7 +373,7 @@ function createChart() {
             stepValue: ((maxvalue - minvalue) / 5).toFixed(1),
             color:'rgba(255,255,255,0.75)',
             font:{
-            	size:14
+              size:14
             }
 
           }
@@ -389,7 +389,7 @@ function createChart() {
             maxTicksLimit: [...new Set(label)].length,
             color:'rgba(255,255,255,0.75)',
             font:{
-            	size:14
+              size:14
             }
           }
         }
@@ -409,7 +409,9 @@ function createChart() {
           footerColor: 'transparent',
           callbacks: {
             label: function(tooltipItem, data) {
-              document.querySelector('#info').textContent = tooltipItem.raw 
+              info.textContent = tooltipItem.raw 
+              console.log(tooltipItem.raw )
+
               dateinfo.textContent =  validvalue[tooltipItem.dataIndex].date
 
               
