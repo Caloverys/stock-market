@@ -126,7 +126,6 @@ function formatData() {
 
   }
   getCurrentTime()
-  console.log(validvalue)
 
   addNullValue()
   maxvalue = Math.max.apply(null, value)
@@ -173,16 +172,11 @@ function addNullValue() {
 }
 
 function finddata() {
-  console.log(newdata)
-  console.log(newdata[newdata.length - 1])
+  const filtereddata = newdata.filter(i=> i !== null)
+  for (let i = filtereddata.length - 1; i >= 0; i--) 
+     if (new Date(filtereddata[filtereddata.length - 1].date).getDate() != new Date(filtereddata[i].date).getDate()) return filtereddata[i].close;
 
-  const latestdate = new Date(newdata[newdata.length - 1].date).getDate()
-  for (let i = newdata.length - 1; i >= 0; i--) {
-    if (new Date(newdata[newdata.length - 1].date).getDate() != new Date(newdata[i][1].date).getDate()) {
-      
-      return newdata[i].close;
-    }
-  }
+
 }
 
 function returnColor() {
@@ -408,9 +402,9 @@ function createChart() {
           bodyColor: 'transparent',
           footerColor: 'transparent',
           callbacks: {
-            label: function(tooltipItem, data) {
+            label: function(tooltipItem) {
               info.textContent = tooltipItem.raw 
-              console.log(tooltipItem.raw )
+              console.log(tooltipItem,tooltipItem.dataIndex)
 
               dateinfo.textContent =  validvalue[tooltipItem.dataIndex].date
 
