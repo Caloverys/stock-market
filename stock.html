@@ -2,50 +2,59 @@
 <html lang="en">
 <head>
     <style>
-     canvas{
+   canvas{
    background-color: rgba(0,0,0,0.8);
     z-index: 1;
-    padding: 25px;
-    padding-top: 10vh;
-   
-
-
-  
+      padding: 50px;
+      padding-top: 100px;
     }
          #info{
             position: fixed;
+            left: 40%;
             z-index: 99;
-            top: 7%;
-            color: white;
+            top: 12.5%;
+            color: #52c4fa;
             font-weight: bold;
-            visibility: hidden;
-             color: #52c4fa
+                	visibility: hidden;
+
 
 
          }
     #parentdiv{
-         height:90vh;
-         width: 90vw;
-    } 
+    	 height:90vh;
+    	 width: 90vw;
+    }
+    #dateinfo{
+    	position: fixed;
+    	color: white;
+    	top: 5%;
+    	left: 40vw;
+    	visibility: hidden;
+    }
     </style>
 </head>
 <body>
-    <div id='parentdiv'><canvas id="chart" ></canvas></div>
-    <div id='info'></div>
+<div id='parentdiv'>
+	 	<canvas id="chart"></canvas>
+	 </div>
+	 	<div id='info'></div>
+	 	<div id='dateinfo'></div>
+	 	<div id='customToolTip'></div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript">
+
 const canvas = document.querySelector('#chart')
 windowWidth = window.innerHeight;
 windowHeight = window.innerWidth;
 ctx = document.querySelector('#chart').getContext('2d')
 canvasHeight = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'))
 canvasWidth = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('width'))
-
 value = []
 value = []
 validvalue = []
 toolTipDiv = document.querySelector('#customToolTip')
-info = document.querySelector('#info');
+info = document.querySelector('#info')
+dateinfo = document.querySelector('#dateinfo');
 let maxvalue, minvalue, data, nowtime,newdata, clientX;
 let isInCanvas =false;
 //document.querySelector('canvas').style.height = `${windowHeight }px !important`
@@ -61,8 +70,19 @@ function fetchdata() {
 
 }
 //only screenX works here, clientX doesn't work expected.
-document.addEventListener('mousemove', e =>{
-  isInCanvas ? clientX = e.clientX : info.style.visibility ='hidden'
+canvas.addEventListener('mousemove', e =>{
+  if(isInCanvas) clientX = e.clientX 
+  	else{
+  		info.style.visibility ='hidden'
+  		dateinfo.style.visibility ='hidden'
+  	}
+
+})
+canvas.addEventListener('mousedown',function(){
+
+})
+canvas.addEventListener('mouseup',function(){
+	
 })
 canvas.addEventListener('mouseenter',()=> isInCanvas = true )
 canvas.addEventListener('mouseleave',()=> isInCanvas = false )
@@ -181,7 +201,6 @@ function returnColor() {
 
 
 function linearGarident(color) {
-  console.log([...new Set(label)])
   const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
@@ -200,7 +219,6 @@ function linearGarident(color) {
 
 
 
-  console.log(gradient)
   return gradient
 
 }
@@ -208,7 +226,6 @@ function linearGarident(color) {
 
 function createChart() {
 
-  console.log(value)
   const ctx = document.getElementById('chart').getContext('2d');
 
   const annotation = {
@@ -221,7 +238,6 @@ function createChart() {
       this.tool = chart.tooltip
       if (this.tool._active && this.tool._active.length) {
         const context = chart.ctx
-        context.save();
         const hoverpoint = this.tool._active[0];
         ctx.setLineDash([])
         context.beginPath();
@@ -237,19 +253,17 @@ function createChart() {
 
         context.fillStyle = '#52c4fa';
         context.fill()
-        context.restore()
         context.save()
-        //console.log(this.tool._active[0].element.x)
         info.style.visibility = 'visible'
+        dateinfo.style.visibility = 'visible'
+        //console.log(this.tool._active[0].element.x)
+
         //console.log(clientX > canvasWidth_NoPadding)
         //console.log(myChart.chartArea)
-        console.log(clientX)
-        console.log( myChart.chartArea.width)
-        if(parseInt(clientX) < myChart.chartArea.left || parseInt(clientX) > myChart.chartArea.right  ) {
-          //clientX = this.tool._active[0].element.x;
-          console.log("what")
         
-        }
+
+        if(parseInt(clientX) >= myChart.chartArea.right -39) clientX = myChart.chartArea.right -39
+        else if(parseInt(clientX) <= myChart.chartArea.left + 40) clientX = myChart.chartArea.left + 40    
         info.style.left =clientX - info.offsetWidth/2+ "px"
 
       }
@@ -261,41 +275,28 @@ function createChart() {
     id: 'horizontalLine',
     order: 500,
    afterDraw: function(chartInstance) {
-      var yScale = chartInstance.scales["y"];
-      var index;
-      var line;
-      var style;
+      const yScale = chartInstance.scales["y"];
+      let index,line,style;
 
       if (chartInstance.options.horizontalLine) {
         for (index = 0; index < chartInstance.options.horizontalLine.length; index++) {
           line = chartInstance.options.horizontalLine[index];
 
           style = 'white'
+          if(finddata() > maxvalue + 0.15) line.y = maxvalue -0.1
 
-          if (line.y) {
-            yValue = yScale.getPixelForValue(line.y);
-          } else {
-            yValue = 0;
-          }
+          line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
 
           ctx.lineWidth = 3;
-
-          if (yValue) {
-            //if(yValue < minvalue-0.15) yValue = minvalue 
-            //console.log(yValue)  
             ctx.beginPath();
             ctx.setLineDash([5, 3])
             ctx.moveTo(45, yValue);
             ctx.lineTo(document.querySelector('#chart').width, yValue);
             ctx.strokeStyle = style;
             ctx.stroke();
-          } 
-
-          if (line.text) {
             ctx.fillStyle = style;
-            ctx.fillText("Previous Price:", canvasWidth-80, yValue + ctx.lineWidth + 8);
-            ctx.fillText(line.text, canvasWidth-80, yValue + ctx.lineWidth + 20);
-          }
+            ctx.fillText("Previous Price:", canvasWidth-100, yValue + ctx.lineWidth + 10);
+            ctx.fillText(line.text, canvasWidth-100, yValue + ctx.lineWidth + 22);
         }
         return;
       }
@@ -319,7 +320,7 @@ function createChart() {
         hoverBackgroundColor: linearGarident('color'),
         hoverBorderColor: "rgba(82,196,250,0.8)",
         borderColor: returnColor(),
-        order: 2
+       
 
       }]
     },
@@ -333,7 +334,7 @@ function createChart() {
         mode: null
       },
       "horizontalLine": [{
-        "y": finddata() > minvalue - 0.15 ? finddata() : minvalue - 0.1, 
+        "y":finddata() > minvalue - 0.15 ? finddata() : minvalue - 0.1, 
         "text": finddata()
       }],
       legend: {
@@ -368,8 +369,12 @@ function createChart() {
           ticks: {
             maxTicksLimit: 6,
             max: maxvalue + 0.15,
-            min: minvalue - 0.15,
-            stepSize: ((maxvalue - minvalue) / 5).toFixed(1) 
+            min:minvalue - 0.15,
+            stepValue: ((maxvalue - minvalue) / 5).toFixed(1),
+            color:'rgba(255,255,255,0.75)',
+            font:{
+            	size:14
+            }
 
           }
 
@@ -381,7 +386,11 @@ function createChart() {
           },
           ticks: {
             //get number of unqiue item in y label
-            maxTicksLimit: [...new Set(label)].length 
+            maxTicksLimit: [...new Set(label)].length,
+            color:'rgba(255,255,255,0.75)',
+            font:{
+            	size:14
+            }
           }
         }
 
@@ -401,8 +410,9 @@ function createChart() {
           callbacks: {
             label: function(tooltipItem, data) {
               document.querySelector('#info').textContent = tooltipItem.raw 
-              console.log(tooltipItem.raw )
-              //document.querySelector('#info').textContent = tooltipItem.raw + validvalue[tooltipItem.dataIndex].date
+              dateinfo.textContent =  validvalue[tooltipItem.dataIndex].date
+
+              
               return tooltipItem;
 
             }
@@ -413,7 +423,6 @@ function createChart() {
     plugins: [annotation]
 
   });
-console.log(myChart.chartArea)
 }
 
 window.onload = function() {
@@ -422,9 +431,14 @@ window.onload = function() {
     data=values[1]
     formatData()
     createChart()
-      console.log(minvalue-0.1)
+    console.log(maxvalue-minvalue)
+    console.log(minvalue)
+   
+
+
   })
 }
+
     </script>
 </body>
 </html>
