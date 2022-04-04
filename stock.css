@@ -5,6 +5,8 @@
       padding-top: 100px;
       margin: 5px;
     }
+    h1{position: fixed;
+    	left: 100px}
          #info{
             position: fixed;
             left: 40%;
