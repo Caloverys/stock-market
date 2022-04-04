@@ -13,7 +13,7 @@ const canvas = document.querySelector('#chart')
 ,input = document.querySelector('input[type=text]')
 deletebutton = document.querySelector('#deletebutton');
 let lastIndex = 0
-let maxvalue, minvalue, data, nowtime, clientX;
+let maxvalue, minvalue, data, nowtime, clientX, newestDate;
 let isInCanvas =false;
 let times = 0;
 
@@ -63,9 +63,23 @@ canvas.addEventListener('mouseleave',()=> isInCanvas = false )
 
 
 function formatData() {
+  newestDate = new Date(data[data.length - 1].date)
+  data.forEach((item, index) => {
+      this.newdate = new Date(item.date);
+      if (newestDate.getDate() === this.newdate.getDate()) {
+        label.push(this.newdate.getHours())
+        validvalue.push(item)
+        value.push(((item.close + item.open) / 2).toFixed(2))
+
+      }
+    })
+     addNullValue()
+      maxvalue = Math.max.apply(null, value)
+  minvalue = Math.min.apply(null, value)
+  label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
 	
-  if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
-    newdata.forEach((item, index) => {
+  /*if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
+    data.forEach((item, index) => {
       this.newdate = new Date(item.date);
       if (nowtime.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours())
@@ -83,15 +97,13 @@ function formatData() {
         validvalue.push(item)
         value.push(((item.close + item.open) / 2).toFixed(2))
       }
-    })
+    })*/
 
   }
-  maxvalue = Math.max.apply(null, value)
-  minvalue = Math.min.apply(null, value)
-  label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
+ 
 
 
-}
+//}
 
 
 
@@ -103,7 +115,6 @@ function getCurrentTime() {
 
 
 function addNullValue() {
-  const newestDate = new Date(data[data.length - 1].date)
   const expectedDate = new Date(newestDate.getFullYear(), newestDate.getMonth(), newestDate.getDate(), 15,59)
   if (newestDate === expectedDate) return 
   const amountToAdd = (expectedDate - newestDate) / 1000 / 60;
@@ -342,7 +353,9 @@ window.onload = function() {
     data=Object.entries(values[1]).sort((([, a], [, b]) => {
     return new Date(a.date) - new Date(b.date)
   })).map(i=>{ return i[1]})
+    console.log(data)
     formatData()
+
     createChart()
   })
 }
