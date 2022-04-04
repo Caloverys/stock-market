@@ -1,0 +1,44 @@
+m		body{
+			background: linear-gradient(rgba(255,255,255,0.1),rgba(255,255,255,0.1)),url("https://www.marketplace.org/wp-content/uploads/2021/10/stockmarket.jpg?fit=2800%2C1575");
+
+background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+		}
+		
+text:not(.date) {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+
+  animation: draw1 10s forwards;
+  font-style: italic ;
+}
+
+.date{
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw2 5s forwards;
+  color: red;
+  font-weight: lighter;
+
+}
+svg{
+    width: 100vw;
+    height: 50vh;
+  
+}
+
+@keyframes draw1 {
+
+	to{
+    stroke-dashoffset: 0;
+     fill: black;
+  }
+}
+@keyframes draw2 {
+
+	to{
+    stroke-dashoffset: 0;
+     fill: red;
+  }
+}
