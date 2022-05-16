@@ -13,7 +13,7 @@ const canvas = document.querySelector('#chart')
 ,input = document.querySelector('input[type=text]')
 deletebutton = document.querySelector('#deletebutton');
 let lastIndex = 0
-let maxvalue, minvalue, data, nowtime, clientX, newestDate;
+let maxvalue, minvalue, data, nowtime, clientX, newestDate,pos;
 let isInCanvas =false;
 let times = 0;
 
@@ -23,9 +23,9 @@ let times = 0;
 let label = []
 document.querySelector('#deletebutton').addEventListener('click',() =>{
 
-	console.log('hi')
-		input.blur();
-		input.value = ""
+  console.log('hi')
+    input.blur();
+    input.value = ""
 })
 document.querySelector('#searchicon').addEventListener('click',() =>{
 document.activeElement === input ? input.blur() : input.focus()
@@ -34,24 +34,27 @@ console.log(document.activeElement)
 
 
 function getSymbol(){
-	/*return fetch("https://financialmodelingprep.com/api/v3/financial-statement-symbol-lists?apikey=c38b723e031c88753f0c9e66f505f557")
-	.then(res => res.json())*/
+  /*return fetch("https://financialmodelingprep.com/api/v3/financial-statement-symbol-lists?apikey=c38b723e031c88753f0c9e66f505f557")
+  .then(res => res.json())*/
 
 }
 function fetchData() {
-  return fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/KEYS?apikey=c38b723e031c88753f0c9e66f505f557")
+
+  //
+  return fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/AAPL?apikey=c38b723e031c88753f0c9e66f505f557")
     .then(res => res.json())
 
 }
 //only screenX works here, clientX doesn't work expected.
 document.addEventListener('mousemove', e =>{
-  if(isInCanvas) clientX = e.clientX 
-    else{
-      info.style.visibility ='hidden'
-      dateinfo.style.visibility ='hidden'
+  if(isInCanvas && pos.y >= e.clientY ) clientX = e.clientX 
+        else{
+        info.style.visibility ='hidden'
+        dateinfo.style.visibility ='hidden'
     }
 
 })
+
 canvas.addEventListener('mousedown',function(){
 
 })
@@ -62,12 +65,21 @@ canvas.addEventListener('mouseenter',()=> isInCanvas = true )
 canvas.addEventListener('mouseleave',()=> isInCanvas = false )
 
 
+function date(dateobject){
+  return new Date(dateobject.substring(0,4), dateobject.substring(5,7),dateobject.substring(8,10),dateobject.substring(11,13),dateobject.substring(14,16),"00")
+
+}
+
 function formatData() {
-  newestDate = new Date(data[data.length - 1].date)
+  let d = data[data.length - 1].date
+  newestDate = date(data[data.length - 1].date)
+
+  //new Date(data[data.length - 1].date)
   data.forEach((item, index) => {
-      this.newdate = new Date(item.date);
+      this.newdate = new Date(date(item.date));
       if (newestDate.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours())
+        console.log(item)
         validvalue.push(item)
         value.push(((item.close + item.open) / 2).toFixed(2))
 
@@ -77,7 +89,7 @@ function formatData() {
       maxvalue = Math.max.apply(null, value)
   minvalue = Math.min.apply(null, value)
   label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
-	
+  
   /*if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
     data.forEach((item, index) => {
       this.newdate = new Date(item.date);
@@ -85,7 +97,6 @@ function formatData() {
         label.push(this.newdate.getHours())
         validvalue.push(item)
         value.push(((item.close + item.open) / 2).toFixed(2))
-
       }
     })
       addNullValue()
@@ -116,38 +127,41 @@ function getCurrentTime() {
 
 function addNullValue() {
   const expectedDate = new Date(newestDate.getFullYear(), newestDate.getMonth(), newestDate.getDate(), 15,59)
-  if (newestDate === expectedDate) return 
+  console.log(newestDate,expectedDate)
+ //Note that for expectedDate, the time we set is 15:59, but the newestDate is 16:00, so we need add 1 minute (60000) here for comparision
+  if (newestDate.valueOf() === new Date(expectedDate.getTime()+60000).valueOf()) return 
+    console.log(newestDate === new Date(expectedDate.getTime()+60000))
   const amountToAdd = (expectedDate - newestDate) / 1000 / 60;
 //Add null value to array with numbers of minutes left to the close market which is 4 p.m.
-  data.push.apply(data, Array(amountToAdd).fill(null))
-  
+ if (amountToAdd > 0) data.push.apply(data, Array(amountToAdd).fill(null)) 
+  console.log(59 - newestDate.getMinutes())
+   console.log(Array(59 - newestDate.getMinutes()))
+  console.log(label, Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
   label.push.apply(label, Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
-  for (let i = newestDate.getHours() +1; i < 16; i++) label.push.apply(label, Array(60).fill(i))
-    //ternary statement only accept expression, so something like statement ? return .... : 
- label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
+  for (let i = newestDate.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
+   
 
-  
-  console.log(label)
 }
 
 function finddata() {
   const filtereddata = data.filter(i=> i !== null)
- 
   for (let i = filtereddata.length - 1; i >= 0; i--) {
-
      if (new Date(filtereddata[filtereddata.length - 1].date).getDate() != new Date(filtereddata[i].date).getDate()){
-    
-     	return filtereddata[i].close;
+
+      return filtereddata[i].close;
      } 
  }
- //return 160
 
 
 }
 
 function returnColor() {
   //data[0].close give us latest/current stock price
-  return (data[0].close >= finddata() ? "lawngreen" : "red")
+  console.log(finddata(),data[0].close)
+  console.log(validvalue)
+  console.log(validvalue.length)
+  console.log(data[0].close >= finddata() ? "lawngreen" : "red")
+  return (validvalue[0].close >= finddata() ? "lawngreen" : "red")
 }
 
 
@@ -171,39 +185,83 @@ function linearGarident(color) {
 
 }
 function createChart() {
+  let importantvalue ={
+    first:null,
+    first_index:null,
+    final:null,
+    final_index:null
+  }
+  let firstvalue = null;
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-      this.tool = chart.tooltip
-      if (this.tool._active && this.tool._active.length) {
-        if(lastIndex === validvalue.length -1) times++
-        else if (lastIndex !==validvalue.length -1 && times > 1) times = 0
-        const hoverpoint = this.tool._active[0];
+
+
+
+    //let clientX =event.target.value;
+      if (!chart.tooltip._active || !chart.tooltip._active.length) return;
+
+      chart.tooltip = chart.tooltip
+      pos = chart.tooltip._active[0].element
+
+      window.mousemove = function(e){
+        if(isInCanvas && pos.y >= e.clientY ) clientX = e.clientX 
+        else{
+        info.style.visibility ='hidden'
+        dateinfo.style.visibility ='hidden'
+    }
+
+      }
+        if(lastIndex === validvalue.length -1){
+          times++; 
+          importantvalue.final_index = chart.tooltip._active[0].element.x
+        }
+        else if (lastIndex !== validvalue.length -1 && times > 1) times = 0
+        const hoverpoint = chart.tooltip._active[0];
         ctx.beginPath()
         ctx.setLineDash([])
-        ctx.moveTo(this.tool._active[0].element.x, chart.chartArea.top);
-        ctx.lineTo(this.tool._active[0].element.x, chart.chartArea.bottom);
+        ctx.moveTo(chart.tooltip._active[0].element.x, chart.chartArea.top);
+        ctx.lineTo(chart.tooltip._active[0].element.x, chart.chartArea.bottom);
         ctx.lineWidth = 2.5;
         ctx.strokeStyle = '#52c4fa';
         ctx.stroke();
         ctx.restore()
-        ctx.moveTo(this.tool._active[0].element.x, this.tool._active[0].element.y)
+        ctx.moveTo(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y)
         ctx.globalCompositeOperation = 'destination-over';
-        ctx.arc(this.tool._active[0].element.x, this.tool._active[0].element.y, 12.5, 0, 2 * Math.PI)
+        ctx.arc(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
         ctx.fillStyle = '#52c4fa';
         ctx.fill()
         ctx.closePath()
         info.style.visibility = 'visible'
         dateinfo.style.visibility = 'visible'  
-        if(times > 1) clientX =this.tool._active[0].element.x+info.offsetWidth/2
-        else if(parseInt(clientX) >= myChart.chartArea.right -39) clientX = myChart.chartArea.right -39;
-        else if(parseInt(clientX) <= myChart.chartArea.left + 40) clientX = myChart.chartArea.left + 40;
+        //if(times > 1) 
+      //clientX =chart.tooltip._active[0].element.x+info.offsetWidth/2
+      if(importantvalue.final_index  && chart.tooltip._active[0].element.x === importantvalue.final_index )
+        clientX = importantvalue.final_index -parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info.offsetWidth/2
+    
+
+
+      //}
+      
+        //else if(parseInt(clientX) >= myChart.chartArea.right -79){
+          //clientX = myChart.chartArea.right -79;
+         // console.log(clientX)
+
+        //} 
+        //else if(parseInt(clientX) <= myChart.chartArea.left + 40){
+          //clientX = myChart.chartArea.left + 40;
+
+          //console.log(clientX)
+       // } 
+       // console.log(clientX,myChart.chartArea, times)
 
         info.style.left = clientX - info.offsetWidth/2+ "px"
-      }
+
+       
+      
     }
   }
-  var horizonalLinePlugin = {
+  let horizonalLinePlugin = {
 
     id: 'horizontalLine',
    afterDraw: function(chartInstance) {
@@ -346,14 +404,21 @@ function createChart() {
 
 window.onload = function() {
   Promise.all([getCurrentTime(), fetchData(),getSymbol()]).then(function(values) {
-  	console.log()
+
     nowtime = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-
+    /*
     data=Object.entries(values[1]).sort((([, a], [, b]) => {
+      console.log(a,b)
     return new Date(a.date) - new Date(b.date)
   })).map(i=>{ return i[1]})
-    console.log(data)
+    console.log(Object.entries(values[1]))*/
+  data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : a > b ? 1 : 0)
+  
+
+
+
+  //console.log(values[1],sortByDate(values[1]))
     formatData()
 
     createChart()
