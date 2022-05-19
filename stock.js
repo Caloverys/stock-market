@@ -1,19 +1,13 @@
 //Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
 const canvas = document.querySelector('#chart')
-,windowWidth = window.innerHeight
-,windowHeight = window.innerWidth
-,ctx = document.querySelector('#chart').getContext('2d')
-,canvasHeight = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'))
-,canvasWidth = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('width'))
-,value = []
-,validvalue = []
-,toolTipDiv = document.querySelector('#customToolTip')
-,info = document.querySelector('#info')
-,dateinfo = document.querySelector('#dateinfo')
+,context = canvas.getContext('2d')
+,dataset = []
+,detail_dataset = []
+,info_price = document.querySelector('#info_price')
+,info_date= document.querySelector('#info_date')
 ,input = document.querySelector('input[type=text]')
-deletebutton = document.querySelector('#deletebutton');
 let lastIndex = 0
-let maxvalue, minvalue, data, nowtime, clientX, newestDate;
+let max_value, min_value, raw_data, time_current, clientX, date_latest;
 let isInCanvas =false;
 let times = 0;
 
@@ -22,14 +16,11 @@ let times = 0;
 //window.stop()
 let label = []
 document.querySelector('#deletebutton').addEventListener('click',() =>{
-
-  console.log('hi')
     input.blur();
     input.value = ""
 })
 document.querySelector('#searchicon').addEventListener('click',() =>{
 document.activeElement === input ? input.blur() : input.focus()
-console.log(document.activeElement)
 })
 
 
@@ -38,10 +29,10 @@ function getSymbol(){
   .then(res => res.json())*/
 
 }
-function fetchData() {
+function fetchData(symbol,range) {
+  console.log(symbol)
 
-  //
-  return fetch("https://financialmodelingprep.com/api/v3/historical-chart/1min/AAPL?apikey=c38b723e031c88753f0c9e66f505f557")
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}min/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
     .then(res => res.json())
 
 }
@@ -51,8 +42,8 @@ document.addEventListener('mousemove', e =>{
 
   if(isInCanvas) clientX = e.clientX 
         else{
-        info.style.visibility ='hidden'
-        dateinfo.style.visibility ='hidden'
+        info_price.style.visibility ='hidden'
+        info_date.style.visibility ='hidden'
     }
 
 })
@@ -67,28 +58,23 @@ canvas.addEventListener('mouseenter',()=> isInCanvas = true )
 canvas.addEventListener('mouseleave',()=> isInCanvas = false )
 
 
-function date(dateobject){
+function formatDate(dateobject){
   return new Date(dateobject.substring(0,4), dateobject.substring(5,7),dateobject.substring(8,10),dateobject.substring(11,13),dateobject.substring(14,16),"00")
-
 }
 
 function formatData() {
-  let d = data[data.length - 1].date
-  newestDate = date(data[data.length - 1].date)
-
-  //new Date(data[data.length - 1].date)
-  data.forEach((item, index) => {
-      this.newdate = new Date(date(item.date));
-      if (newestDate.getDate() === this.newdate.getDate()) {
+  date_latest = formatDate(raw_data[raw_data.length - 1].date)
+  raw_data.forEach((item, index) => {
+      this.newdate = new Date(formatDate(item.date));
+      if (date_latest.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours())
-        validvalue.push(item)
-        value.push(item.close.toFixed(2))
-
+        detail_dataset.push(item)
+        dataset.push(item.close.toFixed(2))
       }
     })
      addNullValue()
-      maxvalue = Math.max.apply(null, value)
-  minvalue = Math.min.apply(null, value)
+      max_value = Math.max.apply(null, dataset)
+  min_value = Math.min.apply(null, dataset)
   label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
 
   }
@@ -99,34 +85,29 @@ function formatData() {
 function getCurrentTime() {
   return fetch("https://worldtimeapi.org/api/timezone/Europe/London")
     .then(res => res.json())
-    .then(data => new Date(data.datetime))
+    .then(raw_data => new Date(raw_data.datetime))
 }
 
 
 function addNullValue() {
-  const expectedDate = new Date(newestDate.getFullYear(), newestDate.getMonth(), newestDate.getDate(), 15,59)
- //Note that for expectedDate, the time we set is 15:59, but the newestDate is 16:00, so we need add 1 minute (60000) here for comparision
-  if (newestDate.valueOf() === new Date(expectedDate.getTime()+60000).valueOf()) return 
-    console.log(newestDate === new Date(expectedDate.getTime()+60000))
-  const amountToAdd = (expectedDate - newestDate) / 1000 / 60;
-//Add null value to array with numbers of minutes left to the close market which is 4 p.m.
- if (amountToAdd > 0) data.push.apply(data, Array(amountToAdd).fill(null)) 
-  console.log(59 - newestDate.getMinutes())
-   console.log(Array(59 - newestDate.getMinutes()))
-  console.log(label, Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
-  label.push.apply(label, Array(59 - newestDate.getMinutes()).fill(newestDate.getHours()))
-  for (let i = newestDate.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
+  const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15,59)
+
+ //Note that for expectedDate, the time we set is 15:59, but the date_latest is 16:00, so we need add 1 minute (60000) here for comparision
+  if (date_latest.valueOf() === new Date(expectedDate.getTime()+60000).valueOf()) return;
+
+  const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
+//Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
+ if (amountToAdd > 0) raw_data.push.apply(raw_data, Array(amountToAdd).fill(null)) 
+  label.push.apply(label, Array(59 - date_latest.getMinutes()).fill(date_latest.getHours()))
+  for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
    
 
 }
 
 function finddata() {
-  const filtereddata = data.filter(i=> i !== null)
-  console.log(filtereddata)
+  const filtereddata = raw_data.filter(i=> i !== null)
   for (let i = filtereddata.length - 1; i >= 0; i--) {
-     if (new Date(filtereddata[filtereddata.length - 1].date).getDate() != new Date(filtereddata[i].date).getDate()){
-      console.log(new Date(filtereddata[filtereddata.length - 1].date), new Date(filtereddata[i].date))
-      console.log(filtereddata[i].close)
+     if (new Date(formatDate(filtereddata[filtereddata.length - 1].date)).getDate() != new Date(formatDate(filtereddata[i].date)).getDate()){
       return filtereddata[i].close;
      } 
  }
@@ -135,17 +116,14 @@ function finddata() {
 }
 
 function returnColor() {
-  //data[0].close give us latest/current stock price
-  console.log(finddata(),data[0].close)
-  console.log(validvalue)
-  console.log(validvalue.length)
-  console.log(data[0].close >= finddata() ? "lawngreen" : "red")
-  return (validvalue[0].close >= finddata() ? "lawngreen" : "red")
+  //raw_data[0].close give us latest/current stock price
+  return (detail_dataset[0].close >= finddata() ? "lawngreen" : "red")
 }
 
 
 function linearGarident(color) {
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight)
+  const canvasHeight = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'))
+  const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
     gradient.addColorStop(0.5, "rgba(82,196,250,0.3)");
@@ -168,52 +146,48 @@ function createChart() {
     first_index:null,
     final_index:null
   }
-  let firstvalue = null;
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-    //let clientX =event.target.value;
+    //let clientX =event.target.dataset;
       if (!chart.tooltip._active || !chart.tooltip._active.length) return;
-        if(lastIndex === validvalue.length -1 && !importantvalue.final_index)
+        if(lastIndex === detail_dataset.length -1 && !importantvalue.final_index)
           importantvalue.final_index = chart.tooltip._active[0].element.x
         else if(lastIndex === 0  && !importantvalue.first_index) importantvalue.first_index = chart.tooltip._active[0].element.x
 
-        ctx.beginPath()
-        ctx.setLineDash([])
-        ctx.moveTo(chart.tooltip._active[0].element.x, chart.chartArea.top);
-        ctx.lineTo(chart.tooltip._active[0].element.x, chart.chartArea.bottom);
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#52c4fa';
-        ctx.stroke();
-        ctx.restore()
-        ctx.moveTo(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y)
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.arc(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
-        ctx.fillStyle = '#52c4fa';
-        ctx.fill()
-        ctx.closePath()
-        info.style.visibility = 'visible'
-        dateinfo.style.visibility = 'visible'  
+        context.beginPath()
+        context.setLineDash([])
+        context.moveTo(chart.tooltip._active[0].element.x, chart.chartArea.top);
+        context.lineTo(chart.tooltip._active[0].element.x, chart.chartArea.bottom);
+        context.lineWidth = 2.5;
+        context.strokeStyle = '#52c4fa';
+        context.stroke();
+        context.restore()
+        context.moveTo(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y)
+        context.globalCompositeOperation = 'destination-over';
+        context.arc(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
+        context.fillStyle = '#52c4fa';
+        context.fill()
+        context.closePath()
+        info_price.style.visibility = 'visible'
+        info_date.style.visibility = 'visible' 
+
       if(importantvalue.final_index  && chart.tooltip._active[0].element.x >= importantvalue.final_index ){
        
-        clientX = importantvalue.final_index -parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info.offsetWidth/2
-         info.style.left = clientX - info.offsetWidth/2+ "px"
+        clientX = importantvalue.final_index -parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info_price.offsetWidth/2
+         info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
       
       }
       else if(importantvalue.first_index  && chart.tooltip._active[0].element.x <= importantvalue.first_index ){
-        clientX = importantvalue.first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info.offsetWidth/2
-         info.style.left = clientX - info.offsetWidth/2+ "px"
+        clientX = importantvalue.first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info_price.offsetWidth/2
+         info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
       }
       else{
-         info.style.left = clientX - info.offsetWidth/2+ "px"
+         info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
       }
          
-    
-        if(parseFloat(window.getComputedStyle(info,null)["left"]) < importantvalue.first_index )
-           info.style.left = importantvalue.first_index +"px"
-
-
-       
+        if(parseFloat(window.getComputedStyle(info_price,null)["left"]) < importantvalue.first_index )
+           info_price.style.left = importantvalue.first_index +"px" 
       
     }
   }
@@ -222,38 +196,38 @@ function createChart() {
     id: 'horizontalLine',
    afterDraw: function(chartInstance) {
       const yScale = chartInstance.scales["y"];
-
+      const canvasWidth = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('width'))
       if (chartInstance.options.horizontalLine) {
         for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
           const line = chartInstance.options.horizontalLine[index];
           const style = 'white'
-          if(finddata() > maxvalue + 0.15) line.y = maxvalue -0.1
+          if(finddata() > max_value + 0.15) line.y = max_value -0.1
           line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
-          ctx.lineWidth = 3;
-          ctx.beginPath()
-            ctx.setLineDash([5, 3])
-            ctx.moveTo(45, yValue);
-            ctx.lineTo(document.querySelector('#chart').width, yValue);
-            ctx.strokeStyle = 'white';
-            ctx.stroke();
-            ctx.fillStyle = 'white';
-            ctx.fillText("Previous Price:", canvasWidth-100, yValue + ctx.lineWidth + 10);
+          context.lineWidth = 3;
+          context.beginPath()
+            context.setLineDash([5, 3])
+            context.moveTo(45, yValue);
+            context.lineTo(document.querySelector('#chart').width, yValue);
+            context.strokeStyle = 'white';
+            context.stroke();
+            context.fillStyle = 'white';
+            context.fillText("Previous Price:", canvasWidth-100, yValue + context.lineWidth + 10);
 
-            ctx.fillText(line.text, canvasWidth-100, yValue + ctx.lineWidth + 22);
-            ctx.closePath()
+            context.fillText(line.text, canvasWidth-100, yValue + context.lineWidth + 22);
+            context.closePath()
         }
         return;
       }
     }
   };
   Chart.register(horizonalLinePlugin);
-  const myChart = new Chart(ctx, {
+  const myChart = new Chart(context, {
     type: 'line',
     data: {
       xLabels: label,
       datasets: [{
         label: 'stock price',
-        data: value,
+        data: dataset,
         fill: true,
         backgroundColor: linearGarident(),
         pointHoverRadius: 0,
@@ -272,7 +246,7 @@ function createChart() {
         mode: null
       },
       "horizontalLine": [{
-        "y":finddata() > minvalue - 0.15 ? finddata() : minvalue - 0.1, 
+        "y":finddata() > min_value - 0.15 ? finddata() : min_value - 0.1, 
         "text": finddata()
       }],
       legend: {
@@ -305,9 +279,9 @@ function createChart() {
           },
           ticks: {
             maxTicksLimit: 6,
-            max: maxvalue + 0.15,
-            min:minvalue - 0.15,
-            stepValue: ((maxvalue - minvalue) / 5).toFixed(1),
+            max: max_value + 0.15,
+            min:min_value - 0.15,
+            stepValue: ((max_value - min_value) / 5).toFixed(1),
             color:'rgba(255,255,255,0.75)',
             font:{
               size:14
@@ -345,8 +319,8 @@ function createChart() {
           footerColor: 'transparent',
           callbacks: {
             label: function(tooltipItem) {
-              info.textContent = tooltipItem.raw 
-              dateinfo.textContent =  validvalue[tooltipItem.dataIndex].date
+              info_price.textContent = tooltipItem.raw 
+              info_date.textContent =  detail_dataset[tooltipItem.dataIndex].date
               lastIndex = tooltipItem.dataIndex;
               return tooltipItem;
             }
@@ -357,28 +331,23 @@ function createChart() {
     plugins: [annotation]
 
   });
+
 }
 
 window.onload = function() {
-  Promise.all([getCurrentTime(), fetchData(),getSymbol()]).then(function(values) {
 
-    nowtime = new Date(values[0])
+  Promise.all([getCurrentTime(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
+
+    time_current = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-  data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : a > b ? 1 : 0)
-  
-  
+  raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
 
-
-
-  //console.log(values[1],sortByDate(values[1]))
     formatData()
-
     createChart()
-      document.querySelector('#dollar').textContent = data[data.length-1].close
-      const difference = data[data.length-1].close - finddata()
+      document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close
+      const difference = raw_data[raw_data.length-1].close - finddata()
   document.querySelector('#percent').textContent =(returnColor().includes('green') ? "+" : "-") + Math.abs(difference/finddata()*100).toFixed(2)+ "%";
 
   document.querySelector('#percent').style.color = returnColor()
-    console.log(returnColor().includes('green') ? "+" : "-")
   })
 }
