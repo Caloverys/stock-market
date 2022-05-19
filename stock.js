@@ -13,7 +13,7 @@ const canvas = document.querySelector('#chart')
 ,input = document.querySelector('input[type=text]')
 deletebutton = document.querySelector('#deletebutton');
 let lastIndex = 0
-let maxvalue, minvalue, data, nowtime, clientX, newestDate,pos;
+let maxvalue, minvalue, data, nowtime, clientX, newestDate;
 let isInCanvas =false;
 let times = 0;
 
@@ -47,7 +47,9 @@ function fetchData() {
 }
 //only screenX works here, clientX doesn't work expected.
 document.addEventListener('mousemove', e =>{
-  if(isInCanvas && pos.y >= e.clientY ) clientX = e.clientX 
+
+
+  if(isInCanvas) clientX = e.clientX 
         else{
         info.style.visibility ='hidden'
         dateinfo.style.visibility ='hidden'
@@ -79,9 +81,8 @@ function formatData() {
       this.newdate = new Date(date(item.date));
       if (newestDate.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours())
-        console.log(item)
         validvalue.push(item)
-        value.push(((item.close + item.open) / 2).toFixed(2))
+        value.push(item.close.toFixed(2))
 
       }
     })
@@ -89,32 +90,9 @@ function formatData() {
       maxvalue = Math.max.apply(null, value)
   minvalue = Math.min.apply(null, value)
   label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
-  
-  /*if (nowtime.getDay() !== 6 && nowtime.getDay() !== 0) {
-    data.forEach((item, index) => {
-      this.newdate = new Date(item.date);
-      if (nowtime.getDate() === this.newdate.getDate()) {
-        label.push(this.newdate.getHours())
-        validvalue.push(item)
-        value.push(((item.close + item.open) / 2).toFixed(2))
-      }
-    })
-      addNullValue()
-  } else {
-    data.forEach((item, index) => {
-      this.newdate = new Date(item.date);
-      if (this.newdate.getDay() === 5) {
-        label.push(this.newdate.getHours())
-        validvalue.push(item)
-        value.push(((item.close + item.open) / 2).toFixed(2))
-      }
-    })*/
 
   }
  
-
-
-//}
 
 
 
@@ -127,7 +105,6 @@ function getCurrentTime() {
 
 function addNullValue() {
   const expectedDate = new Date(newestDate.getFullYear(), newestDate.getMonth(), newestDate.getDate(), 15,59)
-  console.log(newestDate,expectedDate)
  //Note that for expectedDate, the time we set is 15:59, but the newestDate is 16:00, so we need add 1 minute (60000) here for comparision
   if (newestDate.valueOf() === new Date(expectedDate.getTime()+60000).valueOf()) return 
     console.log(newestDate === new Date(expectedDate.getTime()+60000))
@@ -145,9 +122,11 @@ function addNullValue() {
 
 function finddata() {
   const filtereddata = data.filter(i=> i !== null)
+  console.log(filtereddata)
   for (let i = filtereddata.length - 1; i >= 0; i--) {
      if (new Date(filtereddata[filtereddata.length - 1].date).getDate() != new Date(filtereddata[i].date).getDate()){
-
+      console.log(new Date(filtereddata[filtereddata.length - 1].date), new Date(filtereddata[i].date))
+      console.log(filtereddata[i].close)
       return filtereddata[i].close;
      } 
  }
@@ -186,38 +165,19 @@ function linearGarident(color) {
 }
 function createChart() {
   let importantvalue ={
-    first:null,
     first_index:null,
-    final:null,
     final_index:null
   }
   let firstvalue = null;
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-
-
-
     //let clientX =event.target.value;
       if (!chart.tooltip._active || !chart.tooltip._active.length) return;
-
-      chart.tooltip = chart.tooltip
-      pos = chart.tooltip._active[0].element
-
-      window.mousemove = function(e){
-        if(isInCanvas && pos.y >= e.clientY ) clientX = e.clientX 
-        else{
-        info.style.visibility ='hidden'
-        dateinfo.style.visibility ='hidden'
-    }
-
-      }
-        if(lastIndex === validvalue.length -1){
-          times++; 
+        if(lastIndex === validvalue.length -1 && !importantvalue.final_index)
           importantvalue.final_index = chart.tooltip._active[0].element.x
-        }
-        else if (lastIndex !== validvalue.length -1 && times > 1) times = 0
-        const hoverpoint = chart.tooltip._active[0];
+        else if(lastIndex === 0  && !importantvalue.first_index) importantvalue.first_index = chart.tooltip._active[0].element.x
+
         ctx.beginPath()
         ctx.setLineDash([])
         ctx.moveTo(chart.tooltip._active[0].element.x, chart.chartArea.top);
@@ -234,28 +194,24 @@ function createChart() {
         ctx.closePath()
         info.style.visibility = 'visible'
         dateinfo.style.visibility = 'visible'  
-        //if(times > 1) 
-      //clientX =chart.tooltip._active[0].element.x+info.offsetWidth/2
-      if(importantvalue.final_index  && chart.tooltip._active[0].element.x === importantvalue.final_index )
+      if(importantvalue.final_index  && chart.tooltip._active[0].element.x >= importantvalue.final_index ){
+       
         clientX = importantvalue.final_index -parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info.offsetWidth/2
-    
-
-
-      //}
+         info.style.left = clientX - info.offsetWidth/2+ "px"
       
-        //else if(parseInt(clientX) >= myChart.chartArea.right -79){
-          //clientX = myChart.chartArea.right -79;
-         // console.log(clientX)
+      }
+      else if(importantvalue.first_index  && chart.tooltip._active[0].element.x <= importantvalue.first_index ){
+        clientX = importantvalue.first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info.offsetWidth/2
+         info.style.left = clientX - info.offsetWidth/2+ "px"
+      }
+      else{
+         info.style.left = clientX - info.offsetWidth/2+ "px"
+      }
+         
+    
+        if(parseFloat(window.getComputedStyle(info,null)["left"]) < importantvalue.first_index )
+           info.style.left = importantvalue.first_index +"px"
 
-        //} 
-        //else if(parseInt(clientX) <= myChart.chartArea.left + 40){
-          //clientX = myChart.chartArea.left + 40;
-
-          //console.log(clientX)
-       // } 
-       // console.log(clientX,myChart.chartArea, times)
-
-        info.style.left = clientX - info.offsetWidth/2+ "px"
 
        
       
@@ -282,6 +238,7 @@ function createChart() {
             ctx.stroke();
             ctx.fillStyle = 'white';
             ctx.fillText("Previous Price:", canvasWidth-100, yValue + ctx.lineWidth + 10);
+
             ctx.fillText(line.text, canvasWidth-100, yValue + ctx.lineWidth + 22);
             ctx.closePath()
         }
@@ -407,13 +364,8 @@ window.onload = function() {
 
     nowtime = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-    /*
-    data=Object.entries(values[1]).sort((([, a], [, b]) => {
-      console.log(a,b)
-    return new Date(a.date) - new Date(b.date)
-  })).map(i=>{ return i[1]})
-    console.log(Object.entries(values[1]))*/
   data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : a > b ? 1 : 0)
+  
   
 
 
@@ -422,5 +374,11 @@ window.onload = function() {
     formatData()
 
     createChart()
+      document.querySelector('#dollar').textContent = data[data.length-1].close
+      const difference = data[data.length-1].close - finddata()
+  document.querySelector('#percent').textContent =(returnColor().includes('green') ? "+" : "-") + Math.abs(difference/finddata()*100).toFixed(2)+ "%";
+
+  document.querySelector('#percent').style.color = returnColor()
+    console.log(returnColor().includes('green') ? "+" : "-")
   })
 }
