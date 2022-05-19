@@ -1,6 +1,11 @@
+     *:not(#price:*){
+        user-select: none;
+
+      }
+    canvas{
    background-color: rgba(0,0,0,0.8);
     z-index: 1;
-      padding: calc(4vw);
+      padding: calc(2vw);
       padding-top: 100px;
       margin: 5px;
     }
@@ -70,3 +75,24 @@
         display: block;
 
       }
+      #price{
+        float: right;
+        position: relative;
+        top: -100vh;
+        right: 10%;
+        text-align: left;
+
+
+
+      }
+      #dollar{
+        font-size: 2em;
+        margin-right: 40px;
+        color: black
+      }
+      #price > span:last-child{
+        color: grey;
+        text-transform: capitalize;
+
+      }
+
