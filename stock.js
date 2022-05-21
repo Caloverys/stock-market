@@ -219,6 +219,7 @@ function createChart() {
 
             context.fillText(line.text, canvasWidth-100, yValue + context.lineWidth + 22);
             context.closePath()
+             context.setLineDash([])
 
         }
         return;
@@ -281,9 +282,8 @@ function createChart() {
       scales: {
         y: {
           grid: {
-            color: 'rgba(255,255,255,0.4)'
-                       // borderColor:"green",
-            //borderWidth:3
+            color: 'rgba(255,255,255,0.4)',
+            borderColor:"rgba(255,255,255,0.65)",
 
           },
           ticks: {
@@ -302,8 +302,8 @@ function createChart() {
 
         x: {
           grid: {
-            //borderColor:"rgba(255,255,255,0.9)",
-            //lineWidth:3
+            color: grid_color,
+           borderColor:"rgba(255,255,255,0.65)",
           },
           ticks: {
             //get number of unqiue item in y label
