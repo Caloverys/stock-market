@@ -5,9 +5,10 @@ const canvas = document.querySelector('#chart')
 ,detail_dataset = []
 ,info_price = document.querySelector('#info_price')
 ,info_date= document.querySelector('#info_date')
+,parent_of_canvas = document.querySelector('#parent_of_canvas')
 ,input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, time_current, clientX, date_latest;
+let max_value, min_value, raw_data, time_current, clientX, date_latest,closed_price;
 let isInCanvas =false;
 let times = 0;
 
@@ -61,43 +62,41 @@ function formatDate(dateobject){
 
 function formatData() {
   date_latest = formatDate(raw_data[raw_data.length - 1].date)
+  console.log(date_latest.getDate())
   raw_data.forEach((item, index) => {
-      this.newdate = new Date(formatDate(item.date));
+      this.newdate = formatDate(item.date);
       if (date_latest.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours()+(this.newdate.getHours() < 12 ? 'am' : 'pm'))
         detail_dataset.push(item)
         dataset.push(item.close.toFixed(2))
       }
     })
-     addNullValue()
+     fill_label_array()
       max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
-  //label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
-  grid_color=Array(label.length).fill("transparent")
+  grid_color = Array(label.length).fill("transparent")
   for(let i =30;i<label.length;i+=60) grid_color[i] = "rgba(255,255,255,0.4)"
-    console.log(grid_color)
-
-
 
   }
  
 
 
 
-function getCurrentTime() {
+function get_Global_Time() {
   return fetch("https://worldtimeapi.org/api/timezone/Europe/London")
     .then(res => res.json())
     .then(raw_data => new Date(raw_data.datetime))
 }
 
 
-function addNullValue() {
+function fill_label_array() {
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15,59)
 
  //Note that for expectedDate, the time we set is 15:59, but the date_latest is 16:00, so we need add 1 minute (60000) here for comparision
   if (date_latest.valueOf() === new Date(expectedDate.getTime()+60000).valueOf()) return;
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
+
 //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
  if (amountToAdd > 0) raw_data.push.apply(raw_data, Array(amountToAdd).fill(null)) 
   label.push.apply(label, Array(59 - date_latest.getMinutes()).fill(date_latest.getHours()))
@@ -107,25 +106,26 @@ function addNullValue() {
 
 }
 
-function finddata() {
-  const filtereddata = raw_data.filter(i=> i !== null)
-  for (let i = filtereddata.length - 1; i >= 0; i--) {
-     if (new Date(formatDate(filtereddata[filtereddata.length - 1].date)).getDate() != new Date(formatDate(filtereddata[i].date)).getDate()){
-      return filtereddata[i].close;
-     } 
+function find_closed_price() {
+  if(!closed_price){
+  for (let i = raw_data.length - 1; i >= 0; i--) {
+     if (date_latest.getDate() != formatDate(raw_data[i].date).getDate())
+      return raw_data[i].close;
  }
+}
+return closed_price
 
 
 }
 
 function returnColor() {
   //raw_data[0].close give us latest/current stock price
-  return (detail_dataset[0].close >= finddata() ? "lawngreen" : "red")
+  return (detail_dataset[0].close >= find_closed_price() ? "lawngreen" : "red")
 }
 
 
 function linearGarident(color) {
-  const canvasHeight = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('height'))
+  const canvasHeight = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('height'))
   const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
@@ -166,13 +166,14 @@ function createChart() {
         context.lineWidth = 2.5;
         context.strokeStyle = '#52c4fa';
         context.stroke();
-        context.restore()
+        context.restore();
         context.moveTo(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y)
         context.globalCompositeOperation = 'destination-over';
         context.arc(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
         context.fillStyle = '#52c4fa';
         context.fill()
         context.closePath()
+
         info_price.style.visibility = 'visible'
         info_date.style.visibility = 'visible' 
 
@@ -199,12 +200,12 @@ function createChart() {
     id: 'horizontalLine',
    afterDraw: function(chartInstance) {
       const yScale = chartInstance.scales["y"];
-      const canvasWidth = parseInt(window.getComputedStyle(document.querySelector('#parentdiv')).getPropertyValue('width'))
+      const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
       if (chartInstance.options.horizontalLine) {
         for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
           const line = chartInstance.options.horizontalLine[index];
           const style = 'white'
-          if(finddata() > max_value + 0.15) line.y = max_value -0.1
+          if(find_closed_price() > max_value + 0.15) line.y = max_value -0.1
           line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
           context.lineWidth = 3;
           context.beginPath()
@@ -218,12 +219,14 @@ function createChart() {
 
             context.fillText(line.text, canvasWidth-100, yValue + context.lineWidth + 22);
             context.closePath()
+
         }
         return;
       }
     }
   };
   Chart.register(horizonalLinePlugin);
+
   const myChart = new Chart(context, {
     type: 'line',
     data: {
@@ -249,8 +252,8 @@ function createChart() {
         mode: null
       },
       "horizontalLine": [{
-        "y":finddata() > min_value - 0.15 ? finddata() : min_value - 0.1, 
-        "text": finddata()
+        "y":find_closed_price() > min_value - 0.15 ? find_closed_price() : min_value - 0.1, 
+        "text": find_closed_price()
       }],
       legend: {
         display: false
@@ -279,6 +282,9 @@ function createChart() {
         y: {
           grid: {
             color: 'rgba(255,255,255,0.4)'
+                       // borderColor:"green",
+            //borderWidth:3
+
           },
           ticks: {
             maxTicksLimit: 6,
@@ -296,7 +302,8 @@ function createChart() {
 
         x: {
           grid: {
-            color: grid_color
+            //borderColor:"rgba(255,255,255,0.9)",
+            //lineWidth:3
           },
           ticks: {
             //get number of unqiue item in y label
@@ -306,7 +313,9 @@ function createChart() {
               size:14
             },
             callback: function(value, index, values) {
+              console.log(grid_color[index])
               const label = this.getLabelForValue(value);
+              console.log(this.getLabelForValue(value))
               return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
            
           }
@@ -346,19 +355,21 @@ function createChart() {
 
 window.onload = function() {
 
-  Promise.all([getCurrentTime(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
+  Promise.all([get_Global_Time(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
+    console.log(performance.now())
 
     time_current = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
   raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
-  console.log(raw_data)
+   document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
 
     formatData()
+      const difference = raw_data[raw_data.length-1].close - find_closed_price();
+    const percentage = document.querySelector('#percent');
+  percentage.textContent =(returnColor().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price()*100).toFixed(2)+ "%";
+  percentage.style.color = returnColor();
     createChart()
-      document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
-      const difference = raw_data[raw_data.length-1].close - finddata()
-  document.querySelector('#percent').textContent =(returnColor().includes('green') ? "+" : "-") + Math.abs(difference/finddata()*100).toFixed(2)+ "%";
-
-  document.querySelector('#percent').style.color = returnColor();
+      
+  console.log(performance.now())
   })
 }
