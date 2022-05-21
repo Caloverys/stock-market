@@ -11,10 +11,7 @@ let max_value, min_value, raw_data, time_current, clientX, date_latest;
 let isInCanvas =false;
 let times = 0;
 
-//document.querySelector('canvas').style.height = `${windowHeight }px !important`
- 
-//window.stop()
-let label = []
+let [label,grid_color] = [[],[]]
 document.querySelector('#deletebutton').addEventListener('click',() =>{
     input.blur();
     input.value = ""
@@ -67,7 +64,7 @@ function formatData() {
   raw_data.forEach((item, index) => {
       this.newdate = new Date(formatDate(item.date));
       if (date_latest.getDate() === this.newdate.getDate()) {
-        label.push(this.newdate.getHours())
+        label.push(this.newdate.getHours()+(this.newdate.getHours() < 12 ? 'am' : 'pm'))
         detail_dataset.push(item)
         dataset.push(item.close.toFixed(2))
       }
@@ -75,7 +72,12 @@ function formatData() {
      addNullValue()
       max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
-  label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
+  //label = label.map(i => {if (i) return (i < 12 ? `${i}am` : `${i}pm`)})
+  grid_color=Array(label.length).fill("transparent")
+  for(let i =30;i<label.length;i+=60) grid_color[i] = "rgba(255,255,255,0.4)"
+    console.log(grid_color)
+
+
 
   }
  
@@ -100,6 +102,7 @@ function addNullValue() {
  if (amountToAdd > 0) raw_data.push.apply(raw_data, Array(amountToAdd).fill(null)) 
   label.push.apply(label, Array(59 - date_latest.getMinutes()).fill(date_latest.getHours()))
   for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
+
    
 
 }
@@ -142,6 +145,7 @@ function linearGarident(color) {
 
 }
 function createChart() {
+
   let importantvalue ={
     first_index:null,
     final_index:null
@@ -185,7 +189,6 @@ function createChart() {
       else{
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
       }
-         
         if(parseFloat(window.getComputedStyle(info_price,null)["left"]) < importantvalue.first_index )
            info_price.style.left = importantvalue.first_index +"px" 
       
@@ -293,15 +296,20 @@ function createChart() {
 
         x: {
           grid: {
-            color: "rgba(255,255,255,0.4)"
+            color: grid_color
           },
           ticks: {
             //get number of unqiue item in y label
-            maxTicksLimit: [...new Set(label)].length,
+           maxTicksLimit: label.length,
             color:'rgba(255,255,255,0.75)',
             font:{
               size:14
-            }
+            },
+            callback: function(value, index, values) {
+              const label = this.getLabelForValue(value);
+              return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
+           
+          }
           }
         }
 
@@ -332,6 +340,8 @@ function createChart() {
 
   });
 
+  let div =`<div style='position:absolute;left:${myChart.chartArea.right}px;top:100px;background-color:red;width:10px;height:10px;'></div>`
+  document.querySelector("#test").style.left = myChart.chartArea.left+'px'
 }
 
 window.onload = function() {
@@ -341,13 +351,14 @@ window.onload = function() {
     time_current = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
   raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
+  console.log(raw_data)
 
     formatData()
     createChart()
-      document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close
+      document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
       const difference = raw_data[raw_data.length-1].close - finddata()
   document.querySelector('#percent').textContent =(returnColor().includes('green') ? "+" : "-") + Math.abs(difference/finddata()*100).toFixed(2)+ "%";
 
-  document.querySelector('#percent').style.color = returnColor()
+  document.querySelector('#percent').style.color = returnColor();
   })
 }
