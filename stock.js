@@ -9,8 +9,7 @@ const canvas = document.querySelector('#chart')
 ,input = document.querySelector('input[type=text]')
 let lastIndex = 0
 let max_value, min_value, raw_data, time_current, clientX, date_latest,closed_price;
-let isInCanvas =false;
-let times = 0;
+let isappearing =false;
 
 let [label,grid_color] = [[],[]]
 document.querySelector('#deletebutton').addEventListener('click',() =>{
@@ -38,7 +37,7 @@ function fetchData(symbol,range) {
 document.addEventListener('mousemove', e =>{
 
 
-  if(isInCanvas) clientX = e.clientX 
+  if(isappearing) clientX = e.clientX 
         else{
         info_price.style.visibility ='hidden'
         info_date.style.visibility ='hidden'
@@ -46,25 +45,25 @@ document.addEventListener('mousemove', e =>{
 
 })
 
-canvas.addEventListener('mousedown',function(){
+/*canvas.addEventListener('mousedown',function(){
 
 })
 canvas.addEventListener('mouseup',function(){
   
 })
 canvas.addEventListener('mouseenter',()=> isInCanvas = true )
-canvas.addEventListener('mouseleave',()=> isInCanvas = false )
+canvas.addEventListener('mouseleave',()=> isInCanvas = false )*/
 
 
-function formatDate(dateobject){
+function format_date(dateobject){
   return new Date(dateobject.substring(0,4), dateobject.substring(5,7),dateobject.substring(8,10),dateobject.substring(11,13),dateobject.substring(14,16),"00")
 }
 
-function formatData() {
-  date_latest = formatDate(raw_data[raw_data.length - 1].date)
+function format_data() {
+  date_latest = format_date(raw_data[raw_data.length - 1].date)
   console.log(date_latest.getDate())
   raw_data.forEach((item, index) => {
-      this.newdate = formatDate(item.date);
+      this.newdate = format_date(item.date);
       if (date_latest.getDate() === this.newdate.getDate()) {
         label.push(this.newdate.getHours()+(this.newdate.getHours() < 12 ? 'am' : 'pm'))
         detail_dataset.push(item)
@@ -82,7 +81,7 @@ function formatData() {
 
 
 
-function get_Global_Time() {
+function get_global_time() {
   return fetch("https://worldtimeapi.org/api/timezone/Europe/London")
     .then(res => res.json())
     .then(raw_data => new Date(raw_data.datetime))
@@ -109,7 +108,7 @@ function fill_label_array() {
 function find_closed_price() {
   if(!closed_price){
   for (let i = raw_data.length - 1; i >= 0; i--) {
-     if (date_latest.getDate() != formatDate(raw_data[i].date).getDate())
+     if (date_latest.getDate() != format_date(raw_data[i].date).getDate())
       return raw_data[i].close;
  }
 }
@@ -118,13 +117,13 @@ return closed_price
 
 }
 
-function returnColor() {
+function return_color() {
   //raw_data[0].close give us latest/current stock price
   return (detail_dataset[0].close >= find_closed_price() ? "lawngreen" : "red")
 }
 
 
-function linearGarident(color) {
+function return_linearGarident(color) {
   const canvasHeight = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('height'))
   const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
@@ -132,11 +131,11 @@ function linearGarident(color) {
     gradient.addColorStop(0.5, "rgba(82,196,250,0.3)");
     gradient.addColorStop(1, 'transparent')
 
-  } else if (returnColor().includes("red")) {
+  } else if (return_color().includes("red")) {
     gradient.addColorStop(0, "rgba(255,0,0,0.8)");
     gradient.addColorStop(0.5, "rgba(255,0,0,0.3)");
     gradient.addColorStop(1, 'transparent')
-  } else if (returnColor().includes("green")) {
+  } else if (return_color().includes("green")) {
     gradient.addColorStop(0, "rgba(0,255,0,0.8)");
     gradient.addColorStop(0.5, "rgba(0,255,0,0.3)");
     gradient.addColorStop(1, 'transparent')
@@ -144,7 +143,7 @@ function linearGarident(color) {
   return gradient
 
 }
-function createChart() {
+function create_chart() {
 
   let importantvalue ={
     first_index:null,
@@ -153,8 +152,12 @@ function createChart() {
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-    //let clientX =event.target.dataset;
-      if (!chart.tooltip._active || !chart.tooltip._active.length) return;
+
+      if (!chart.tooltip._active || !chart.tooltip._active.length) {
+        isappearing = false
+        return;
+      };
+      isappearing = true;
         if(lastIndex === detail_dataset.length -1 && !importantvalue.final_index)
           importantvalue.final_index = chart.tooltip._active[0].element.x
         else if(lastIndex === 0  && !importantvalue.first_index) importantvalue.first_index = chart.tooltip._active[0].element.x
@@ -236,11 +239,11 @@ function createChart() {
         label: 'stock price',
         data: dataset,
         fill: true,
-        backgroundColor: linearGarident(),
+        backgroundColor: return_linearGarident(),
         pointHoverRadius: 0,
-        hoverBackgroundColor: linearGarident('color'),
+        hoverBackgroundColor: return_linearGarident('color'),
         hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: returnColor(),   
+        borderColor: return_color(),   
       }]
     },
     options: {
@@ -284,6 +287,7 @@ function createChart() {
           grid: {
             color: 'rgba(255,255,255,0.4)',
             borderColor:"rgba(255,255,255,0.65)",
+            borderWidth:2.5
 
           },
           ticks: {
@@ -304,6 +308,7 @@ function createChart() {
           grid: {
             color: grid_color,
            borderColor:"rgba(255,255,255,0.65)",
+           borderWidth:2.5
           },
           ticks: {
             //get number of unqiue item in y label
@@ -355,7 +360,7 @@ function createChart() {
 
 window.onload = function() {
 
-  Promise.all([get_Global_Time(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
+  Promise.all([get_global_time(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
     console.log(performance.now())
 
     time_current = new Date(values[0])
@@ -363,12 +368,12 @@ window.onload = function() {
   raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
    document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
 
-    formatData()
+    format_data()
       const difference = raw_data[raw_data.length-1].close - find_closed_price();
     const percentage = document.querySelector('#percent');
-  percentage.textContent =(returnColor().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price()*100).toFixed(2)+ "%";
-  percentage.style.color = returnColor();
-    createChart()
+  percentage.textContent =(return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price()*100).toFixed(2)+ "%";
+  percentage.style.color = return_color();
+    create_chart()
       
   console.log(performance.now())
   })
