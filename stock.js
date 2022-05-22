@@ -149,27 +149,36 @@ function create_chart() {
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-
       if (!chart.tooltip._active || !chart.tooltip._active.length) {
         isappearing = false
         return;
       };
+      let left_position  = parseFloat(window.getComputedStyle(info_price,null)["left"])
+       let this_position_x = chart.tooltip._active[0].element.x
       isappearing = true;
         if(lastIndex === detail_dataset.length -1 && !final_index)
-          final_index= chart.tooltip._active[0].element.x
-        else if(lastIndex === 0  && !first_index) first_index = chart.tooltip._active[0].element.x
+          final_index= this_position_x
+        else if(lastIndex === 0  && !first_index) first_index = this_position_x
+        
+
+        if(first_index && left_position.toFixed(2) === (myChart.chartArea.left+window.innerWidth /100 * 1.5).toFixed(2))
+          this_position_x = first_index
+
+        else if(final_index && left_position.toFixed(2) === (myChart.chartArea.right-info_price.offsetWidth/2).toFixed(2))
+          this_position_x = final_index
+        
 
         context.beginPath()
         context.setLineDash([])
-        context.moveTo(chart.tooltip._active[0].element.x, chart.chartArea.top);
-        context.lineTo(chart.tooltip._active[0].element.x, chart.chartArea.bottom);
+        context.moveTo(this_position_x, chart.chartArea.top);
+        context.lineTo(this_position_x, chart.chartArea.bottom);
         context.lineWidth = 2.5;
         context.strokeStyle = '#52c4fa';
         context.stroke();
         context.restore();
-        context.moveTo(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y)
+        context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
         context.globalCompositeOperation = 'destination-over';
-        context.arc(chart.tooltip._active[0].element.x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
+        context.arc(this_position_x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
         context.fillStyle = '#52c4fa';
         context.fill()
         context.closePath()
@@ -177,24 +186,14 @@ function create_chart() {
         info_price.style.visibility = 'visible'
         info_date.style.visibility = 'visible' 
 
-      //if(final_index && chart.tooltip._active[0].element.x >= final_index)
-         //info_price.style.left = final_index-parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right')) + "px"
-    
-      //else 
-      if(first_index && chart.tooltip._active[0].element.x <= first_index)
-         info_price.style.left = first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-left'))+ "px"
 
-      else
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
-
-
-        if(first_index && parseFloat(window.getComputedStyle(info_price,null)["left"]) < first_index )
-           info_price.style.left = first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-left'))+"px" 
-         else if(final_index && parseFloat(window.getComputedStyle(info_price,null)["left"]) +info_price.offsetWidth/2 > myChart.chartArea.right) 
+        left_position  = parseFloat(window.getComputedStyle(info_price,null)["left"])
+        if(left_position <  myChart.chartArea.left+window.innerWidth /100 * 1.5)
+         info_price.style.left = myChart.chartArea.left+window.innerWidth /100 * 1.5 +"px" 
+  
+         else if(left_position +info_price.offsetWidth/2 > myChart.chartArea.right) 
           info_price.style.left = myChart.chartArea.right-info_price.offsetWidth/2 +"px"
-
-
-
           
        }
       
@@ -212,17 +211,20 @@ function create_chart() {
           const style = 'white'
           if(find_closed_price() > max_value + 0.15) line.y = max_value -0.1
           line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
+        console.log(myChart.chartArea.left,window.innerWidth /100 * 1.5,info_price.offsetWidth/2)
           context.lineWidth = 3;
           context.beginPath()
             context.setLineDash([5, 3])
-            context.moveTo(45, yValue);
-            context.lineTo(document.querySelector('#chart').width, yValue);
+            context.moveTo(myChart.chartArea.left+window.innerWidth /100 * 1.5-info_price.offsetWidth/2, yValue);
+            context.lineTo(myChart.chartArea.right, yValue);
             context.strokeStyle = 'white';
             context.stroke();
             context.fillStyle = 'white';
-            context.fillText("Previous Price:", canvasWidth-100, yValue + context.lineWidth + 10);
+            context.font = "48px serif";
+           
+            context.fillText("Previous Price:", myChart.chartArea.right-"22px", yValue + context.lineWidth + 10);
 
-            context.fillText(line.text, canvasWidth-100, yValue + context.lineWidth + 22);
+            context.fillText(line.text, myChart.chartArea.right, yValue + context.lineWidth + 22);
             context.closePath()
              context.setLineDash([])
 
@@ -299,7 +301,7 @@ function create_chart() {
             stepValue: ((max_value - min_value) / 5).toFixed(1),
             color:'rgba(255,255,255,0.75)',
             font:{
-              size:14
+              size:window.innerWidth /100 * 1.5
             }
 
           }
@@ -355,7 +357,7 @@ function create_chart() {
   });
 
   let div =`<div style='position:absolute;left:${myChart.chartArea.right}px;top:100px;background-color:red;width:1px;height:10px;'></div>`
-  document.querySelector("#test").style.left = myChart.chartArea.right+'px'
+  document.querySelector("#test").style.left = myChart.chartArea.left+'px'
 }
 
 window.onload = function() {
@@ -373,6 +375,7 @@ window.onload = function() {
     const percentage = document.querySelector('#percent');
   percentage.textContent =(return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price()*100).toFixed(2)+ "%";
   percentage.style.color = return_color();
+  info_price.textContent =  find_closed_price();
     create_chart()
       
   console.log(performance.now())
