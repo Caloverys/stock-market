@@ -145,10 +145,7 @@ function return_linearGarident(color) {
 }
 function create_chart() {
 
-  let importantvalue ={
-    first_index:null,
-    final_index:null
-  }
+    let [first_index,final_index] = new Array(2).fill(null)
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
@@ -158,9 +155,9 @@ function create_chart() {
         return;
       };
       isappearing = true;
-        if(lastIndex === detail_dataset.length -1 && !importantvalue.final_index)
-          importantvalue.final_index = chart.tooltip._active[0].element.x
-        else if(lastIndex === 0  && !importantvalue.first_index) importantvalue.first_index = chart.tooltip._active[0].element.x
+        if(lastIndex === detail_dataset.length -1 && !final_index)
+          final_index= chart.tooltip._active[0].element.x
+        else if(lastIndex === 0  && !first_index) first_index = chart.tooltip._active[0].element.x
 
         context.beginPath()
         context.setLineDash([])
@@ -180,23 +177,28 @@ function create_chart() {
         info_price.style.visibility = 'visible'
         info_date.style.visibility = 'visible' 
 
-      if(importantvalue.final_index  && chart.tooltip._active[0].element.x >= importantvalue.final_index ){
-       
-        clientX = importantvalue.final_index -parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info_price.offsetWidth/2
+      //if(final_index && chart.tooltip._active[0].element.x >= final_index)
+         //info_price.style.left = final_index-parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right')) + "px"
+    
+      //else 
+      if(first_index && chart.tooltip._active[0].element.x <= first_index)
+         info_price.style.left = first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-left'))+ "px"
+
+      else
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
+
+
+        if(first_index && parseFloat(window.getComputedStyle(info_price,null)["left"]) < first_index )
+           info_price.style.left = first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-left'))+"px" 
+         else if(final_index && parseFloat(window.getComputedStyle(info_price,null)["left"]) +info_price.offsetWidth/2 > myChart.chartArea.right) 
+          info_price.style.left = myChart.chartArea.right-info_price.offsetWidth/2 +"px"
+
+
+
+          
+       }
       
-      }
-      else if(importantvalue.first_index  && chart.tooltip._active[0].element.x <= importantvalue.first_index ){
-        clientX = importantvalue.first_index + parseFloat(window.getComputedStyle(canvas,null).getPropertyValue('padding-right'))+info_price.offsetWidth/2
-         info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
-      }
-      else{
-         info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
-      }
-        if(parseFloat(window.getComputedStyle(info_price,null)["left"]) < importantvalue.first_index )
-           info_price.style.left = importantvalue.first_index +"px" 
-      
-    }
+    
   }
   let horizonalLinePlugin = {
 
@@ -318,9 +320,7 @@ function create_chart() {
               size:14
             },
             callback: function(value, index, values) {
-              console.log(grid_color[index])
               const label = this.getLabelForValue(value);
-              console.log(this.getLabelForValue(value))
               return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
            
           }
@@ -354,8 +354,8 @@ function create_chart() {
 
   });
 
-  let div =`<div style='position:absolute;left:${myChart.chartArea.right}px;top:100px;background-color:red;width:10px;height:10px;'></div>`
-  document.querySelector("#test").style.left = myChart.chartArea.left+'px'
+  let div =`<div style='position:absolute;left:${myChart.chartArea.right}px;top:100px;background-color:red;width:1px;height:10px;'></div>`
+  document.querySelector("#test").style.left = myChart.chartArea.right+'px'
 }
 
 window.onload = function() {
