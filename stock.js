@@ -8,7 +8,7 @@ const canvas = document.querySelector('#chart')
 ,parent_of_canvas = document.querySelector('#parent_of_canvas')
 ,input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, time_current, clientX, date_latest,closed_price;
+let max_value, min_value, raw_data, time_current, clientX, date_latest,closed_price,myChart;
 let isappearing =false;
 
 let [label,grid_color] = [[],[]]
@@ -35,16 +35,30 @@ function fetchData(symbol,range) {
 }
 //only screenX works here, clientX doesn't work expected.
 document.addEventListener('mousemove', e =>{
+  //console.log(1)
+  //console.log(isInCanvas(e.clientX,e.clientY))
 
+  if(isInCanvas(e.clientX,e.clientY)){
+    clientX = e.clientX;
+    info_price.style.visibility = 'visible'
+     info_date.style.visibility ='visible'
 
-  if(isappearing) clientX = e.clientX 
+  }
         else{
+          console.log( myChart.chartArea,e.clientX,e.clientY,window.getComputedStyle(parent_of_canvas)['top'])
         info_price.style.visibility ='hidden'
         info_date.style.visibility ='hidden'
     }
 
 })
 
+   function isInCanvas(posX,posY){
+
+    const canvas_x = canvas.getBoundingClientRect().top
+    if(myChart)
+    return myChart.chartArea.left<= posX && posX <= myChart.chartArea.right  && myChart.chartArea.top <= posY + canvas_x && posY <= myChart.chartArea.bottom + canvas_x; 
+  return true
+   }
 /*canvas.addEventListener('mousedown',function(){
 
 })
@@ -79,6 +93,25 @@ function format_data() {
   }
  
 
+function size_calculation(word,fontSize) {
+  const div = document.body.appendChild(document.createElement('div'));
+  div.textContent = word;
+  div.style.cssText = `
+  font-size:${fontSize}px;
+  width:auto;
+  position:absolute;
+  visibility:hidden;
+  `
+
+  const width = parseFloat(window.getComputedStyle(div).getPropertyValue('width'))
+  const height = parseFloat(window.getComputedStyle(div).getPropertyValue('height'))
+
+  div.remove();
+  return ({
+   width:width,
+   height:height
+  })
+}
 
 
 function get_global_time() {
@@ -144,15 +177,17 @@ function return_linearGarident(color) {
 
 }
 function create_chart() {
-
     let [first_index,final_index] = new Array(2).fill(null)
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-      if (!chart.tooltip._active || !chart.tooltip._active.length) {
+            console.log(2)
+      if (!chart.tooltip._active || !chart.tooltip._active.length || window.getComputedStyle(info_price)["visibility"] === "hidden") {
         isappearing = false
         return;
       };
+
+
       let left_position  = parseFloat(window.getComputedStyle(info_price,null)["left"])
        let this_position_x = chart.tooltip._active[0].element.x
       isappearing = true;
@@ -160,14 +195,14 @@ function create_chart() {
           final_index= this_position_x
         else if(lastIndex === 0  && !first_index) first_index = this_position_x
         
-
-        if(first_index && left_position.toFixed(2) === (myChart.chartArea.left+window.innerWidth /100 * 1.5).toFixed(2))
+        if(!isInCanvas(chart.tooltip._active[0].element.x,chart.tooltip._active[0].element.y))
+          this_position_x = -999
+        else if(first_index && left_position.toFixed(2) === (myChart.chartArea.left+window.innerWidth /100 * 1.5).toFixed(2))
           this_position_x = first_index
 
         else if(final_index && left_position.toFixed(2) === (myChart.chartArea.right-info_price.offsetWidth/2).toFixed(2))
           this_position_x = final_index
         
-
         context.beginPath()
         context.setLineDash([])
         context.moveTo(this_position_x, chart.chartArea.top);
@@ -188,7 +223,7 @@ function create_chart() {
 
 
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
-        left_position  = parseFloat(window.getComputedStyle(info_price,null)["left"])
+        left_position = parseFloat(window.getComputedStyle(info_price,null)["left"])
         if(left_position <  myChart.chartArea.left+window.innerWidth /100 * 1.5)
          info_price.style.left = myChart.chartArea.left+window.innerWidth /100 * 1.5 +"px" 
   
@@ -200,42 +235,42 @@ function create_chart() {
     
   }
   let horizonalLinePlugin = {
-
     id: 'horizontalLine',
-   afterDraw: function(chartInstance) {
+   afterDraw: function(chartInstance){
       const yScale = chartInstance.scales["y"];
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
-      if (chartInstance.options.horizontalLine) {
+      if (chartInstance.options.horizontalLine) return;
         for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
           const line = chartInstance.options.horizontalLine[index];
           const style = 'white'
           if(find_closed_price() > max_value + 0.15) line.y = max_value -0.1
           line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
-        console.log(myChart.chartArea.left,window.innerWidth /100 * 1.5,info_price.offsetWidth/2)
           context.lineWidth = 3;
           context.beginPath()
             context.setLineDash([5, 3])
-            context.moveTo(myChart.chartArea.left+window.innerWidth /100 * 1.5-info_price.offsetWidth/2, yValue);
+            context.globalCompositeOperation="source-over"
+            context.moveTo(myChart.chartArea.left+window.innerWidth / 100 * 1.5-info_price.offsetWidth/2, yValue);
             context.lineTo(myChart.chartArea.right, yValue);
             context.strokeStyle = 'white';
             context.stroke();
             context.fillStyle = 'white';
-            context.font = "48px serif";
-           
-            context.fillText("Previous Price:", myChart.chartArea.right-"22px", yValue + context.lineWidth + 10);
+            const fontSize = window.innerWidth/100 * 1.25
+            const size_1 = size_calculation("Previous Price:",fontSize);
+            const size_2 = size_calculation(line.text,fontSize);
+            context.font = `${fontSize}px sans-serif`;
+            context.fillText("Previous Price:", myChart.chartArea.right-size_1.width-fontSize/1.5, yValue +size_1.height);
 
-            context.fillText(line.text, myChart.chartArea.right, yValue + context.lineWidth + 22);
+            context.fillText(line.text, myChart.chartArea.right-size_2.width-fontSize/1.5, yValue +size_1.height + size_2.height);
+            context.setLineDash([])
+            context.globalCompositeOperation="destination-over"
             context.closePath()
-             context.setLineDash([])
 
-        }
-        return;
+
       }
     }
   };
   Chart.register(horizonalLinePlugin);
-
-  const myChart = new Chart(context, {
+   myChart = new Chart(context, {
     type: 'line',
     data: {
       xLabels: label,
@@ -355,9 +390,7 @@ function create_chart() {
     plugins: [annotation]
 
   });
-
-  let div =`<div style='position:absolute;left:${myChart.chartArea.right}px;top:100px;background-color:red;width:1px;height:10px;'></div>`
-  document.querySelector("#test").style.left = myChart.chartArea.left+'px'
+document.querySelector("#test").style.left = myChart.chartArea.right+'px'
 }
 
 window.onload = function() {
@@ -377,7 +410,5 @@ window.onload = function() {
   percentage.style.color = return_color();
   info_price.textContent =  find_closed_price();
     create_chart()
-      
-  console.log(performance.now())
   })
 }
