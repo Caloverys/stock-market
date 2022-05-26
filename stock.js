@@ -9,8 +9,8 @@ const canvas = document.querySelector('#chart')
 ,parent_of_canvas = document.querySelector('#parent_of_canvas')
 ,input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, time_current, clientX, date_latest,closed_price,myChart,ismoving,valid_data_number;
-let isvisible  = true;
+let max_value, min_value, raw_data, global_time, clientX, date_latest,closed_price,myChart,isMoving,valid_data_number;
+let isVisible  = true;
 
 
 let [label,grid_color] = [[],[]]
@@ -29,7 +29,6 @@ function getSymbol(){
 
 }
 function fetchData(symbol,range) {
-  console.log(symbol)
 
   return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}min/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
     .then(res => res.json())
@@ -37,9 +36,8 @@ function fetchData(symbol,range) {
 }
 //only screenX works here, clientX doesn't work expected.
 document.addEventListener('mousemove', e =>{
-  ismoving = isInCanvas(e.clientX,e.clientY)
-  console.log(ismoving)
-  if(ismoving && isvisible){
+  isMoving = isInCanvas(e.clientX,e.clientY)
+  if(isMoving && isVisible){
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
      info_date.style.visibility ='visible'
@@ -53,19 +51,18 @@ document.addEventListener('mousemove', e =>{
 })
 
    function isInCanvas(posX,posY){
+    //console.log(myChart ? true : false)
+  if(!myChart) return true;
+  console.log(myChart)
+   const canvas_pos = canvas.getBoundingClientRect();
+   let canvas_y;
+   canvas.offsetWidth < 650 ? canvas_y = canvas_pos.left : canvas_y = 0
 
-   const canvas_y = canvas.getBoundingClientRect().top
-   const canvas_x =canvas.getBoundingClientRect().left
-   //document.querySelector("#test").style.top = myChart.chartArea.top + canvas.getBoundingClientRect().top*2 +'px'
 
-   if(myChart){
-    console.log(posY,posX,  canvas_y,myChart.chartArea)
-    console.log(myChart.chartArea.left <= posX ,myChart.chartArea.top <= posY - canvas_y,posY -  canvas_y  <= myChart.chartArea.bottom)
-     return myChart.chartArea.left <= posX && posX -canvas_x<= myChart.chartArea.right&& myChart.chartArea.top <= posY - canvas_y  && posY -  canvas_y  <= myChart.chartArea.bottom; 
+     return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right +canvas_y && myChart.chartArea.top <= posY - canvas_pos.top  && posY -  canvas_pos.top  <= myChart.chartArea.bottom; 
 
-   }
+   
 
-  return true
    }
 /*canvas.addEventListener('mousedown',function(){
 
@@ -91,6 +88,8 @@ function format_data() {
         dataset.push(item.close.toFixed(2))
       }
     })
+   valid_data_number = label.length
+   console.log(detail_dataset)
      fill_label_array()
       max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
@@ -138,10 +137,10 @@ function fill_label_array() {
 
 //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
  //if (amountToAdd > 0) raw_data.push.apply(raw_data, Array(amountToAdd).fill(null)) 
- valid_data_number = label.length 
+ 
+
   label.push.apply(label, Array(59 - date_latest.getMinutes()).fill(date_latest.getHours()))
   for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
-    console.log(label)
     label = label.map(i=>i < 12 ? `${i}am` : `${i}pm`)
 
    
@@ -161,7 +160,6 @@ return closed_price
 
 function return_color() {
   //raw_data[0].close give us latest/current stock price
-  console.log(raw_data[raw_data.length - 1])
   return (raw_data[raw_data.length - 1].close >= find_closed_price() ? "lawngreen" : "red")
 }
 
@@ -189,17 +187,20 @@ function return_linearGarident(color) {
 
 function return_market_status(){
 
+  return (global_time.getHours() <= 16 && valid_data_number !== 391 && get_global_time.getDate() !== (5 || 6) ? true : false)
+
+
 }
+
 function create_chart() {
     let [first_index,final_index] = new Array(2).fill(null)
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-      if (!chart.tooltip._active.length || !ismoving){
-        isvisible = false;
+      if (!chart.tooltip._active.length || !isMoving){
+        isVisible = false;
         return;
-     } else isvisible = true;
-     console.log(myChart.chartArea.width)
+     } else isVisible = true;
 
       let left_position  = parseFloat(window.getComputedStyle(info_price,null)["left"])
        let this_position_x = chart.tooltip._active[0].element.x
@@ -212,7 +213,6 @@ function create_chart() {
 
         else if(final_index && left_position.toFixed(2) === (myChart.chartArea.right-info_price.offsetWidth/2).toFixed(2))
           this_position_x = final_index
-        
         context.beginPath()
         context.setLineDash([])
         context.moveTo(this_position_x, chart.chartArea.top);
@@ -231,14 +231,15 @@ function create_chart() {
         info_price.style.visibility = 'visible'
         info_date.style.visibility = 'visible' 
 
+        if(lastIndex === valid_data_number-1) return;
+
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
         left_position = parseFloat(window.getComputedStyle(info_price,null)["left"])
         if(left_position <  myChart.chartArea.left+window.innerWidth /100 * 1.5)
          info_price.style.left = myChart.chartArea.left+window.innerWidth /100 * 1.5 +"px" 
-       //31+60*6 = 361
-        else if(left_position > myChart.chartArea.width/361*valid_data_number )
-         //else if(left_position +info_price.offsetWidth/2 > myChart.chartArea.right) 
-          info_price.style.left = myChart.chartArea.width/361*valid_data_number+info_price.offsetWidth/2 +"px"
+
+        else if(left_position > myChart.chartArea.width/391*valid_data_number )
+          info_price.style.left = myChart.chartArea.width/391*valid_data_number+"px"
           
        }
       
@@ -249,8 +250,6 @@ function create_chart() {
    afterDraw: function(chartInstance){
       const yScale = chartInstance.scales["y"];
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
-      console.log()
-     // if (chartInstance.options.horizontalLine) return;
         for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
           const line = chartInstance.options.horizontalLine[index];
           const style = 'white'
@@ -405,10 +404,10 @@ window.onload = function() {
   Promise.all([get_global_time(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
     
 
-    time_current = new Date(values[0])
+    global_time = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-      raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
-  console.log(raw_data.slice(0,100))
+
+raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
    document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
 
     format_data()
@@ -418,7 +417,12 @@ window.onload = function() {
   percentage.style.color = return_color();
   info_price.textContent =  find_closed_price();
     create_chart()
-    console.log(find_closed_price())
   })
+
+
+window.addEventListener('resize',function(){
+  const warning = document.createElement('div');
+  warning.textContent = "Warning:"
+})
 
 }
