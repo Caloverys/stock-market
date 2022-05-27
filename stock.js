@@ -1,4 +1,3 @@
-
 //Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
 const canvas = document.querySelector('#chart')
 ,context = canvas.getContext('2d')
@@ -24,8 +23,8 @@ document.activeElement === input ? input.blur() : input.focus()
 
 
 function getSymbol(){
-  /*return fetch("https://financialmodelingprep.com/api/v3/financial-statement-symbol-lists?apikey=c38b723e031c88753f0c9e66f505f557")
-  .then(res => res.json())*/
+  //return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
+ // .then(res => res.json())
 
 }
 function fetchData(symbol,range) {
@@ -53,7 +52,6 @@ document.addEventListener('mousemove', e =>{
    function isInCanvas(posX,posY){
     //console.log(myChart ? true : false)
   if(!myChart) return true;
-  console.log(myChart)
    const canvas_pos = canvas.getBoundingClientRect();
    let canvas_y;
    canvas.offsetWidth < 650 ? canvas_y = canvas_pos.left : canvas_y = 0
@@ -89,9 +87,9 @@ function format_data() {
       }
     })
    valid_data_number = label.length
-   console.log(detail_dataset)
      fill_label_array()
-      max_value = Math.max.apply(null, dataset)
+      label = label.map(i=>i < 12 ? `${i}am` : `${i}pm`)
+    max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
   grid_color = Array(label.length).fill("transparent")
   for(let i =30;i<label.length;i+=60) grid_color[i] = "rgba(255,255,255,0.4)"
@@ -121,9 +119,11 @@ function size_calculation(word,fontSize) {
 
 
 function get_global_time() {
-  return fetch("https://worldtimeapi.org/api/timezone/Europe/London")
+
+  return fetch("https://worldtimeapi.org/api/timezone/Europe/London11")
     .then(res => res.json())
     .then(raw_data => new Date(raw_data.datetime))
+    .catch(error=>console.error('no'))
 }
 
 
@@ -140,10 +140,7 @@ function fill_label_array() {
  
 
   label.push.apply(label, Array(59 - date_latest.getMinutes()).fill(date_latest.getHours()))
-  for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
-    label = label.map(i=>i < 12 ? `${i}am` : `${i}pm`)
-
-   
+  for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i)) 
 
 }
 
@@ -230,16 +227,19 @@ function create_chart() {
 
         info_price.style.visibility = 'visible'
         info_date.style.visibility = 'visible' 
-
         if(lastIndex === valid_data_number-1) return;
-
+        let width;
+        return_market_status() ? width = info_price.offsetWidth/2 : width = 0
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
         left_position = parseFloat(window.getComputedStyle(info_price,null)["left"])
         if(left_position <  myChart.chartArea.left+window.innerWidth /100 * 1.5)
          info_price.style.left = myChart.chartArea.left+window.innerWidth /100 * 1.5 +"px" 
 
-        else if(left_position > myChart.chartArea.width/391*valid_data_number )
-          info_price.style.left = myChart.chartArea.width/391*valid_data_number+"px"
+        else if(left_position - info_price.offsetWidth/2> myChart.chartArea.width/391*valid_data_number ){
+          info_price.style.left = myChart.chartArea.width/391*valid_data_number +info_price.offsetWidth/2+"px"
+          console.log(1)
+        }
+        
           
        }
       
@@ -361,7 +361,7 @@ function create_chart() {
            maxTicksLimit: label.length,
             color:'rgba(255,255,255,0.75)',
             font:{
-              size:14
+              size:window.innerWidth/100*1.5
             },
             callback: function(value, index, values) {
               const label = this.getLabelForValue(value);
@@ -401,13 +401,169 @@ function create_chart() {
 
 window.onload = function() {
 
-  Promise.all([get_global_time(), fetchData("AAPL",1),getSymbol()]).then(function(values) {
+  Promise.all([get_global_time(), fetchData("FB",1),getSymbol()]).then(function(values) {
     
 
     global_time = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
+    console.log(values[2])
+ raw_data =  [{
+  "date" : "2022-05-27 09:51:00",
+  "open" : 146.91000000,
+  "low" : 146.74000000,
+  "high" : 146.99000000,
+  "close" : 146.93000000,
+  "volume" : 362889
+}, {
+  "date" : "2022-05-27 09:50:00",
+  "open" : 146.97000000,
+  "low" : 146.80000000,
+  "high" : 147.04500000,
+  "close" : 146.90990000,
+  "volume" : 363909
+}, {
+  "date" : "2022-05-27 09:49:00",
+  "open" : 146.87010000,
+  "low" : 146.86500000,
+  "high" : 147.11000000,
+  "close" : 146.96240000,
+  "volume" : 481475
+}, {
+  "date" : "2022-05-27 09:48:00",
+  "open" : 146.66500000,
+  "low" : 146.65000000,
+  "high" : 146.96000000,
+  "close" : 146.88580000,
+  "volume" : 499501
+}, {
+  "date" : "2022-05-27 09:47:00",
+  "open" : 146.40000000,
+  "low" : 146.36000000,
+  "high" : 146.73000000,
+  "close" : 146.66000000,
+  "volume" : 575759
+}, {
+  "date" : "2022-05-27 09:46:00",
+  "open" : 146.06000000,
+  "low" : 146.03010000,
+  "high" : 146.50000000,
+  "close" : 146.40000000,
+  "volume" : 547235
+}, {
+  "date" : "2022-05-27 09:45:00",
+  "open" : 145.97000000,
+  "low" : 145.94000000,
+  "high" : 146.23000000,
+  "close" : 146.07000000,
+  "volume" : 393395
+}, {
+  "date" : "2022-05-27 09:44:00",
+  "open" : 146.09000000,
+  "low" : 145.31000000,
+  "high" : 146.16000000,
+  "close" : 145.96010000,
+  "volume" : 472251
+}, {
+  "date" : "2022-05-27 09:43:00",
+  "open" : 146.23000000,
+  "low" : 146.05000000,
+  "high" : 146.24500000,
+  "close" : 146.10990000,
+  "volume" : 381792
+}, {
+  "date" : "2022-05-27 09:42:00",
+  "open" : 146.36820000,
+  "low" : 146.18010000,
+  "high" : 146.45000000,
+  "close" : 146.21000000,
+  "volume" : 482835
+}, {
+  "date" : "2022-05-27 09:41:00",
+  "open" : 146.50920000,
+  "low" : 146.34000000,
+  "high" : 146.56000000,
+  "close" : 146.36500000,
+  "volume" : 347130
+}, {
+  "date" : "2022-05-27 09:40:00",
+  "open" : 146.45900000,
+  "low" : 146.37000000,
+  "high" : 146.66000000,
+  "close" : 146.51640000,
+  "volume" : 541863
+}, {
+  "date" : "2022-05-27 09:39:00",
+  "open" : 146.48000000,
+  "low" : 146.31000000,
+  "high" : 146.54000000,
+  "close" : 146.45780000,
+  "volume" : 420744
+}, {
+  "date" : "2022-05-27 09:38:00",
+  "open" : 146.38500000,
+  "low" : 146.36000000,
+  "high" : 146.60000000,
+  "close" : 146.47500000,
+  "volume" : 438824
+}, {
+  "date" : "2022-05-27 09:37:00",
+  "open" : 146.23000000,
+  "low" : 146.22000000,
+  "high" : 146.40000000,
+  "close" : 146.38000000,
+  "volume" : 353604
+}, {
+  "date" : "2022-05-27 09:36:00",
+  "open" : 145.97000000,
+  "low" : 145.95000000,
+  "high" : 146.35000000,
+  "close" : 146.25000000,
+  "volume" : 526927
+}, {
+  "date" : "2022-05-27 09:35:00",
+  "open" : 145.79000000,
+  "low" : 145.79000000,
+  "high" : 146.11000000,
+  "close" : 145.96400000,
+  "volume" : 439112
+}, {
+  "date" : "2022-05-27 09:34:00",
+  "open" : 146.04000000,
+  "low" : 145.75100000,
+  "high" : 146.11000000,
+  "close" : 145.79000000,
+  "volume" : 505175
+}, {
+  "date" : "2022-05-27 09:33:00",
+  "open" : 146.18000000,
+  "low" : 146.02000000,
+  "high" : 146.20500000,
+  "close" : 146.04500000,
+  "volume" : 374847
+}, {
+  "date" : "2022-05-27 09:32:00",
+  "open" : 146.00000000,
+  "low" : 145.93000000,
+  "high" : 146.23000000,
+  "close" : 146.18000000,
+  "volume" : 411564
+}, {
+  "date" : "2022-05-27 09:31:00",
+  "open" : 145.56000000,
+  "low" : 145.56000000,
+  "high" : 146.13000000,
+  "close" : 146.00000000,
+  "volume" : 656681
+}, {
+  "date" : "2022-05-27 09:30:00",
+  "open" : 145.39000000,
+  "low" : 145.26000000,
+  "high" : 145.74000000,
+  "close" : 145.54000000,
+  "volume" : 1714669
+}]
 
-raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
+raw_data = raw_data.sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
    document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
 
     format_data()
@@ -420,9 +576,10 @@ raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0)
   })
 
 
+
+
+}
 window.addEventListener('resize',function(){
   const warning = document.createElement('div');
   warning.textContent = "Warning:"
 })
-
-}
