@@ -1,7 +1,7 @@
 //Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
-const canvas = document.querySelector('#chart')
+const canvas = document.querySelector('canvas')
 ,context = canvas.getContext('2d')
-,dataset = []
+, dataset = []
 ,detail_dataset = []
 ,info_price = document.querySelector('#info_price')
 ,info_date= document.querySelector('#info_date')
@@ -10,9 +10,10 @@ const canvas = document.querySelector('#chart')
 let lastIndex = 0
 let max_value, min_value, raw_data, global_time, clientX, date_latest,closed_price,myChart,isMoving,valid_data_number;
 let isVisible  = true;
-
-
 let [label,grid_color] = [[],[]]
+
+
+
 document.querySelector('#deletebutton').addEventListener('click',() =>{
     input.blur();
     input.value = ""
@@ -50,7 +51,6 @@ document.addEventListener('mousemove', e =>{
 })
 
    function isInCanvas(posX,posY){
-    //console.log(myChart ? true : false)
   if(!myChart) return true;
    const canvas_pos = canvas.getBoundingClientRect();
    let canvas_y;
@@ -194,6 +194,7 @@ function create_chart() {
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
+     
       if (!chart.tooltip._active.length || !isMoving){
         isVisible = false;
         return;
@@ -211,12 +212,12 @@ function create_chart() {
         else if(final_index && left_position.toFixed(2) === (myChart.chartArea.right-info_price.offsetWidth/2).toFixed(2))
           this_position_x = final_index
 
-        context.beginPath()
+         context.beginPath()
         context.strokeStyle = '#52c4fa';
         context.globalCompositeOperation = 'source-over'
         context.setLineDash([])
         context.moveTo(this_position_x, chart.chartArea.top);
-        context.lineTo(this_position_x, chart.tooltip._active[0].element.y - window.innerWidth /100 * 1.5);
+        context.lineTo(this_position_x, chart.chartArea.bottom);
         context.lineWidth = 2.5;
 
         context.stroke();
@@ -230,13 +231,16 @@ function create_chart() {
 
 
         context.fillStyle = "#52c4fa";
-        context.arc(this_position_x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI);
+        context.arc(this_position_x, chart.tooltip._active[0].element.y, window.innerWidth/100, 0, 2 * Math.PI);
          context.closePath();
                 context.fill();
-        context.lineWidth =2.5
-        context.strokeStyle = 'black';
+        context.lineWidth =3
+        context.strokeStyle = 'rgba(0,0,0,0.8)';
          context.stroke();
            context.closePath();
+           context.restore()
+        context.save()
+           /*
                  context.beginPath()
 
          context.lineWidth =2.5;
@@ -249,6 +253,46 @@ function create_chart() {
            context.closePath()
 
           context.globalCompositeOperation = 'destination-over';
+    /*
+        context.beginPath()
+        //context.restore()
+        //context.save()
+        //console.log(context)
+         context.globalCompositeOperation = 'source-over';
+
+
+        context.moveTo(this_position_x, chart.chartArea.top);
+        context.lineTo(this_position_x, chart.tooltip._active[0].element.y - window.innerWidth /100 * 1.5);
+        context.lineWidth = 2.5;
+
+        context.stroke();
+ //context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
+       context.closePath();
+       
+
+      context.beginPath();
+       context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
+    
+        context.arc(this_position_x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI);
+
+          context.fill();
+          context.strokeStyle = 'black';
+  
+         context.stroke();
+          context.closePath();
+
+
+        context.beginPath()
+        context.lineWidth =2.5;
+         context.strokeStyle = '#52c4fa'
+        context.moveTo(this_position_x, chart.tooltip._active[0].element.y + window.innerWidth /100 * 3.5)
+         context.lineTo(this_position_x, chart.chartArea.bottom);
+          context.stroke();  
+        context.restore();
+          context.save()
+           context.closePath()
+          */ 
+
         /*
         context.beginPath()
         context.setLineDash([])
@@ -271,7 +315,7 @@ function create_chart() {
         if(lastIndex === valid_data_number-1) return;
         let info_width;
         return_market_status() ? info_width = info_price.offsetWidth/2 :info_width = 0;
-        console.log(return_market_status())
+        //console.log(return_market_status())
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
         left_position = parseFloat(window.getComputedStyle(info_price,null)["left"])
         if(left_position <  myChart.chartArea.left+window.innerWidth /100 * 1.5)
@@ -296,7 +340,6 @@ function create_chart() {
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
         for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
           const line = chartInstance.options.horizontalLine[index];
-          const style = 'white'
           if(find_closed_price() > max_value + 0.15) line.y = max_value -0.1
           line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
           context.lineWidth = 3;
@@ -314,8 +357,9 @@ function create_chart() {
             context.font = `${fontSize}px sans-serif`;
             context.fillText("Previous Price:", myChart.chartArea.right-size_1.width-fontSize/1.5, yValue +size_1.height);
             context.fillText(line.text, myChart.chartArea.right-size_2.width-fontSize/1.5, yValue +size_1.height + size_2.height);
-            context.setLineDash([])
-            context.globalCompositeOperation="destination-over"
+            context.setLineDash([])            
+            context.restore();
+            context.save()
             context.closePath()
 
 
@@ -331,17 +375,28 @@ function create_chart() {
         label: 'stock price',
         data: dataset,
         fill: true,
-        backgroundColor: "transparent",
-        //return_linearGarident(),
+        backgroundColor: return_linearGarident(),
         pointHoverRadius: 0,
         hoverBackgroundColor: return_linearGarident('color'),
-        hoverBorderColor: "transparent",
-        //"rgba(82,196,250,0.8)",
-        borderColor: "transparent"
-        //return_color(),   
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color()  
       }]
     },
     options: {
+      //Note that I should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
+
+       animation: {
+      onComplete: function() {
+       info_price.style.visibility = 'hidden'
+      
+    context.strokeStyle = '#52c4fa';
+    context.fillStyle = "#52c4fa";
+    context.setLineDash([])
+    context.strokeStyle = '#52c4fa'
+   context.globalCompositeOperation = 'destination-over'
+     context.save()
+      }
+   },
       responsive: true,
       maintainAspectRatio: false,
       tooltips: {
@@ -444,6 +499,7 @@ function create_chart() {
     plugins: [annotation]
 
   });
+
 }
 
 window.onload = function() {
@@ -452,8 +508,10 @@ window.onload = function() {
     
 
     global_time = new Date(values[0])
+  
+
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-    console.log(values[2])
+
 
 raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
    document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
@@ -465,6 +523,8 @@ raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0)
   percentage.style.color = return_color();
   info_price.textContent =  find_closed_price();
     create_chart()
+     info_price.style.visibility = 'hidden'
+
   })
 
 
