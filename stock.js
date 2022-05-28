@@ -1,19 +1,16 @@
 //Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
-const canvas = document.querySelector('canvas'),
-  context = canvas.getContext('2d'),
-  dataset = [],
-  detail_dataset = [],
-  info_price = document.querySelector('#info_price'),
-  info_date = document.querySelector('#info_date'),
-  parent_of_canvas = document.querySelector('#parent_of_canvas'),
-  input = document.querySelector('input[type=text]')
+const canvas = document.querySelector('canvas')
+,context = canvas.getContext('2d')
+, dataset = []
+, detail_dataset = []
+, info_price = document.querySelector('#info_price')
+, info_date = document.querySelector('#info_date')
+//, parent_of_canvas = document.querySelector('#parent_of_canvas'),
+, input = document.querySelector('input[type=text]')
 let lastIndex = 0
 let max_value, min_value, raw_data, global_time, clientX, date_latest, closed_price, myChart, isMoving, valid_data_number;
 let isVisible = true;
-let [label, grid_color] = [
-  [],
-  []
-]
+let [label, grid_color] = [[],[]]
 
 
 
@@ -79,6 +76,7 @@ function format_date(dateobject) {
   return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7), dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
 }
 
+
 function format_data() {
   date_latest = format_date(raw_data[raw_data.length - 1].date)
   raw_data.forEach((item, index) => {
@@ -95,7 +93,7 @@ function format_data() {
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
   grid_color = Array(label.length).fill("transparent")
-  for (let i = 30; i < label.length; i += 60) grid_color[i] = "rgba(255,255,255,0.4)"
+   for (let i = 30/range; i < label.length; i += 60/range) grid_color[i] = "rgba(255,255,255,0.4)"
 
 }
 
@@ -109,14 +107,13 @@ function size_calculation(word, fontSize) {
   position:absolute;
   visibility:hidden;
   `
-
-  const width = parseFloat(window.getComputedStyle(div).getPropertyValue('width'))
-  const height = parseFloat(window.getComputedStyle(div).getPropertyValue('height'))
+  //object destrusturing: const {} = object; ES6 feature 
+  const {width,height} =  window.getComputedStyle(div)
 
   div.remove();
   return ({
-    width: width,
-    height: height
+    width: parseFloat(width),
+    height: parseFloat(height)
   })
 }
 
@@ -127,24 +124,21 @@ function get_global_time() {
   return fetch("http://worldtimeapi.org/api/timezone/america/new_york")
     .then(res => res.json())
     .then(raw_data => new Date(raw_data.datetime))
-    .catch(error => console.error('no'))
 }
 
 
 function fill_label_array() {
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
 
-  //Note that for expectedDate, the time we set is 15:59, but the date_latest is 16:00, so we need add 1 minute (60000) here for comparision
-  if (date_latest.valueOf() === new Date(expectedDate.getTime() + 60000).valueOf()) return;
+  if(!return_market_status()) return
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
 
   //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
-  //if (amountToAdd > 0) raw_data.push.apply(raw_data, Array(amountToAdd).fill(null)) 
+  //first fill the label_array to full hour (60 min)
+  label.push.apply(label, Array(Math.floor((59- date_latest.getMinutes())/range)).fill(date_latest.getHours()))
 
-
-  label.push.apply(label, Array(59 - date_latest.getMinutes()).fill(date_latest.getHours()))
-  for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60).fill(i))
+  for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60/range).fill(i))
 
 }
 
@@ -167,6 +161,7 @@ function return_color() {
 
 function return_linearGarident(color) {
   const canvasHeight = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('height'))
+
   const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
@@ -187,18 +182,23 @@ function return_linearGarident(color) {
 }
 
 function return_market_status() {
-
-  return (global_time.getHours() <= 16 && valid_data_number !== 391 && get_global_time.getDate() !== (5 || 6) ? true : false)
+  //390 => 60 * 6 (from 9:30 to 16:00) + 30
+  //return true if market open and return false if market close
+  return (global_time.getHours() <= 16 && valid_data_number !== 390/range+1 && global_time.getDate() !== (5 || 6) ? true : false)
 
 
 }
 
+function filter_data(input_data,range){
+  return input_data.filter(i=> 
+    format_date(i.date).getMinutes() % range === 0
+  )
+}
 function create_chart() {
   let [first_index, final_index] = new Array(2).fill(null)
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-
       if (!chart.tooltip._active.length || !isMoving) {
         isVisible = false;
         return;
@@ -219,26 +219,20 @@ function create_chart() {
       context.beginPath()
       context.strokeStyle = '#52c4fa';
       context.globalCompositeOperation = 'source-over'
+    
       context.setLineDash([])
       context.moveTo(this_position_x, chart.chartArea.top);
       context.lineTo(this_position_x, chart.chartArea.bottom);
-      context.lineWidth = 2.5;
-
+      context.lineWidth = context.lineWidth > 2.5 ? context.lineWidth /500 : 2.5
       context.stroke();
       context.closePath();
       context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
 
       context.beginPath()
-
-
-
-
-
       context.fillStyle = "#52c4fa";
-      context.arc(this_position_x, chart.tooltip._active[0].element.y, window.innerWidth / 100, 0, 2 * Math.PI);
+      context.arc(this_position_x, chart.tooltip._active[0].element.y, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
       context.closePath();
       context.fill();
-      context.lineWidth = 3
       context.strokeStyle = 'rgba(0,0,0,0.8)';
       context.stroke();
       context.closePath();
@@ -258,15 +252,16 @@ function create_chart() {
       return_market_status() ? info_width = info_price.offsetWidth / 2 : info_width = 0;
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      if (left_position < myChart.chartArea.left + window.innerWidth / 100 * 1.5)
+      if (left_position < myChart.chartArea.left + window.innerWidth / 100 * 1.5){
         info_price.style.left = myChart.chartArea.left + window.innerWidth / 100 * 1.5 + "px"
 
-      else if (left_position > myChart.chartArea.left + myChart.chartArea.width / 391 * valid_data_number) {
-        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / 391 * valid_data_number + info_width + "px"
-
-
-
       }
+
+      else if (left_position > myChart.chartArea.left + myChart.chartArea.width / (390/range +1) * valid_data_number) 
+        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / (390/range +1) * valid_data_number + info_width + "px"
+      
+
+
 
 
     }
@@ -275,20 +270,26 @@ function create_chart() {
   }
   let horizonalLinePlugin = {
     id: 'horizontalLine',
+    has_called: false,
     afterDraw: function(chartInstance) {
+      //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlugin 
+     if(this.has_called) return;
       const yScale = chartInstance.scales["y"];
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
+
       for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
+        this.has_called = true;
         const line = chartInstance.options.horizontalLine[index];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1
         line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
-        context.lineWidth = 3;
+        //context.lineWidth = 3;
         context.beginPath()
         context.setLineDash([5, 3])
         context.globalCompositeOperation = "source-over"
-        context.moveTo(myChart.chartArea.left + window.innerWidth / 100 * 1.5 - info_price.offsetWidth / 2, yValue);
+        context.moveTo(myChart.chartArea.left, yValue);
         context.lineTo(myChart.chartArea.right, yValue);
         context.strokeStyle = 'white';
+       // context.lineWidth = window.innerWidth /300
         context.stroke();
         context.fillStyle = 'white';
         const fontSize = window.innerWidth / 100 * 1.25
@@ -297,9 +298,9 @@ function create_chart() {
         context.font = `${fontSize}px sans-serif`;
         context.fillText("Previous Price:", myChart.chartArea.right - size_1.width - fontSize / 1.5, yValue + size_1.height);
         context.fillText(line.text, myChart.chartArea.right - size_2.width - fontSize / 1.5, yValue + size_1.height + size_2.height);
-        context.setLineDash([])
         context.restore();
         context.save()
+        context.setLineDash([])
         context.closePath()
 
 
@@ -323,18 +324,9 @@ function create_chart() {
       }]
     },
     options: {
-      //Note that I should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
 
       animation: {
         onComplete: function() {
-          info_price.style.visibility = 'hidden'
-
-          context.strokeStyle = '#52c4fa';
-          context.fillStyle = "#52c4fa";
-          context.setLineDash([])
-          context.strokeStyle = '#52c4fa'
-          context.globalCompositeOperation = 'destination-over'
-          context.save()
         }
       },
       responsive: true,
@@ -406,7 +398,7 @@ function create_chart() {
               size: window.innerWidth / 100 * 1.5
             },
             callback: function(value, index, values) {
-              const label = this.getLabelForValue(value);
+              const label = this.getLabelForValue(value);           
               return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
 
             }
@@ -443,31 +435,44 @@ function create_chart() {
 }
 
 window.onload = function() {
-
   Promise.all([get_global_time(), fetchData("FB", 1), getSymbol()]).then(function(values) {
 
 
     global_time = new Date(values[0])
-    console.log(global_time)
 
+     if(window.innerWidth > 1000) window.range = 1
+    else if(window.innerWidth > 800) window.range = 2
+    else if(window.innerWidth > 600) window.range = 3
+    else if(window.innerWidth > 400) window.range = 5
+    raw_data = filter_data(values[1],range)
 
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-
-
-    raw_data = values[1].sort(({
+    raw_data = raw_data.sort(({
       date: a
     }, {
       date: b
     }) => a < b ? -1 : (a > b ? 1 : 0))
+
     document.querySelector('#dollar').textContent = raw_data[raw_data.length - 1].close.toFixed(2)
 
     format_data()
+   
     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
     const percentage = document.querySelector('#percent');
     percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
     create_chart()
+
+      //Note that I should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
+      context.strokeStyle = '#52c4fa';
+          context.fillStyle = "#52c4fa";
+          context.setLineDash([])
+          context.strokeStyle = '#52c4fa'
+          context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth /500 : 2.5
+          context.globalCompositeOperation = 'destination-over'
+          context.save()
+
     //Due to the isMoving and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
     info_price.style.visibility = 'hidden'
 
@@ -479,5 +484,26 @@ window.onload = function() {
 }
 window.addEventListener('resize', function() {
   const warning = document.createElement('div');
-  warning.textContent = "Warning:"
+const button_style = `
+color:rgba(0,0,200,0.8);
+border:none; 
+background:none;
+text-decoration:underline;
+font-size:0.8em`
+  warning.innerHTML = `
+  <span style='font-weight:900;margin-left:5px;font-size:1.3em'>⚠</span>
+  Warning: 
+  <span style='font-weight:500; color:rgba(0,0,0,0.8); font-size:0.9em'>Window get resized</span>  
+  <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue;margin-left:5px;margin-top:5px;'>Learn more</a>
+  <button style='${button_style};position:fixed; right:10%;'>Resize</button>
+  <button class='remove_button' style='position:fixed; right:3%;'></button>
+
+  `
+  warning.className='warning'
+  document.body.appendChild(warning)
+  const remove_button =  warning.querySelector('.remove_button')
+ remove_button.addEventListener('click',()=>warning.classList.add('remove_class'))
+ remove_button.addEventListener('transitionend',()=>warning.remove())
+
+
 })
