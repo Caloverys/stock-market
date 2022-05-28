@@ -210,6 +210,46 @@ function create_chart() {
 
         else if(final_index && left_position.toFixed(2) === (myChart.chartArea.right-info_price.offsetWidth/2).toFixed(2))
           this_position_x = final_index
+
+        context.beginPath()
+        context.strokeStyle = '#52c4fa';
+        context.globalCompositeOperation = 'source-over'
+        context.setLineDash([])
+        context.moveTo(this_position_x, chart.chartArea.top);
+        context.lineTo(this_position_x, chart.tooltip._active[0].element.y - window.innerWidth /100 * 1.5);
+        context.lineWidth = 2.5;
+
+        context.stroke();
+               context.closePath();
+                context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
+
+         context.beginPath()
+      
+        
+               
+
+
+        context.fillStyle = "#52c4fa";
+        context.arc(this_position_x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI);
+         context.closePath();
+                context.fill();
+        context.lineWidth =2.5
+        context.strokeStyle = 'black';
+         context.stroke();
+           context.closePath();
+                 context.beginPath()
+
+         context.lineWidth =2.5;
+
+         context.strokeStyle = '#52c4fa'
+        context.moveTo(this_position_x, chart.tooltip._active[0].element.y + window.innerWidth /100 * 3.5)
+         context.lineTo(this_position_x, chart.chartArea.bottom);
+          context.stroke();  
+          context.lineWidth = 2;
+           context.closePath()
+
+          context.globalCompositeOperation = 'destination-over';
+        /*
         context.beginPath()
         context.setLineDash([])
         context.moveTo(this_position_x, chart.chartArea.top);
@@ -221,23 +261,27 @@ function create_chart() {
         context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
         context.globalCompositeOperation = 'destination-over';
         context.arc(this_position_x, chart.tooltip._active[0].element.y, 12.5, 0, 2 * Math.PI)
-        context.fillStyle = '#52c4fa';
-        context.fill()
-        context.closePath()
+        */
+        //context.fillStyle = '#52c4fa';
+        //context.fill()
+       
 
         info_price.style.visibility = 'visible'
         info_date.style.visibility = 'visible' 
         if(lastIndex === valid_data_number-1) return;
-        let width;
-        return_market_status() ? width = info_price.offsetWidth/2 : width = 0
+        let info_width;
+        return_market_status() ? info_width = info_price.offsetWidth/2 :info_width = 0;
+        console.log(return_market_status())
          info_price.style.left = clientX - info_price.offsetWidth/2+ "px"
         left_position = parseFloat(window.getComputedStyle(info_price,null)["left"])
         if(left_position <  myChart.chartArea.left+window.innerWidth /100 * 1.5)
          info_price.style.left = myChart.chartArea.left+window.innerWidth /100 * 1.5 +"px" 
 
-        else if(left_position - info_price.offsetWidth/2> myChart.chartArea.width/391*valid_data_number ){
-          info_price.style.left = myChart.chartArea.width/391*valid_data_number +info_price.offsetWidth/2+"px"
-          console.log(1)
+        else if(left_position > myChart.chartArea.left + myChart.chartArea.width/391*valid_data_number ){
+          info_price.style.left =myChart.chartArea.left+ myChart.chartArea.width/391*valid_data_number + info_width+"px"
+        
+
+
         }
         
           
@@ -287,11 +331,14 @@ function create_chart() {
         label: 'stock price',
         data: dataset,
         fill: true,
-        backgroundColor: return_linearGarident(),
+        backgroundColor: "transparent",
+        //return_linearGarident(),
         pointHoverRadius: 0,
         hoverBackgroundColor: return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color(),   
+        hoverBorderColor: "transparent",
+        //"rgba(82,196,250,0.8)",
+        borderColor: "transparent"
+        //return_color(),   
       }]
     },
     options: {
@@ -407,163 +454,8 @@ window.onload = function() {
     global_time = new Date(values[0])
     //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
     console.log(values[2])
- raw_data =  [{
-  "date" : "2022-05-27 09:51:00",
-  "open" : 146.91000000,
-  "low" : 146.74000000,
-  "high" : 146.99000000,
-  "close" : 146.93000000,
-  "volume" : 362889
-}, {
-  "date" : "2022-05-27 09:50:00",
-  "open" : 146.97000000,
-  "low" : 146.80000000,
-  "high" : 147.04500000,
-  "close" : 146.90990000,
-  "volume" : 363909
-}, {
-  "date" : "2022-05-27 09:49:00",
-  "open" : 146.87010000,
-  "low" : 146.86500000,
-  "high" : 147.11000000,
-  "close" : 146.96240000,
-  "volume" : 481475
-}, {
-  "date" : "2022-05-27 09:48:00",
-  "open" : 146.66500000,
-  "low" : 146.65000000,
-  "high" : 146.96000000,
-  "close" : 146.88580000,
-  "volume" : 499501
-}, {
-  "date" : "2022-05-27 09:47:00",
-  "open" : 146.40000000,
-  "low" : 146.36000000,
-  "high" : 146.73000000,
-  "close" : 146.66000000,
-  "volume" : 575759
-}, {
-  "date" : "2022-05-27 09:46:00",
-  "open" : 146.06000000,
-  "low" : 146.03010000,
-  "high" : 146.50000000,
-  "close" : 146.40000000,
-  "volume" : 547235
-}, {
-  "date" : "2022-05-27 09:45:00",
-  "open" : 145.97000000,
-  "low" : 145.94000000,
-  "high" : 146.23000000,
-  "close" : 146.07000000,
-  "volume" : 393395
-}, {
-  "date" : "2022-05-27 09:44:00",
-  "open" : 146.09000000,
-  "low" : 145.31000000,
-  "high" : 146.16000000,
-  "close" : 145.96010000,
-  "volume" : 472251
-}, {
-  "date" : "2022-05-27 09:43:00",
-  "open" : 146.23000000,
-  "low" : 146.05000000,
-  "high" : 146.24500000,
-  "close" : 146.10990000,
-  "volume" : 381792
-}, {
-  "date" : "2022-05-27 09:42:00",
-  "open" : 146.36820000,
-  "low" : 146.18010000,
-  "high" : 146.45000000,
-  "close" : 146.21000000,
-  "volume" : 482835
-}, {
-  "date" : "2022-05-27 09:41:00",
-  "open" : 146.50920000,
-  "low" : 146.34000000,
-  "high" : 146.56000000,
-  "close" : 146.36500000,
-  "volume" : 347130
-}, {
-  "date" : "2022-05-27 09:40:00",
-  "open" : 146.45900000,
-  "low" : 146.37000000,
-  "high" : 146.66000000,
-  "close" : 146.51640000,
-  "volume" : 541863
-}, {
-  "date" : "2022-05-27 09:39:00",
-  "open" : 146.48000000,
-  "low" : 146.31000000,
-  "high" : 146.54000000,
-  "close" : 146.45780000,
-  "volume" : 420744
-}, {
-  "date" : "2022-05-27 09:38:00",
-  "open" : 146.38500000,
-  "low" : 146.36000000,
-  "high" : 146.60000000,
-  "close" : 146.47500000,
-  "volume" : 438824
-}, {
-  "date" : "2022-05-27 09:37:00",
-  "open" : 146.23000000,
-  "low" : 146.22000000,
-  "high" : 146.40000000,
-  "close" : 146.38000000,
-  "volume" : 353604
-}, {
-  "date" : "2022-05-27 09:36:00",
-  "open" : 145.97000000,
-  "low" : 145.95000000,
-  "high" : 146.35000000,
-  "close" : 146.25000000,
-  "volume" : 526927
-}, {
-  "date" : "2022-05-27 09:35:00",
-  "open" : 145.79000000,
-  "low" : 145.79000000,
-  "high" : 146.11000000,
-  "close" : 145.96400000,
-  "volume" : 439112
-}, {
-  "date" : "2022-05-27 09:34:00",
-  "open" : 146.04000000,
-  "low" : 145.75100000,
-  "high" : 146.11000000,
-  "close" : 145.79000000,
-  "volume" : 505175
-}, {
-  "date" : "2022-05-27 09:33:00",
-  "open" : 146.18000000,
-  "low" : 146.02000000,
-  "high" : 146.20500000,
-  "close" : 146.04500000,
-  "volume" : 374847
-}, {
-  "date" : "2022-05-27 09:32:00",
-  "open" : 146.00000000,
-  "low" : 145.93000000,
-  "high" : 146.23000000,
-  "close" : 146.18000000,
-  "volume" : 411564
-}, {
-  "date" : "2022-05-27 09:31:00",
-  "open" : 145.56000000,
-  "low" : 145.56000000,
-  "high" : 146.13000000,
-  "close" : 146.00000000,
-  "volume" : 656681
-}, {
-  "date" : "2022-05-27 09:30:00",
-  "open" : 145.39000000,
-  "low" : 145.26000000,
-  "high" : 145.74000000,
-  "close" : 145.54000000,
-  "volume" : 1714669
-}]
 
-raw_data = raw_data.sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
+raw_data = values[1].sort(({date: a}, {date: b}) => a < b ? -1 : (a > b ? 1 : 0))
    document.querySelector('#dollar').textContent = raw_data[raw_data.length-1].close.toFixed(2)
 
     format_data()
