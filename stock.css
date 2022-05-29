@@ -1,4 +1,4 @@
- *:not(#price:*){
+      *:not(#price:*){
         user-select: none;
 
       }
@@ -27,7 +27,6 @@
        display: flex;
         justify-content: center;
     align-items: center;
-    vertical-align: center;
       padding: calc(2vw);
       padding-top: 100px;
       margin: 5px;
@@ -187,3 +186,5 @@
   }
 
       }
+ 
+
