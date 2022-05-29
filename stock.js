@@ -8,7 +8,7 @@ const canvas = document.querySelector('canvas')
 //, parent_of_canvas = document.querySelector('#parent_of_canvas'),
 , input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, global_time, clientX, date_latest, closed_price, myChart, isInsideCanvas, valid_data_number;
+let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, closed_price, myChart, isInsideCanvas, valid_data_number;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
 
@@ -190,6 +190,19 @@ function filter_data(input_data){
     else if(window.innerWidth > 800) window.range = 2
     else if(window.innerWidth > 600) window.range = 3
     else if(window.innerWidth > 400) window.range = 5
+    else{
+      parent_of_canvas.style.color ='white';
+      parent_of_canvas.innerHTML =`
+      <div style='font-size:1.5em;'>!Window size warning:!</div><br>
+      <div>Your interior window size is 
+      <span style='color:red'>${window.innerWidth}, ${window.innerHeight}</span>
+
+       which is too small to load the graph </div>
+      <div>Please switch to bigger interior </div>
+
+      `
+
+    }
 
     //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
   return input_data.filter(i=> 
@@ -438,13 +451,21 @@ function create_chart() {
 
 }
 
+function restore_all(){
+  myChart.destroy();
+  detail_dataset.length = 0;
+  dataset.length = 0
+  label.length = 0;
+
+}
 window.onload = function() {
   Promise.all([get_global_time(), fetchData("FB", 1), getSymbol()]).then(function(values) {
 
-
+    
     global_time = new Date(values[0])
-
-   
+    API_data = values[1]
+     
+   raw_data = filter_data(API_data)
     const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2)
 
@@ -494,8 +515,10 @@ background:none;
 text-decoration:underline;
 font-size:0.8em`
   warning.innerHTML = `
-  <span style='font-weight:900;margin-left:5px;font-size:1.3em'>⚠</span>
+  <div style='position:absolute;left:1vw;">
+  <span style='font-weight:900;font-size:1.3em'>⚠</span>
   Warning: 
+  </div>
   <span style='font-weight:500; color:rgba(0,0,0,0.8); font-size:0.9em'>Window get resized</span>  
   <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue; margin-left:5px;margin-top:5px;'>Learn more</a>
   <button class='resize_button' style='${button_style};position:fixed; right:10%;'>Resize</button>
@@ -505,10 +528,17 @@ font-size:0.8em`
   warning.className='warning'
   
   const remove_button =  warning.querySelector('.remove_button')
- remove_button.addEventListener('click',()=>warning.classList.add('remove_class'))
- remove_button.addEventListener('transitionend',()=>warning.remove())
+ remove_button.addEventListener('click',()=>{
+  warning.classList.add('remove_class')
+  setTimeout(()=> warning.remove(),1500)
+})
+
+
  warning.querySelector('.resize_button').addEventListener('click',function(){
-   ra
+
+  restore_all()
+   raw_data =filter_data(API_data)
+    format_data()
   create_chart()
  })
 document.body.appendChild(warning)
