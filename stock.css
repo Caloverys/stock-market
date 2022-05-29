@@ -1,19 +1,18 @@
-      *:not(#price:*){
+ *:not(#price:*){
         user-select: none;
 
       }
       body{margin: 0}
     canvas{
-   background-color: rgba(0,0,0,0.8);
-    z-index: 1;
-      padding: calc(2vw);
-      padding-top: 100px;
-      margin: 5px;
+             position: absolute;
+             top: 20vh;
+  
     }
          #info_price{
+          z-index: 9999;
+
             position: absolute;
             left: 40%;
-            z-index: 99;
             top: 30%;
             color: #52c4fa;
             font-weight: bold;
@@ -23,6 +22,15 @@
 
          }
     #parent_of_canvas{
+      background-color: rgba(0,0,0,0.8);
+       position: relative;
+       display: flex;
+        justify-content: center;
+    align-items: center;
+    vertical-align: center;
+      padding: calc(2vw);
+      padding-top: 100px;
+      margin: 5px;
        height:90vh ;
        width: 90vw ;
     }
@@ -88,15 +96,13 @@
 
 
 
+
       }
+      
       #dollar{
         font-size: 2em;
         margin-right: 40px;
-        color: black
-      }
-      #price > span:last-child{
-        color: grey;
-        text-transform: capitalize;
+        color:white;
 
       }
       #range{
@@ -122,7 +128,8 @@
         height: 10vh;
         display: flex;
         align-items: center;
-        vertical-align: center;
+        z-index: 9999;
+       justify-content: center;
         font-size: 2em;
         background-color:rgba(255,255,255,0.75);
         color: rgb(249, 180, 45);
@@ -153,4 +160,30 @@
         transition: opacity 1.5s ease-out;
         opacity: 0;
       }
- 
+      .loader{
+        border: 2vw solid rgba(243, 243, 243,0.8);
+         border-radius: 50%;
+  border-top: 2vw solid rgba(128,128,128,0.9);
+    width: 20vw;
+  height: 20vw;
+  animation: rotate 1.5s linear infinite;
+
+      }
+      .small_loader{
+          border: 0.4vw solid rgba(243, 243, 243,0.8);
+         border-radius: 50%;
+  border-top: 0.4vw solid rgba(128,128,128,0.9);
+    width: 2vw;
+  height: 2vw;
+  animation: rotate 1.5s linear infinite;
+
+      }
+      @keyframes rotate {
+  from { 
+    transform: rotate(0deg); 
+  }
+  to { 
+    transform: rotate(360deg); 
+  }
+
+      }
