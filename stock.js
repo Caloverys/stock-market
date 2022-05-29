@@ -8,7 +8,7 @@ const canvas = document.querySelector('canvas')
 //, parent_of_canvas = document.querySelector('#parent_of_canvas'),
 , input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, global_time, clientX, date_latest, closed_price, myChart, isMoving, valid_data_number;
+let max_value, min_value, raw_data, global_time, clientX, date_latest, closed_price, myChart, isInsideCanvas, valid_data_number;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
 
@@ -36,9 +36,9 @@ function fetchData(symbol, range) {
 
 }
 //only screenX works here, clientX doesn't work expected.
-document.addEventListener('mousemove', e => {
-  isMoving = isInCanvas(e.clientX, e.clientY)
-  if (isMoving && isVisible) {
+canvas.addEventListener('mousemove', e => {
+  isInsideCanvas = isInCanvas(e.clientX, e.clientY)
+  if (isInsideCanvas && isVisible) {
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
@@ -53,11 +53,7 @@ document.addEventListener('mousemove', e => {
 function isInCanvas(posX, posY) {
   if (!myChart) return true;
   const canvas_pos = canvas.getBoundingClientRect();
-  let canvas_y;
-  canvas.offsetWidth < 650 ? canvas_y = canvas_pos.left : canvas_y = 0
-
-
-  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_y && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
+  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
 
 
 
@@ -189,31 +185,40 @@ function return_market_status() {
 
 }
 
-function filter_data(input_data,range){
+function filter_data(input_data){
+   if(window.innerWidth > 1000) window.range = 1
+    else if(window.innerWidth > 800) window.range = 2
+    else if(window.innerWidth > 600) window.range = 3
+    else if(window.innerWidth > 400) window.range = 5
+
+    //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
   return input_data.filter(i=> 
     format_date(i.date).getMinutes() % range === 0
-  )
+  ).sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0))
 }
 function create_chart() {
   let [first_index, final_index] = new Array(2).fill(null)
   const annotation = {
     id: 'annotationline',
     afterDraw: function(chart) {
-      if (!chart.tooltip._active.length || !isMoving) {
+      if (!chart.tooltip._active.length || !isInsideCanvas) {
+        info_price.style.visibility = 'hidden'
+        info_date.style.visibility = 'hidden'
         isVisible = false;
         return;
       } else isVisible = true;
-
+      
       let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
       let this_position_x = chart.tooltip._active[0].element.x
       if (lastIndex === detail_dataset.length - 1 && !final_index)
         final_index = this_position_x
       else if (lastIndex === 0 && !first_index) first_index = this_position_x
 
-      if (first_index && left_position.toFixed(2) === (myChart.chartArea.left + window.innerWidth / 100 * 1.5).toFixed(2))
-        this_position_x = first_index
-
-      else if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
+      if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
         this_position_x = final_index
 
       context.beginPath()
@@ -221,9 +226,10 @@ function create_chart() {
       context.globalCompositeOperation = 'source-over'
     
       context.setLineDash([])
+
       context.moveTo(this_position_x, chart.chartArea.top);
       context.lineTo(this_position_x, chart.chartArea.bottom);
-      context.lineWidth = context.lineWidth > 2.5 ? context.lineWidth /500 : 2.5
+      context.lineWidth = context.lineWidth > 2.5 ? context.lineWidth : 2.5
       context.stroke();
       context.closePath();
       context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
@@ -274,22 +280,19 @@ function create_chart() {
     afterDraw: function(chartInstance) {
       //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlugin 
      if(this.has_called) return;
-      const yScale = chartInstance.scales["y"];
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
 
       for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
         this.has_called = true;
         const line = chartInstance.options.horizontalLine[index];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1
-        line.y ? yValue = yScale.getPixelForValue(line.y) : yValue = 20;
-        //context.lineWidth = 3;
+        line.y ? yValue = chartInstance.scales["y"].getPixelForValue(line.y) : yValue = 20;
         context.beginPath()
         context.setLineDash([5, 3])
         context.globalCompositeOperation = "source-over"
         context.moveTo(myChart.chartArea.left, yValue);
         context.lineTo(myChart.chartArea.right, yValue);
         context.strokeStyle = 'white';
-       // context.lineWidth = window.innerWidth /300
         context.stroke();
         context.fillStyle = 'white';
         const fontSize = window.innerWidth / 100 * 1.25
@@ -327,6 +330,7 @@ function create_chart() {
 
       animation: {
         onComplete: function() {
+
         }
       },
       responsive: true,
@@ -440,31 +444,28 @@ window.onload = function() {
 
     global_time = new Date(values[0])
 
-     if(window.innerWidth > 1000) window.range = 1
-    else if(window.innerWidth > 800) window.range = 2
-    else if(window.innerWidth > 600) window.range = 3
-    else if(window.innerWidth > 400) window.range = 5
-    raw_data = filter_data(values[1],range)
+   
+    const price_element = document.querySelector('#price')
+    price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2)
 
-    //Convert data to array and sort data based on the date (newest date like 15:59 pm ) to the end 
-    raw_data = raw_data.sort(({
-      date: a
-    }, {
-      date: b
-    }) => a < b ? -1 : (a > b ? 1 : 0))
-
-    document.querySelector('#dollar').textContent = raw_data[raw_data.length - 1].close.toFixed(2)
 
     format_data()
    
     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
-    const percentage = document.querySelector('#percent');
-    percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
+    const percentage = price_element.querySelector('#percent');
+   percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
+    if(!return_market_status()){
+    const created_span = document.createElement('span')
+    created_span.style.color ='grey';
+    created_span.textContent ='At Close'
+    price_element.appendChild(created_span)
+  }
+    
     create_chart()
 
-      //Note that I should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
+      //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
       context.strokeStyle = '#52c4fa';
           context.fillStyle = "#52c4fa";
           context.setLineDash([])
@@ -473,8 +474,9 @@ window.onload = function() {
           context.globalCompositeOperation = 'destination-over'
           context.save()
 
-    //Due to the isMoving and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
+    //Due to the isInsideCanvas and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
     info_price.style.visibility = 'hidden'
+      document.querySelector('.loader').remove()
 
   })
 
@@ -483,9 +485,10 @@ window.onload = function() {
 
 }
 window.addEventListener('resize', function() {
+  if(document.querySelector('.warning')) return
   const warning = document.createElement('div');
-const button_style = `
-color:rgba(0,0,200,0.8);
+   const button_style = `
+  color:rgba(0,0,200,0.8);
 border:none; 
 background:none;
 text-decoration:underline;
@@ -494,16 +497,23 @@ font-size:0.8em`
   <span style='font-weight:900;margin-left:5px;font-size:1.3em'>⚠</span>
   Warning: 
   <span style='font-weight:500; color:rgba(0,0,0,0.8); font-size:0.9em'>Window get resized</span>  
-  <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue;margin-left:5px;margin-top:5px;'>Learn more</a>
-  <button style='${button_style};position:fixed; right:10%;'>Resize</button>
+  <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue; margin-left:5px;margin-top:5px;'>Learn more</a>
+  <button class='resize_button' style='${button_style};position:fixed; right:10%;'>Resize</button>
   <button class='remove_button' style='position:fixed; right:3%;'></button>
 
   `
   warning.className='warning'
-  document.body.appendChild(warning)
+  
   const remove_button =  warning.querySelector('.remove_button')
  remove_button.addEventListener('click',()=>warning.classList.add('remove_class'))
  remove_button.addEventListener('transitionend',()=>warning.remove())
+ warning.querySelector('.resize_button').addEventListener('click',function(){
+   ra
+  create_chart()
+ })
+document.body.appendChild(warning)
+
+
 
 
 })
