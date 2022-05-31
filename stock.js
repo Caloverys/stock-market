@@ -38,6 +38,7 @@ function fetchData(symbol, range) {
 //only screenX works here, clientX doesn't work expected.
 canvas.addEventListener('mousemove', e => {
   isInsideCanvas = isInCanvas(e.clientX, e.clientY)
+  console.log(isInsideCanvas)
   if (isInsideCanvas && isVisible) {
      clientX = e.clientX;
     info_price.style.visibility = 'visible'
@@ -95,30 +96,36 @@ function format_data(difference) {
       dataset.push(item.close.toFixed(2))
     }
   })
-  valid_data_number = label.length
 
-  
+
+  valid_data_number = label.length 
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
-  console.log(label)
-  grid_color = Array(label.length).fill("transparent")
-  if(return_market_status() && timestamp === '1min' ) fill_label_array()
-  if(timestamp === '1min'){
 
-    label = label.map(i =>new Date(i).getHours() + (i < 12 ? 'am' : 'pm'))
-    console.log(range)
+ 
+  if(timestamp === '1min'){
+    label =label.map(i=>new Date(i).getHours())
+    if(return_market_status() ) fill_label_array_1min()
+    
+    label = label.map(i =>i + (i < 12 ? 'am' : 'pm'))
+    grid_color = Array(label.length).fill("transparent")
     for (let i = 30/range; i < label.length; i += 60/range) grid_color[i] = "rgba(255,255,255,0.4)"
-      console.log(grid_color)
 
   }
 
   else if(timestamp === "5min"){
+    range = range 
+    label = label.map(i=>new Date(i).getDate())
+    fill_label_array_5min()
 
+    grid_color = Array(label.length).fill("transparent")
+    
     for(let i= 0;i<label.length;i+=Math.ceil(79/range)) grid_color[i] = "rgba(255,255,255,0.4)"
           grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
-    label = label.map(i=>new Date(i).getDate())
+
     
   }
+    
    
 
 }
@@ -153,7 +160,17 @@ function get_global_time() {
 }
 
 
-function fill_label_array() {
+function fill_label_array_5min(){
+
+  const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 16,0)
+
+  const amountToAdd = (expectedDate - date_latest) / 1000 / 60 /5
+  console.log(amountToAdd)
+  label.push.apply(label,Array(Math.ceil(amountToAdd/range)).fill(expectedDate.getDate()))
+  console.log(label)
+
+}
+function fill_label_array_1min() {
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
 
 
@@ -162,8 +179,9 @@ function fill_label_array() {
   //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
   //first fill the label_array to full hour (60 min)
   label.push.apply(label, Array(Math.floor((59- date_latest.getMinutes())/range)).fill(date_latest.getHours()))
-
   for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60/range).fill(i))
+    //at last 16:00
+    label.push(16)
 
 }
 
@@ -190,15 +208,20 @@ function return_linearGarident(color) {
   const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
-    gradient.addColorStop(0.5, "rgba(82,196,250,0.3)");
+    gradient.addColorStop(0.3, "rgba(82,196,250,0.3)");
+    gradient.addColorStop(0.3, "rgba(82,196,250,0.3)");
     gradient.addColorStop(1, 'transparent')
 
   } else if (return_color().includes("red")) {
     gradient.addColorStop(0, "rgba(255,0,0,0.8)");
-    gradient.addColorStop(0.5, "rgba(255,0,0,0.3)");
+    gradient.addColorStop(0.3, "rgba(255,0,0,0.3)");
+    gradient.addColorStop(0.3, "rgba(255,0,0,0.3)");
+     gradient.addColorStop(1, 'transparent')
+
     gradient.addColorStop(1, 'transparent')
   } else if (return_color().includes("green")) {
     gradient.addColorStop(0, "rgba(0,255,0,0.8)");
+     gradient.addColorStop(0.5, "rgba(0,255,0,0.3)");
     gradient.addColorStop(0.5, "rgba(0,255,0,0.3)");
     gradient.addColorStop(1, 'transparent')
   }
@@ -358,7 +381,15 @@ if(static_clientX ){
       if (left_position < myChart.chartArea.left + window.innerWidth / 100 * 1.5){
         info_price.style.left = myChart.chartArea.left + window.innerWidth / 100 * 1.5 + "px"
 
+      } else if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number-info_width) {
+        console.log(valid_data_number)
+        if(timestamp === '1min')
+        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length/range * valid_data_number - info_width + "px"
+         else  info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number - info_width + "px"
+
       }
+
+      
 
     }
 
@@ -491,7 +522,8 @@ if(static_clientX ){
             font: {
               size: window.innerWidth / 100 * 1.5
             },
-            callback: function(value, index, values) {      
+            callback: function(value, index, values) {  
+            if(timestamp !== "1min" && index ===label.length-1)  return ""  
               return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
 
             }
@@ -512,6 +544,8 @@ if(static_clientX ){
           footerColor: 'transparent',
           callbacks: {
             label: function(tooltipItem) {
+              console.log(tooltipItem.raw)
+              console.log(info_price)
               info_price.textContent = tooltipItem.raw
               info_date.textContent = detail_dataset[tooltipItem.dataIndex].date
               lastIndex = tooltipItem.dataIndex;
@@ -547,7 +581,7 @@ window.onload = function() {
     
     global_time = new Date(values[0])
     API_data = values[1]
-     
+ 
    raw_data = filter_data(API_data,parseInt(timestamp))
     format_data(0)
      const price_element = document.querySelector('#price')
@@ -617,7 +651,7 @@ font-size:0.8em`
 
  warning.querySelector('.resize_button').addEventListener('click',function(){
   restore_all()
-   raw_data =filter_data(API_data)
+   raw_data =filter_data(API_data,parseInt(timestamp))
     format_data(0)
   create_chart()
   warning.remove()
@@ -634,6 +668,7 @@ document.querySelector('#one_week').addEventListener('click',function(){
 fetchData('FB',timestamp).then(function(result){
   console.log(result)
   raw_data = filter_data(result,parseInt(timestamp))
+  console.log(raw_data)
   restore_all()
   format_data(7)
 create_chart()
