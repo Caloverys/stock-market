@@ -8,7 +8,7 @@ const canvas = document.querySelector('canvas')
 //, parent_of_canvas = document.querySelector('#parent_of_canvas'),
 , input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp;
+let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,static_clientX,static_clientY;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
 
@@ -39,7 +39,7 @@ function fetchData(symbol, range) {
 canvas.addEventListener('mousemove', e => {
   isInsideCanvas = isInCanvas(e.clientX, e.clientY)
   if (isInsideCanvas && isVisible) {
-    clientX = e.clientX;
+     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
 
@@ -58,13 +58,14 @@ function isInCanvas(posX, posY) {
 
 
 }
-canvas.addEventListener('mousedown',function(){
+canvas.addEventListener('mousedown',function(e){
+   if(!isInsideCanvas) return;
+  static_clientX = e.clientX
 
- if(!isInsideCanvas) return;
  
 })
 canvas.addEventListener('mouseup',function(){
-  console.log('yes')
+  static_clientX = null;
 })
 /*canvas.addEventListener('mousedown',function(){
 
@@ -112,7 +113,6 @@ function format_data(difference) {
   }
 
   else if(timestamp === "5min"){
-    //30/5+(60/5-1)*7 =
 
     for(let i= 0;i<label.length;i+=Math.ceil(79/range)) grid_color[i] = "rgba(255,255,255,0.4)"
           grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
@@ -168,8 +168,13 @@ function fill_label_array() {
 }
 
 function find_closed_price() {
-  console.log(dataset[dataset.length-1])
-   return dataset[dataset.length-1]
+   if (!closed_price) {
+    for (let i = raw_data.length - 1; i >= 0; i--) {
+      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate())
+        return raw_data[i].close;
+    }
+  }
+  return closed_price
 
 }
 
@@ -282,6 +287,26 @@ function create_chart() {
         isVisible = false;
         return;
       } else isVisible = true;
+
+//https://www.google.com/search?client=safari&rls=en&q=change+part+of+the+line+chart+to+be+a+specfic+color+in+chart.js&ie=UTF-8&oe=UTF-8
+if(static_clientX ){
+  if(!static_clientY) static_clientY = chart.tooltip._active[0].element.y
+ context.beginPath();
+ context.globalCompositeOperation ='source-over'
+
+  context.moveTo(static_clientX,myChart.chartArea.top)
+  context.lineTo(static_clientX,myChart.chartArea.bottom)
+  context.strokeStyle='red'
+  context.stroke()
+  context.closePath();
+   context.moveTo(static_clientX, static_clientY)
+  context.beginPath();
+  context.arc(static_clientX, static_clientY, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
+   context.fill();
+      context.strokeStyle = 'rgba(0,0,0,0.8)';
+      context.stroke();
+      context.beginPath()
+}
       
       let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
       let this_position_x = chart.tooltip._active[0].element.x
@@ -303,12 +328,13 @@ function create_chart() {
       context.lineWidth = context.lineWidth > 2.5 ? context.lineWidth : 2.5
       context.stroke();
       context.closePath();
+
+
       context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
 
       context.beginPath()
       context.fillStyle = "#52c4fa";
       context.arc(this_position_x, chart.tooltip._active[0].element.y, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
-      context.closePath();
       context.fill();
       context.strokeStyle = 'rgba(0,0,0,0.8)';
       context.stroke();
@@ -515,7 +541,7 @@ function restore_all(){
 }
 
 window.onload = function() {
-  timestamp = "15min"
+  timestamp = "1min"
   Promise.all([get_global_time(), fetchData("FB", timestamp), getSymbol()]).then(function(values) {
 
     
@@ -523,9 +549,9 @@ window.onload = function() {
     API_data = values[1]
      
    raw_data = filter_data(API_data,parseInt(timestamp))
-    format_data(30)
-    /* const price_element = document.querySelector('#price')
-    price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2)
+    format_data(0)
+     const price_element = document.querySelector('#price')
+    price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
      const difference = raw_data[raw_data.length - 1].close - find_closed_price();
     const percentage = price_element.querySelector('#percent');
    percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
@@ -534,7 +560,7 @@ window.onload = function() {
     const created_span = document.createElement('span')
     created_span.style.color ='grey';
     created_span.textContent ='At Close'
-    price_element.appendChild(created_span)*/
+    price_element.appendChild(created_span)
    
   
     
