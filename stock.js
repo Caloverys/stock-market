@@ -8,7 +8,7 @@ const canvas = document.querySelector('canvas')
 //, parent_of_canvas = document.querySelector('#parent_of_canvas'),
 , input = document.querySelector('input[type=text]')
 let lastIndex = 0
-let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, closed_price, myChart, isInsideCanvas, valid_data_number;
+let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
 
@@ -31,7 +31,7 @@ function getSymbol() {
 
 function fetchData(symbol, range) {
 
-  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}min/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
     .then(res => res.json())
 
 }
@@ -58,6 +58,14 @@ function isInCanvas(posX, posY) {
 
 
 }
+canvas.addEventListener('mousedown',function(){
+
+ if(!isInsideCanvas) return;
+ 
+})
+canvas.addEventListener('mouseup',function(){
+  console.log('yes')
+})
 /*canvas.addEventListener('mousedown',function(){
 
 })
@@ -69,27 +77,49 @@ canvas.addEventListener('mouseleave',()=> isInCanvas = false )*/
 
 
 function format_date(dateobject) {
-  return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7), dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
+  return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7)-1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
 }
 
 
-function format_data() {
+function format_data(difference) {
+  console.log(raw_data)
   date_latest = format_date(raw_data[raw_data.length - 1].date)
+
+  const expected_end_date =  timestamp === '1min' ? new Date(date_latest.getFullYear(),date_latest.getMonth(),date_latest.getDate(),9,30) : new Date(global_time.getFullYear(),global_time.getMonth(),global_time.getDate()-difference,9,30) 
   raw_data.forEach((item, index) => {
     this.newdate = format_date(item.date);
-    if (date_latest.getDate() === this.newdate.getDate()) {
-      label.push(this.newdate.getHours())
+    if (this.newdate >= expected_end_date) {
+      label.push(this.newdate)
       detail_dataset.push(item)
       dataset.push(item.close.toFixed(2))
     }
   })
   valid_data_number = label.length
-  fill_label_array()
-  label = label.map(i => i < 12 ? `${i}am` : `${i}pm`)
+
+  
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
+  console.log(label)
   grid_color = Array(label.length).fill("transparent")
-   for (let i = 30/range; i < label.length; i += 60/range) grid_color[i] = "rgba(255,255,255,0.4)"
+  if(return_market_status() && timestamp === '1min' ) fill_label_array()
+  if(timestamp === '1min'){
+
+    label = label.map(i =>new Date(i).getHours() + (i < 12 ? 'am' : 'pm'))
+    console.log(range)
+    for (let i = 30/range; i < label.length; i += 60/range) grid_color[i] = "rgba(255,255,255,0.4)"
+      console.log(grid_color)
+
+  }
+
+  else if(timestamp === "5min"){
+    //30/5+(60/5-1)*7 =
+
+    for(let i= 0;i<label.length;i+=Math.ceil(79/range)) grid_color[i] = "rgba(255,255,255,0.4)"
+          grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
+    label = label.map(i=>new Date(i).getDate())
+    
+  }
+   
 
 }
 
@@ -126,7 +156,6 @@ function get_global_time() {
 function fill_label_array() {
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
 
-  if(!return_market_status()) return
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
 
@@ -139,13 +168,8 @@ function fill_label_array() {
 }
 
 function find_closed_price() {
-  if (!closed_price) {
-    for (let i = raw_data.length - 1; i >= 0; i--) {
-      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate())
-        return raw_data[i].close;
-    }
-  }
-  return closed_price
+  console.log(dataset[dataset.length-1])
+   return dataset[dataset.length-1]
 
 }
 
@@ -185,11 +209,11 @@ function return_market_status() {
 
 }
 
-function filter_data(input_data){
+function filter_data(input_data,time_range){
    if(window.innerWidth > 1000) window.range = 1
     else if(window.innerWidth > 800) window.range = 2
     else if(window.innerWidth > 600) window.range = 3
-    else if(window.innerWidth > 400) window.range = 5
+    else if(window.innerWidth > 400) window.range = 6
     else{
       parent_of_canvas.style.color ='white';
       parent_of_canvas.innerHTML =`
@@ -205,13 +229,47 @@ function filter_data(input_data){
     }
 
     //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
-  return input_data.filter(i=> 
-    format_date(i.date).getMinutes() % range === 0
-  ).sort(({
+    console.log(input_data.sort(({
       date: a
     }, {
       date: b
     }) => a < b ? -1 : (a > b ? 1 : 0))
+  .filter(i=> 
+    format_date(i.date).getMinutes() % (1*time_range)  === 0
+  ))
+       console.log(input_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0))
+  .filter(i=> 
+    format_date(i.date).getMinutes() % (2*time_range)  === 0
+  ))
+          console.log(input_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0))
+  .filter(i=> 
+    format_date(i.date).getMinutes() % (3*time_range)  === 0
+  ))
+             console.log(input_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0))
+  .filter(i=> 
+    format_date(i.date).getMinutes() % (6*time_range)  === 0
+  ))
+
+  return input_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0))
+  .filter(i=> 
+    format_date(i.date).getMinutes() % (range*time_range)  === 0
+  )
 }
 function create_chart() {
   let [first_index, final_index] = new Array(2).fill(null)
@@ -276,32 +334,25 @@ function create_chart() {
 
       }
 
-      else if (left_position > myChart.chartArea.left + myChart.chartArea.width / (390/range +1) * valid_data_number) 
-        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / (390/range +1) * valid_data_number + info_width + "px"
-      
-
-
-
-
     }
 
 
   }
-  let horizonalLinePlugin = {
+  window.horizonalLinePlugin = {
     id: 'horizontalLine',
-    has_called: false,
     afterDraw: function(chartInstance) {
-      //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlugin 
-     if(this.has_called) return;
+      //if(timestamp !== "5min")
+
+      //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
 
       for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
-        this.has_called = true;
         const line = chartInstance.options.horizontalLine[index];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1
-        line.y ? yValue = chartInstance.scales["y"].getPixelForValue(line.y) : yValue = 20;
+         yValue = chartInstance.scales["y"].getPixelForValue(line.y) 
         context.beginPath()
         context.setLineDash([5, 3])
+        context.lineWidth = window.innerHeight/250
         context.globalCompositeOperation = "source-over"
         context.moveTo(myChart.chartArea.left, yValue);
         context.lineTo(myChart.chartArea.right, yValue);
@@ -315,15 +366,15 @@ function create_chart() {
         context.fillText("Previous Price:", myChart.chartArea.right - size_1.width - fontSize / 1.5, yValue + size_1.height);
         context.fillText(line.text, myChart.chartArea.right - size_2.width - fontSize / 1.5, yValue + size_1.height + size_2.height);
         context.restore();
-        context.save()
         context.setLineDash([])
+        context.save()
         context.closePath()
 
 
       }
     }
   };
-  Chart.register(horizonalLinePlugin);
+  if(timestamp === "1min") Chart.register(horizonalLinePlugin);
   myChart = new Chart(context, {
     type: 'line',
     data: {
@@ -414,8 +465,7 @@ function create_chart() {
             font: {
               size: window.innerWidth / 100 * 1.5
             },
-            callback: function(value, index, values) {
-              const label = this.getLabelForValue(value);           
+            callback: function(value, index, values) {      
               return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
 
             }
@@ -456,33 +506,37 @@ function restore_all(){
   detail_dataset.length = 0;
   dataset.length = 0
   label.length = 0;
+   if(timestamp !== '1min') Chart.unregister(horizonalLinePlugin);
+    //use XML here to search for html tag by content
+  //const matched_element = document.evaluate("//span[text()='At Close']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  //matched_element.textContent = 'Latest Price'
+  
 
 }
+
 window.onload = function() {
-  Promise.all([get_global_time(), fetchData("FB", 1), getSymbol()]).then(function(values) {
+  timestamp = "15min"
+  Promise.all([get_global_time(), fetchData("FB", timestamp), getSymbol()]).then(function(values) {
 
     
     global_time = new Date(values[0])
     API_data = values[1]
      
-   raw_data = filter_data(API_data)
-    const price_element = document.querySelector('#price')
+   raw_data = filter_data(API_data,parseInt(timestamp))
+    format_data(30)
+    /* const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2)
-
-
-    format_data()
-   
-    const difference = raw_data[raw_data.length - 1].close - find_closed_price();
+     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
     const percentage = price_element.querySelector('#percent');
    percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
-    if(!return_market_status()){
     const created_span = document.createElement('span')
     created_span.style.color ='grey';
     created_span.textContent ='At Close'
-    price_element.appendChild(created_span)
-  }
+    price_element.appendChild(created_span)*/
+   
+  
     
     create_chart()
 
@@ -495,8 +549,8 @@ window.onload = function() {
           context.globalCompositeOperation = 'destination-over'
           context.save()
 
-    //Due to the isInsideCanvas and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
-    info_price.style.visibility = 'hidden'
+      //Due to the isInsideCanvas and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
+      info_price.style.visibility = 'hidden'
       document.querySelector('.loader').remove()
 
   })
@@ -506,7 +560,8 @@ window.onload = function() {
 
 }
 window.addEventListener('resize', function() {
-  if(document.querySelector('.warning')) return
+  if(document.querySelector('.warning')) return;
+
   const warning = document.createElement('div');
    const button_style = `
   color:rgba(0,0,200,0.8);
@@ -535,15 +590,29 @@ font-size:0.8em`
 
 
  warning.querySelector('.resize_button').addEventListener('click',function(){
-
   restore_all()
    raw_data =filter_data(API_data)
-    format_data()
+    format_data(0)
   create_chart()
+  warning.remove()
  })
 document.body.appendChild(warning)
 
 
+
+
+})
+
+document.querySelector('#one_week').addEventListener('click',function(){
+  timestamp = '5min'
+fetchData('FB',timestamp).then(function(result){
+  console.log(result)
+  raw_data = filter_data(result,parseInt(timestamp))
+  restore_all()
+  format_data(7)
+create_chart()
+
+})
 
 
 })
