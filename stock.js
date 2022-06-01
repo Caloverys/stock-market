@@ -1,16 +1,18 @@
 //Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
-const canvas = document.querySelector('canvas')
-,context = canvas.getContext('2d')
+const canvas = document.querySelector('#chart')
+const context = canvas.getContext('2d')
 , dataset = []
 , detail_dataset = []
 , info_price = document.querySelector('#info_price')
 , info_date = document.querySelector('#info_date')
-//, parent_of_canvas = document.querySelector('#parent_of_canvas'),
+, parent_of_canvas = document.querySelector('#parent_of_canvas')
 , input = document.querySelector('input[type=text]')
-let lastIndex = 0
-let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,static_clientX,static_clientY;
+,loader = document.querySelector('.loader')
+let current_Index = 0
+let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
+let chartArea;
 
 
 
@@ -38,7 +40,6 @@ function fetchData(symbol, range) {
 //only screenX works here, clientX doesn't work expected.
 canvas.addEventListener('mousemove', e => {
   isInsideCanvas = isInCanvas(e.clientX, e.clientY)
-  console.log(isInsideCanvas)
   if (isInsideCanvas && isVisible) {
      clientX = e.clientX;
     info_price.style.visibility = 'visible'
@@ -51,22 +52,25 @@ canvas.addEventListener('mousemove', e => {
 
 })
 
+//Detect if the mouse is in the chart (not the whole canvas)
 function isInCanvas(posX, posY) {
+
   if (!myChart) return true;
   const canvas_pos = canvas.getBoundingClientRect();
-  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
+  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top  <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
 
 
 
 }
 canvas.addEventListener('mousedown',function(e){
    if(!isInsideCanvas) return;
-  static_clientX = e.clientX
+   isMouseDown = true;
+
 
  
 })
 canvas.addEventListener('mouseup',function(){
-  static_clientX = null;
+   isMouseDown = false;
 })
 /*canvas.addEventListener('mousedown',function(){
 
@@ -165,9 +169,7 @@ function fill_label_array_5min(){
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 16,0)
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60 /5
-  console.log(amountToAdd)
   label.push.apply(label,Array(Math.ceil(amountToAdd/range)).fill(expectedDate.getDate()))
-  console.log(label)
 
 }
 function fill_label_array_1min() {
@@ -185,6 +187,7 @@ function fill_label_array_1min() {
 
 }
 
+
 function find_closed_price() {
    if (!closed_price) {
     for (let i = raw_data.length - 1; i >= 0; i--) {
@@ -198,7 +201,10 @@ function find_closed_price() {
 
 function return_color() {
   //raw_data[0].close give us latest/current stock price
-  return (raw_data[raw_data.length - 1].close >= find_closed_price() ? "lawngreen" : "red")
+  if(timestamp === '1min')
+    return (raw_data[raw_data.length - 1].close >= find_closed_price() ? "lawngreen" : "red")
+  else
+    return dataset[0] <= dataset[dataset.length-1] ? "lawngreen" : "red"
 }
 
 
@@ -220,15 +226,27 @@ function return_linearGarident(color) {
 
     gradient.addColorStop(1, 'transparent')
   } else if (return_color().includes("green")) {
-    gradient.addColorStop(0, "rgba(0,255,0,0.8)");
-     gradient.addColorStop(0.5, "rgba(0,255,0,0.3)");
-    gradient.addColorStop(0.5, "rgba(0,255,0,0.3)");
+    gradient.addColorStop(0, "rgba(124,252,0,0.8)");
+     gradient.addColorStop(0.3, "rgba(124,252,0,0.3)");
+    gradient.addColorStop(0.3, "rgba(124,252,0,0.3)");
     gradient.addColorStop(1, 'transparent')
   }
   return gradient
 
 }
 
+function return_horizontal_gradient(){
+    const horizontal_Gradient = context.createLinearGradient(myChart.chartArea.left,0,myChart.chartArea.right,0)
+              horizontal_Gradient.addColorStop(0,'#52c4fa');
+              horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),'#52c4fa');
+              horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),'#52c4fa');
+               horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),judge_color())
+                horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),judge_color())
+                horizontal_Gradient.addColorStop(1,'#52c4fa');
+                return horizontal_Gradient
+
+}
+ 
 function return_market_status() {
   //390 => 60 * 6 (from 9:30 to 16:00) + 30
   //return true if market open and return false if market close
@@ -299,11 +317,80 @@ function filter_data(input_data,time_range){
     format_date(i.date).getMinutes() % (range*time_range)  === 0
   )
 }
+function judge_color(){
+
+  if(current_Index ===static_Index) return "#52c4fa"
+  else if(current_Index > static_Index) return dataset[current_Index] >= dataset[static_Index] ? "lawngreen" : "red"
+    else return dataset[static_Index] >= dataset[current_Index] ? "lawngreen" : "red"
+  
+}
+window.click = false
+function return_data(){
+  if(click =='true') return
+      click='true'
+  if(!isMouseDown || static_Index === current_Index) return { 
+       label: 'stock price',
+        data: dataset,
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color()
+
+  };
+  else{
+let bigger = static_Index  > current_Index ? current_Index : static_Index;
+let smaller = static_Index  < current_Index ? current_Index : static_Index;
+console.log(bigger,smaller)
+    return[{
+     
+      label: 'stock price',
+        data: dataset.slice(0, smaller).concat(new Array(label.length-smaller).fill(NaN)),
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color(),
+        cubicInterpolationMode: 'monotone'
+
+    },{
+       label: 'stock price',
+        data: dataset.slice(0,bigger-smaller).concat(new Array(bigger-smaller).fill(NaN)),
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:"black",
+
+        //return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color()
+  
+
+    },{
+     label: 'stock price',
+        data: dataset.slice(0,bigger).concat(new Array(bigger).fill(NaN)),
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color(),
+        lineTension: 0
+      }
+    ]
+  }
+
+
+}
 function create_chart() {
-  let [first_index, final_index] = new Array(2).fill(null)
+
+  let [final_index,static_clientX,static_clientY] = new Array(3).fill(null)
+  window.static_Index = null
   const annotation = {
     id: 'annotationline',
-    afterDraw: function(chart) {
+    afterDraw: function(chart) {      
       if (!chart.tooltip._active.length || !isInsideCanvas) {
         info_price.style.visibility = 'hidden'
         info_date.style.visibility = 'hidden'
@@ -312,36 +399,17 @@ function create_chart() {
       } else isVisible = true;
 
 //https://www.google.com/search?client=safari&rls=en&q=change+part+of+the+line+chart+to+be+a+specfic+color+in+chart.js&ie=UTF-8&oe=UTF-8
-if(static_clientX ){
-  if(!static_clientY) static_clientY = chart.tooltip._active[0].element.y
- context.beginPath();
- context.globalCompositeOperation ='source-over'
 
-  context.moveTo(static_clientX,myChart.chartArea.top)
-  context.lineTo(static_clientX,myChart.chartArea.bottom)
-  context.strokeStyle='red'
-  context.stroke()
-  context.closePath();
-   context.moveTo(static_clientX, static_clientY)
-  context.beginPath();
-  context.arc(static_clientX, static_clientY, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
-   context.fill();
-      context.strokeStyle = 'rgba(0,0,0,0.8)';
-      context.stroke();
-      context.beginPath()
-}
-      
       let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
       let this_position_x = chart.tooltip._active[0].element.x
-      if (lastIndex === detail_dataset.length - 1 && !final_index)
+      if (current_Index === detail_dataset.length - 1 && !final_index)
         final_index = this_position_x
-      else if (lastIndex === 0 && !first_index) first_index = this_position_x
 
       if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
         this_position_x = final_index
 
       context.beginPath()
-      context.strokeStyle = '#52c4fa';
+      context.strokeStyle = (!isMouseDown ?'#52c4fa' : judge_color());
       context.globalCompositeOperation = 'source-over'
     
       context.setLineDash([])
@@ -356,7 +424,7 @@ if(static_clientX ){
       context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
 
       context.beginPath()
-      context.fillStyle = "#52c4fa";
+      context.fillStyle = (!isMouseDown ?'#52c4fa' : judge_color());
       context.arc(this_position_x, chart.tooltip._active[0].element.y, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
       context.fill();
       context.strokeStyle = 'rgba(0,0,0,0.8)';
@@ -368,12 +436,92 @@ if(static_clientX ){
       Every time you call restore, the last state is popped out of the stack, and all its saved properties are set to the context.
       So we need to use context.restore followed by a context.save() in order by keep the customized property for further used.
       */
+
       context.restore()
       context.save()
+      if(isMouseDown){
+
+        if(!static_clientX){
+        static_clientY =chart.tooltip._active[0].element.y;
+        static_clientX = this_position_x
+        static_Index = current_Index
+      }
+    context.beginPath();
+ context.globalCompositeOperation ='source-over'
+
+  context.moveTo(static_clientX,myChart.chartArea.top)
+  context.lineTo(static_clientX,myChart.chartArea.bottom)
+  context.strokeStyle=judge_color()
+  context.stroke()
+  context.closePath();
+   context.moveTo(static_clientX, static_clientY)
+  context.beginPath();
+  context.arc(static_clientX, static_clientY, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
+  context.fillStyle = judge_color()
+   context.fill();
+      context.strokeStyle = 'rgba(0,0,0,0.8)';
+      context.stroke();
+      context.closePath()
+      context.restore();
+      context.save()
+      if(static_Index !== current_Index){
+      let bigger = static_Index  > current_Index ? static_Index : current_Index ;
+let smaller = static_Index  < current_Index ? static_Index : current_Index  ;
+console.log(smaller,bigger,dataset)
+console.log(dataset.slice(0, smaller).concat(new Array(label.length-smaller).fill(NaN)))
+console.log(new Array(smaller).fill(NaN).concat(dataset.slice(smaller,bigger).concat(new Array(bigger).fill(NaN))))
+console.log(new Array(bigger).fill(NaN).concat(dataset.slice(bigger)))
+console.log(bigger-smaller)
+console.log(dataset.slice(smaller,bigger))
+      myChart.data.datasets = [{
+     
+      label: 'stock price',
+        data: dataset.slice(0, smaller).concat(new Array(label.length-smaller).fill(NaN)),
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color(),
+        cubicInterpolationMode: 'monotone'
+
+    },{
+       label: 'stock price',
+        data: new Array(smaller).fill(NaN).concat(dataset.slice(smaller,bigger).concat(new Array(bigger).fill(NaN))),
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:"black",
+
+        //return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color()
+  
+
+    },{
+     label: 'stock price',
+        data: new Array(bigger).fill(NaN).concat(dataset.slice(bigger)),
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:return_linearGarident('color'),
+        hoverBorderColor: "rgba(82,196,250,0.8)",
+        borderColor: return_color(),
+        lineTension: 0
+      }]
+      myChart.update(0)
+    }
+  }
+    else{
+      static_clientY = null;
+      static_clientX = null;
+      static_Index = null;
+    } 
+
 
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
-      if (lastIndex === valid_data_number - 1) return;
+      if (current_Index === valid_data_number - 1) return;
       let info_width;
       return_market_status() ? info_width = info_price.offsetWidth / 2 : info_width = 0;
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
@@ -382,23 +530,26 @@ if(static_clientX ){
         info_price.style.left = myChart.chartArea.left + window.innerWidth / 100 * 1.5 + "px"
 
       } else if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number-info_width) {
-        console.log(valid_data_number)
         if(timestamp === '1min')
         info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length/range * valid_data_number - info_width + "px"
          else  info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number - info_width + "px"
 
       }
-
       
 
     }
 
 
+
   }
+
+
   window.horizonalLinePlugin = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
       //if(timestamp !== "5min")
+     setTimeout(function(){
+
 
       //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
@@ -427,32 +578,24 @@ if(static_clientX ){
         context.save()
         context.closePath()
 
+}
+},500)
+      
 
-      }
     }
+
   };
   if(timestamp === "1min") Chart.register(horizonalLinePlugin);
   myChart = new Chart(context, {
     type: 'line',
     data: {
       xLabels: label,
-      datasets: [{
-        label: 'stock price',
-        data: dataset,
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor: return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color()
-      }]
+      datasets: [return_data()]
     },
     options: {
-
-      animation: {
-        onComplete: function() {
-
-        }
+      animation:{
+        duration:0
+      
       },
       responsive: true,
       maintainAspectRatio: false,
@@ -544,11 +687,9 @@ if(static_clientX ){
           footerColor: 'transparent',
           callbacks: {
             label: function(tooltipItem) {
-              console.log(tooltipItem.raw)
-              console.log(info_price)
               info_price.textContent = tooltipItem.raw
               info_date.textContent = detail_dataset[tooltipItem.dataIndex].date
-              lastIndex = tooltipItem.dataIndex;
+              current_Index = tooltipItem.dataIndex;
               return tooltipItem;
             }
           },
@@ -558,6 +699,8 @@ if(static_clientX ){
     plugins: [annotation]
 
   });
+  loader.style.display ="none"
+  chartArea=myChart.chartArea
 
 }
 
@@ -568,8 +711,8 @@ function restore_all(){
   label.length = 0;
    if(timestamp !== '1min') Chart.unregister(horizonalLinePlugin);
     //use XML here to search for html tag by content
-  //const matched_element = document.evaluate("//span[text()='At Close']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  //matched_element.textContent = 'Latest Price'
+  const matched_element = document.evaluate("//span[text()='At Close']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  matched_element.textContent = 'Latest Price'
   
 
 }
@@ -600,6 +743,7 @@ window.onload = function() {
     
     create_chart()
 
+
       //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
       context.strokeStyle = '#52c4fa';
           context.fillStyle = "#52c4fa";
@@ -611,7 +755,6 @@ window.onload = function() {
 
       //Due to the isInsideCanvas and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
       info_price.style.visibility = 'hidden'
-      document.querySelector('.loader').remove()
 
   })
 
@@ -665,15 +808,14 @@ document.body.appendChild(warning)
 
 document.querySelector('#one_week').addEventListener('click',function(){
   timestamp = '5min'
-fetchData('FB',timestamp).then(function(result){
-  console.log(result)
-  raw_data = filter_data(result,parseInt(timestamp))
-  console.log(raw_data)
   restore_all()
+
+  loader.style.display ="revert"
+fetchData('FB',timestamp).then(function(result){
+  raw_data = filter_data(result,parseInt(timestamp))
   format_data(7)
 create_chart()
 
 })
-
 
 })
