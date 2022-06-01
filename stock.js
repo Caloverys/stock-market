@@ -73,7 +73,6 @@ canvas.addEventListener('mouseup',function(){
    isMouseDown = false;
 })
 /*canvas.addEventListener('mousedown',function(){
-
 })
 canvas.addEventListener('mouseup',function(){
   
@@ -88,10 +87,10 @@ function format_date(dateobject) {
 
 
 function format_data(difference) {
-  console.log(raw_data)
   date_latest = format_date(raw_data[raw_data.length - 1].date)
 
   const expected_end_date =  timestamp === '1min' ? new Date(date_latest.getFullYear(),date_latest.getMonth(),date_latest.getDate(),9,30) : new Date(global_time.getFullYear(),global_time.getMonth(),global_time.getDate()-difference,9,30) 
+  console.log(expected_end_date)
   raw_data.forEach((item, index) => {
     this.newdate = format_date(item.date);
     if (this.newdate >= expected_end_date) {
@@ -100,6 +99,7 @@ function format_data(difference) {
       dataset.push(item.close.toFixed(2))
     }
   })
+  console.log(label)
 
 
   valid_data_number = label.length 
@@ -118,7 +118,6 @@ function format_data(difference) {
   }
 
   else if(timestamp === "5min"){
-    range = range 
     label = label.map(i=>new Date(i).getDate())
     fill_label_array_5min()
 
@@ -126,8 +125,18 @@ function format_data(difference) {
     
     for(let i= 0;i<label.length;i+=Math.ceil(79/range)) grid_color[i] = "rgba(255,255,255,0.4)"
           grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
-
     
+  }else if(timestamp === "15min"){
+    let startingDate = new Date(label[0]).getDate()
+    label = label.map(i=>{
+      console.log()
+      let label_date = new Date(i).getDate()
+      console.log(label_date,startingDate-7)
+      if( label_date -7 >= startingDate) startingDate = label_date
+      return startingDate
+    })
+    console.log(label)
+
   }
     
    
@@ -266,48 +275,13 @@ function filter_data(input_data,time_range){
       <div style='font-size:1.5em;'>!Window size warning:!</div><br>
       <div>Your interior window size is 
       <span style='color:red'>${window.innerWidth}, ${window.innerHeight}</span>
-
        which is too small to load the graph </div>
       <div>Please switch to bigger interior </div>
-
       `
 
     }
 
     //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
-    console.log(input_data.sort(({
-      date: a
-    }, {
-      date: b
-    }) => a < b ? -1 : (a > b ? 1 : 0))
-  .filter(i=> 
-    format_date(i.date).getMinutes() % (1*time_range)  === 0
-  ))
-       console.log(input_data.sort(({
-      date: a
-    }, {
-      date: b
-    }) => a < b ? -1 : (a > b ? 1 : 0))
-  .filter(i=> 
-    format_date(i.date).getMinutes() % (2*time_range)  === 0
-  ))
-          console.log(input_data.sort(({
-      date: a
-    }, {
-      date: b
-    }) => a < b ? -1 : (a > b ? 1 : 0))
-  .filter(i=> 
-    format_date(i.date).getMinutes() % (3*time_range)  === 0
-  ))
-             console.log(input_data.sort(({
-      date: a
-    }, {
-      date: b
-    }) => a < b ? -1 : (a > b ? 1 : 0))
-  .filter(i=> 
-    format_date(i.date).getMinutes() % (6*time_range)  === 0
-  ))
-
   return input_data.sort(({
       date: a
     }, {
@@ -324,10 +298,8 @@ function judge_color(){
     else return dataset[static_Index] >= dataset[current_Index] ? "lawngreen" : "red"
   
 }
-window.click = false
 function return_data(){
-  if(click =='true') return
-      click='true'
+
   if(!isMouseDown || static_Index === current_Index) return { 
        label: 'stock price',
         data: dataset,
@@ -339,54 +311,14 @@ function return_data(){
         borderColor: return_color()
 
   };
-  else{
-let bigger = static_Index  > current_Index ? current_Index : static_Index;
-let smaller = static_Index  < current_Index ? current_Index : static_Index;
-console.log(bigger,smaller)
-    return[{
-     
-      label: 'stock price',
-        data: dataset.slice(0, smaller).concat(new Array(label.length-smaller).fill(NaN)),
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color(),
-        cubicInterpolationMode: 'monotone'
-
-    },{
-       label: 'stock price',
-        data: dataset.slice(0,bigger-smaller).concat(new Array(bigger-smaller).fill(NaN)),
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:"black",
-
-        //return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color()
+ 
   
-
-    },{
-     label: 'stock price',
-        data: dataset.slice(0,bigger).concat(new Array(bigger).fill(NaN)),
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color(),
-        lineTension: 0
-      }
-    ]
-  }
 
 
 }
 function create_chart() {
 
-  let [final_index,static_clientX,static_clientY] = new Array(3).fill(null)
+  let [first_index,final_index,static_clientX,static_clientY] = new Array(3).fill(null)
   window.static_Index = null
   const annotation = {
     id: 'annotationline',
@@ -398,14 +330,17 @@ function create_chart() {
         return;
       } else isVisible = true;
 
-//https://www.google.com/search?client=safari&rls=en&q=change+part+of+the+line+chart+to+be+a+specfic+color+in+chart.js&ie=UTF-8&oe=UTF-8
+
 
       let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
       let this_position_x = chart.tooltip._active[0].element.x
       if (current_Index === detail_dataset.length - 1 && !final_index)
         final_index = this_position_x
+      else if (current_Index === 0 && !first_index) first_index = this_position_x
 
       if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
+        this_position_x = final_index
+       else if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
         this_position_x = final_index
 
       context.beginPath()
@@ -464,53 +399,7 @@ function create_chart() {
       context.closePath()
       context.restore();
       context.save()
-      if(static_Index !== current_Index){
-      let bigger = static_Index  > current_Index ? static_Index : current_Index ;
-let smaller = static_Index  < current_Index ? static_Index : current_Index  ;
-console.log(smaller,bigger,dataset)
-console.log(dataset.slice(0, smaller).concat(new Array(label.length-smaller).fill(NaN)))
-console.log(new Array(smaller).fill(NaN).concat(dataset.slice(smaller,bigger).concat(new Array(bigger).fill(NaN))))
-console.log(new Array(bigger).fill(NaN).concat(dataset.slice(bigger)))
-console.log(bigger-smaller)
-console.log(dataset.slice(smaller,bigger))
-      myChart.data.datasets = [{
-     
-      label: 'stock price',
-        data: dataset.slice(0, smaller).concat(new Array(label.length-smaller).fill(NaN)),
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color(),
-        cubicInterpolationMode: 'monotone'
 
-    },{
-       label: 'stock price',
-        data: new Array(smaller).fill(NaN).concat(dataset.slice(smaller,bigger).concat(new Array(bigger).fill(NaN))),
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:"black",
-
-        //return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color()
-  
-
-    },{
-     label: 'stock price',
-        data: new Array(bigger).fill(NaN).concat(dataset.slice(bigger)),
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
-        borderColor: return_color(),
-        lineTension: 0
-      }]
-      myChart.update(0)
-    }
   }
     else{
       static_clientY = null;
@@ -522,17 +411,15 @@ console.log(dataset.slice(smaller,bigger))
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
       if (current_Index === valid_data_number - 1) return;
-      let info_width;
-      return_market_status() ? info_width = info_price.offsetWidth / 2 : info_width = 0;
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
+     
       if (left_position < myChart.chartArea.left + window.innerWidth / 100 * 1.5){
         info_price.style.left = myChart.chartArea.left + window.innerWidth / 100 * 1.5 + "px"
 
-      } else if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number-info_width) {
+      } else if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number) {
         if(timestamp === '1min')
-        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length/range * valid_data_number - info_width + "px"
-         else  info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number - info_width + "px"
+        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number + "px"
 
       }
       
@@ -547,8 +434,6 @@ console.log(dataset.slice(smaller,bigger))
   window.horizonalLinePlugin = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
-      //if(timestamp !== "5min")
-     setTimeout(function(){
 
 
       //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
@@ -579,7 +464,6 @@ console.log(dataset.slice(smaller,bigger))
         context.closePath()
 
 }
-},500)
       
 
     }
@@ -593,10 +477,7 @@ console.log(dataset.slice(smaller,bigger))
       datasets: [return_data()]
     },
     options: {
-      animation:{
-        duration:0
-      
-      },
+
       responsive: true,
       maintainAspectRatio: false,
       tooltips: {
@@ -698,28 +579,34 @@ console.log(dataset.slice(smaller,bigger))
     },
     plugins: [annotation]
 
-  });
+})
   loader.style.display ="none"
   chartArea=myChart.chartArea
 
 }
 
-function restore_all(){
+
+function restore_all(search_content = 'At Close',expected_content = 'Latest Price'){
   myChart.destroy();
   detail_dataset.length = 0;
   dataset.length = 0
   label.length = 0;
+
+  //use Chart.unregister to remove the horizonalLine which shows previous price if timestamp is not '1min'
    if(timestamp !== '1min') Chart.unregister(horizonalLinePlugin);
+
     //use XML here to search for html tag by content
-  const matched_element = document.evaluate("//span[text()='At Close']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  matched_element.textContent = 'Latest Price'
+  const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  if(matched_element) matched_element.textContent = expected_content
   
 
 }
 
+const symbol = "FB"
 window.onload = function() {
+
   timestamp = "1min"
-  Promise.all([get_global_time(), fetchData("FB", timestamp), getSymbol()]).then(function(values) {
+  Promise.all([get_global_time(), fetchData(symbol, timestamp), getSymbol()]).then(function(values) {
 
     
     global_time = new Date(values[0])
@@ -755,6 +642,7 @@ window.onload = function() {
 
       //Due to the isInsideCanvas and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
       info_price.style.visibility = 'hidden'
+      document.querySelector('#one_month').click()
 
   })
 
@@ -781,7 +669,6 @@ font-size:0.8em`
   <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue; margin-left:5px;margin-top:5px;'>Learn more</a>
   <button class='resize_button' style='${button_style};position:fixed; right:10%;'>Resize</button>
   <button class='remove_button' style='position:fixed; right:3%;'></button>
-
   `
   warning.className='warning'
   
@@ -811,11 +698,22 @@ document.querySelector('#one_week').addEventListener('click',function(){
   restore_all()
 
   loader.style.display ="revert"
-fetchData('FB',timestamp).then(function(result){
+fetchData(symbol,timestamp).then(function(result){
   raw_data = filter_data(result,parseInt(timestamp))
   format_data(7)
 create_chart()
 
 })
+})
 
+document.querySelector('#one_month').addEventListener('click',function(){
+  timestamp = '15min'
+  restore_all();
+  loader.style.display ="revert"
+  fetchData(symbol,timestamp).then(function(result){
+    raw_data = filter_data(result,parseInt(timestamp))
+    format_data(30)
+    create_chart()
+
+  })
 })
