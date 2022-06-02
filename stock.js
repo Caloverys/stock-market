@@ -9,12 +9,18 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 let current_Index = 0
-let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown;
+let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
 let chartArea;
 
+let all_fetch_data ={
+  "one_day":null,
+  "one_week":null,
+  "one_month":null,
+  "two_month":null
 
+}
 
 document.querySelector('#deletebutton').addEventListener('click', () => {
   input.blur();
@@ -55,7 +61,7 @@ canvas.addEventListener('mousemove', e => {
 //Detect if the mouse is in the chart (not the whole canvas)
 function isInCanvas(posX, posY) {
 
-  if (!myChart) return true;
+  if (!myChart) return false;
   const canvas_pos = canvas.getBoundingClientRect();
   return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top  <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
 
@@ -88,18 +94,19 @@ function format_date(dateobject) {
 
 function format_data(difference) {
   date_latest = format_date(raw_data[raw_data.length - 1].date)
-
   const expected_end_date =  timestamp === '1min' ? new Date(date_latest.getFullYear(),date_latest.getMonth(),date_latest.getDate(),9,30) : new Date(global_time.getFullYear(),global_time.getMonth(),global_time.getDate()-difference,9,30) 
-  console.log(expected_end_date)
   raw_data.forEach((item, index) => {
+  
     this.newdate = format_date(item.date);
+   
     if (this.newdate >= expected_end_date) {
+
       label.push(this.newdate)
       detail_dataset.push(item)
       dataset.push(item.close.toFixed(2))
     }
   })
-  console.log(label)
+
 
 
   valid_data_number = label.length 
@@ -126,16 +133,42 @@ function format_data(difference) {
     for(let i= 0;i<label.length;i+=Math.ceil(79/range)) grid_color[i] = "rgba(255,255,255,0.4)"
           grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
     
-  }else if(timestamp === "15min"){
+  }else if(timestamp === "30min"){
     let startingDate = new Date(label[0]).getDate()
     label = label.map(i=>{
-      console.log()
-      let label_date = new Date(i).getDate()
-      console.log(label_date,startingDate-7)
-      if( label_date -7 >= startingDate) startingDate = label_date
+      const label_date = new Date(i).getDate()
+      if(label_date >= startingDate+7) startingDate = label_date
       return startingDate
     })
-    console.log(label)
+     grid_color = Array(label.length).fill("transparent");
+    for(let i = 0;i<label.length;i+=70/range) grid_color[i] = "rgba(255,255,255,0.4)"
+       grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
+    
+
+  }else if(timestamp === '1hour'){
+    //Use internationalization API to convert number of month to full name (e.g. 0=> January)
+    let currentMonth = new Date(label[0]).toLocaleString("default", {month: 'long'});
+    const passed_months = [];
+    label = label.map((i,index)=>{
+      const label_month = new Date(i).toLocaleString("default", {month: 'long'});
+      if(label_month !== currentMonth){ 
+        currentMonth = label_month
+        passed_months.push(index)
+      };
+      return label_month
+
+    })
+      grid_color = Array(label.length).fill("transparent");
+      //Sometimes there will not be enough (three) labels, so we could push the start month as well.
+      if(passed_months.length < 3) passed_months.unshift(0)
+
+       for(let i = 0;i<label.length;i++){
+        if(passed_months.includes(i) ) 
+          grid_color[i] = "rgba(255,255,255,0.4)"
+       } 
+       grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
+
+
 
   }
     
@@ -183,7 +216,6 @@ function fill_label_array_5min(){
 }
 function fill_label_array_1min() {
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
-
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
 
@@ -244,8 +276,23 @@ function return_linearGarident(color) {
 
 }
 
-function return_horizontal_gradient(){
-    const horizontal_Gradient = context.createLinearGradient(myChart.chartArea.left,0,myChart.chartArea.right,0)
+function return_horizontal_gradient(gg,pox,poy,poz,poa){
+    const horizontal_Gradient = context.createLinearGradient(pox,poy,poz,poa)
+    if(!gg){
+      horizontal_Gradient.addColorStop(0, "rgba(82,196,250,0.3)");
+   
+    horizontal_Gradient.addColorStop(0.2, "rgba(82,196,250,0.1)");
+    horizontal_Gradient.addColorStop(0.2, "rgba(82,196,250,0.1)");
+    horizontal_Gradient.addColorStop(1, 'transparent')
+  }else{
+   horizontal_Gradient.addColorStop(0, "rgba(255,0,0,0.3)");
+    horizontal_Gradient.addColorStop(0.2, "rgba(255,0,0,0.1)");
+   horizontal_Gradient.addColorStop(0.2, "rgba(255,0,0,0.1)");
+     horizontal_Gradient.addColorStop(1, 'transparent')
+
+  }
+    return horizontal_Gradient
+    /*
               horizontal_Gradient.addColorStop(0,'#52c4fa');
               horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),'#52c4fa');
               horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),'#52c4fa');
@@ -253,6 +300,7 @@ function return_horizontal_gradient(){
                 horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),judge_color())
                 horizontal_Gradient.addColorStop(1,'#52c4fa');
                 return horizontal_Gradient
+                */
 
 }
  
@@ -267,8 +315,8 @@ function return_market_status() {
 function filter_data(input_data,time_range){
    if(window.innerWidth > 1000) window.range = 1
     else if(window.innerWidth > 800) window.range = 2
-    else if(window.innerWidth > 600) window.range = 3
-    else if(window.innerWidth > 400) window.range = 6
+    else if(window.innerWidth > 600) window.range = (timestamp !== `30min` ? 3 : 4)
+    else if(window.innerWidth > 400) window.range = (timestamp === `${5 || 30}min` ? 6 : 5)
     else{
       parent_of_canvas.style.color ='white';
       parent_of_canvas.innerHTML =`
@@ -282,6 +330,7 @@ function filter_data(input_data,time_range){
     }
 
     //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
+    if(parseInt(timestamp) < 30 || range < 3){
   return input_data.sort(({
       date: a
     }, {
@@ -290,6 +339,17 @@ function filter_data(input_data,time_range){
   .filter(i=> 
     format_date(i.date).getMinutes() % (range*time_range)  === 0
   )
+}
+
+ return input_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0))
+  .filter(i=> 
+    format_date(i.date).getHours() % (range * time_range/60)  === 0 && format_date(i.date).getMinutes() === 0
+  )
+
 }
 function judge_color(){
 
@@ -307,7 +367,8 @@ function return_data(){
         backgroundColor: return_linearGarident(),
         pointHoverRadius: 0,
         hoverBackgroundColor:return_linearGarident('color'),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
+        hoverBorderColor:"rgba(82,196,250,0.8)",
+        
         borderColor: return_color()
 
   };
@@ -337,11 +398,17 @@ function create_chart() {
       if (current_Index === detail_dataset.length - 1 && !final_index)
         final_index = this_position_x
       else if (current_Index === 0 && !first_index) first_index = this_position_x
+       
+       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
+        if(first_index && current_Index ===0 && left_position.toFixed(2) === (myChart.chartArea.left+window.innerWidth /100 * 1.5).toFixed(2)){
+          this_position_x = first_index
 
-      if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
+        }
+
+       else if (final_index  && current_Index ===dataset.length-1 && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
+    
         this_position_x = final_index
-       else if (final_index && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
-        this_position_x = final_index
+    
 
       context.beginPath()
       context.strokeStyle = (!isMouseDown ?'#52c4fa' : judge_color());
@@ -381,6 +448,7 @@ function create_chart() {
         static_clientX = this_position_x
         static_Index = current_Index
       }
+
     context.beginPath();
  context.globalCompositeOperation ='source-over'
 
@@ -399,6 +467,27 @@ function create_chart() {
       context.closePath()
       context.restore();
       context.save()
+      
+      const bigger = (current_Index > static_Index ? current_Index : static_Index)
+      const smaller = (current_Index > static_Index ? static_Index : current_Index)
+      const starting  = myChart.chartArea.width/label.length*smaller+myChart.chartArea.left
+      const ending = myChart.chartArea.width/label.length*bigger+myChart.chartArea.left
+      console.log(starting,ending)
+      console.log(myChart.chartArea.left,myChart.chartArea.right)
+
+      context.globalCompositeOperation = 'source-over'
+      context.fillStyle = return_horizontal_gradient(false,myChart.chartArea.left,myChart.chartArea.top,starting,myChart.chartArea.bottom)
+
+      context.fillRect(myChart.chartArea.left,myChart.chartArea.top,starting-myChart.chartArea.left,myChart.chartArea.height)
+      context.fillStyle = return_horizontal_gradient(true,starting,myChart.chartArea.top,ending,myChart.chartArea.bottom)
+      context.fillRect(starting,myChart.chartArea.top,ending-starting,myChart.chartArea.height)
+       context.fillStyle = return_horizontal_gradient(false,ending,myChart.chartArea.top,myChart.chartArea.right,myChart.chartArea.bottom)
+       //- canvas.getBoundingClientRect().left
+         //context.fillRect(ending,myChart.chartArea.top,myChart.chartArea.right -100,myChart.chartArea.bottom)
+         context.fillRect(ending,myChart.chartArea.top,myChart.chartArea.right-ending,myChart.chartArea.bottom)
+          context.closePath()
+      context.restore();
+      context.save()
 
   }
     else{
@@ -407,7 +496,7 @@ function create_chart() {
       static_Index = null;
     } 
 
-
+  // myChart.update()
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
       if (current_Index === valid_data_number - 1) return;
@@ -568,9 +657,9 @@ function create_chart() {
           footerColor: 'transparent',
           callbacks: {
             label: function(tooltipItem) {
-              info_price.textContent = tooltipItem.raw
-              info_date.textContent = detail_dataset[tooltipItem.dataIndex].date
-              current_Index = tooltipItem.dataIndex;
+              current_Index = tooltipItem.dataIndex
+              info_price.textContent =dataset[current_Index]
+              info_date.textContent = detail_dataset[current_Index].date
               return tooltipItem;
             }
           },
@@ -586,7 +675,7 @@ function create_chart() {
 }
 
 
-function restore_all(search_content = 'At Close',expected_content = 'Latest Price'){
+function restore_and_fetch(time_range_name,search_content = 'At Close',expected_content = 'Latest Price'){
   myChart.destroy();
   detail_dataset.length = 0;
   dataset.length = 0
@@ -594,26 +683,45 @@ function restore_all(search_content = 'At Close',expected_content = 'Latest Pric
 
   //use Chart.unregister to remove the horizonalLine which shows previous price if timestamp is not '1min'
    if(timestamp !== '1min') Chart.unregister(horizonalLinePlugin);
-
+     
     //use XML here to search for html tag by content
   const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
   if(matched_element) matched_element.textContent = expected_content
   
+    loader.style.display ="revert"
+
+
+    if(!all_fetch_data[time_range_name]){
+    fetchData(symbol,timestamp).then(function(result){
+      console.log(result)
+      console.log(result)
+    all_fetch_data[time_range_name] = result
+    raw_data = filter_data(result,parseInt(timestamp))
+    format_data(difference_time)
+    create_chart()
+  })
+  }else{
+
+    raw_data = filter_data(all_fetch_data[time_range_name],parseInt(timestamp))
+    format_data(difference_time)
+    create_chart()
+  }
 
 }
 
-const symbol = "FB"
 window.onload = function() {
-
+  window.symbol = "FB"
   timestamp = "1min"
+  difference_time = 0
   Promise.all([get_global_time(), fetchData(symbol, timestamp), getSymbol()]).then(function(values) {
+      //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
 
-    
+
     global_time = new Date(values[0])
     API_data = values[1]
- 
+    all_fetch_data["one_day"] = values[1]
    raw_data = filter_data(API_data,parseInt(timestamp))
-    format_data(0)
+    format_data(difference_time)
      const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
      const difference = raw_data[raw_data.length - 1].close - find_closed_price();
@@ -640,9 +748,7 @@ window.onload = function() {
           context.globalCompositeOperation = 'destination-over'
           context.save()
 
-      //Due to the isInsideCanvas and isInCanvas will always be true, the info_price will be visible when graph is created, so we need to set "visibility:hidden" here to hide it
-      info_price.style.visibility = 'hidden'
-      document.querySelector('#one_month').click()
+   
 
   })
 
@@ -682,7 +788,7 @@ font-size:0.8em`
  warning.querySelector('.resize_button').addEventListener('click',function(){
   restore_all()
    raw_data =filter_data(API_data,parseInt(timestamp))
-    format_data(0)
+    format_data(difference_time)
   create_chart()
   warning.remove()
  })
@@ -693,27 +799,34 @@ document.body.appendChild(warning)
 
 })
 
+document.querySelector('#one_day').addEventListener('click',function(){
+  timestamp = '1min'
+   difference_time = 0;
+
+    restore_and_fetch("one_day","Latest value","At Close")
+})
+
 document.querySelector('#one_week').addEventListener('click',function(){
   timestamp = '5min'
-  restore_all()
-
-  loader.style.display ="revert"
-fetchData(symbol,timestamp).then(function(result){
-  raw_data = filter_data(result,parseInt(timestamp))
-  format_data(7)
-create_chart()
-
-})
+  difference_time = 7
+  restore_and_fetch("one_week")
 })
 
 document.querySelector('#one_month').addEventListener('click',function(){
-  timestamp = '15min'
-  restore_all();
-  loader.style.display ="revert"
-  fetchData(symbol,timestamp).then(function(result){
-    raw_data = filter_data(result,parseInt(timestamp))
-    format_data(30)
-    create_chart()
-
-  })
+  timestamp = '30min'
+  difference_time = 30
+  restore_and_fetch("one_month")
+  
 })
+
+document.querySelector('#two_month').addEventListener('click',function(){
+  timestamp = '1hour'
+  difference_time = 60
+  restore_and_fetch("two_month")
+})
+
+document.querySelector("#six_month").addEventListener('click',function(){
+  timestamp = ''
+
+})
+
