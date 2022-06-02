@@ -45,8 +45,44 @@
 <script id='worker1' type='javascript/worker'>
 fetch()
 self.onmessage = function(e) {
+  start_fetching_data().then(function(result){
+    self.postMessage(result)
+
+
+  });
     self.postMessage('msg from worker');
   };
+
+function start_fetching_data(){
+  return fetch('https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&outputsize=full&apikey=FXLQF9OPEP8ROBMD')
+  .then(res=> res.json())
+  .then(data =>{
+   const all_data =data["Time Series (Daily)"]    
+
+
+    const organized_data = []
+    
+ Object.keys(all_data).forEach((info,index)=>{
+  console.log('what')
+      organized_data.push({
+        "date":info,
+        "price":all_data[info]["4. close"],
+         "volume":all_data[info]["5. volume"]
+      })
+       
+     })
+     console.log(organized_data)
+      return organized_data;
+  
+  
+
+    })
+    
+
+
+    
+  
+}
 
 </script>
  
