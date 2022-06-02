@@ -276,32 +276,30 @@ function return_linearGarident(color) {
 
 }
 
-function return_horizontal_gradient(gg,pox,poy,poz,poa){
-    const horizontal_Gradient = context.createLinearGradient(pox,poy,poz,poa)
-    if(!gg){
+function return_horizontal_gradient(color,pos_start,pos_end){
+    const horizontal_Gradient = context.createLinearGradient(0,pos_start,0,pos_end)
+    if(color === 'blue'){
       horizontal_Gradient.addColorStop(0, "rgba(82,196,250,0.3)");
    
-    horizontal_Gradient.addColorStop(0.2, "rgba(82,196,250,0.1)");
-    horizontal_Gradient.addColorStop(0.2, "rgba(82,196,250,0.1)");
+    horizontal_Gradient.addColorStop(0.3, "rgba(82,196,250,0.1)");
+    horizontal_Gradient.addColorStop(0.3, "rgba(82,196,250,0.15)");
     horizontal_Gradient.addColorStop(1, 'transparent')
-  }else{
+  }
+    else if(color === "red"){
+    
    horizontal_Gradient.addColorStop(0, "rgba(255,0,0,0.3)");
-    horizontal_Gradient.addColorStop(0.2, "rgba(255,0,0,0.1)");
-   horizontal_Gradient.addColorStop(0.2, "rgba(255,0,0,0.1)");
+    horizontal_Gradient.addColorStop(0.3, "rgba(255,0,0,0.1)");
+   horizontal_Gradient.addColorStop(0.3, "rgba(255,0,0,0.15)");
      horizontal_Gradient.addColorStop(1, 'transparent')
+
+  }else if(color === 'lawngreen'){
+     horizontal_Gradient.addColorStop(0, "rgba(124,252,0,0.3)");
+     horizontal_Gradient.addColorStop(0.3, "rgba(124,252,0,0.1)");
+    horizontal_Gradient.addColorStop(0.3, "rgba(124,252,0,0.15)");
+    horizontal_Gradient.addColorStop(1, 'transparent')
 
   }
     return horizontal_Gradient
-    /*
-              horizontal_Gradient.addColorStop(0,'#52c4fa');
-              horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),'#52c4fa');
-              horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),'#52c4fa');
-               horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),judge_color())
-                horizontal_Gradient.addColorStop(1/label.length*(current_Index > static_Index ? current_Index : static_Index),judge_color())
-                horizontal_Gradient.addColorStop(1,'#52c4fa');
-                return horizontal_Gradient
-                */
-
 }
  
 function return_market_status() {
@@ -358,25 +356,11 @@ function judge_color(){
     else return dataset[static_Index] >= dataset[current_Index] ? "lawngreen" : "red"
   
 }
-function return_data(){
 
-  if(!isMouseDown || static_Index === current_Index) return { 
-       label: 'stock price',
-        data: dataset,
-        fill: true,
-        backgroundColor: return_linearGarident(),
-        pointHoverRadius: 0,
-        hoverBackgroundColor:return_linearGarident('color'),
-        hoverBorderColor:"rgba(82,196,250,0.8)",
-        
-        borderColor: return_color()
-
-  };
- 
   
 
 
-}
+
 function create_chart() {
 
   let [first_index,final_index,static_clientX,static_clientY] = new Array(3).fill(null)
@@ -390,7 +374,7 @@ function create_chart() {
         isVisible = false;
         return;
       } else isVisible = true;
-
+      info_price.style.color = "#52c4fa"
 
 
       let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
@@ -400,12 +384,12 @@ function create_chart() {
       else if (current_Index === 0 && !first_index) first_index = this_position_x
        
        //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
-        if(first_index && current_Index ===0 && left_position.toFixed(2) === (myChart.chartArea.left+window.innerWidth /100 * 1.5).toFixed(2)){
+        if(first_index && current_Index === 0 && left_position.toFixed(2) === (myChart.chartArea.left+window.innerWidth /100 * 1.5).toFixed(2)){
           this_position_x = first_index
 
         }
 
-       else if (final_index  && current_Index ===dataset.length-1 && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
+       else if (final_index && current_Index === dataset.length-1 && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
     
         this_position_x = final_index
     
@@ -441,6 +425,9 @@ function create_chart() {
 
       context.restore()
       context.save()
+
+
+
       if(isMouseDown){
 
         if(!static_clientX){
@@ -448,13 +435,14 @@ function create_chart() {
         static_clientX = this_position_x
         static_Index = current_Index
       }
+      if(static_clientX === current_Index) return;
 
     context.beginPath();
  context.globalCompositeOperation ='source-over'
 
   context.moveTo(static_clientX,myChart.chartArea.top)
   context.lineTo(static_clientX,myChart.chartArea.bottom)
-  context.strokeStyle=judge_color()
+  context.strokeStyle = judge_color()
   context.stroke()
   context.closePath();
    context.moveTo(static_clientX, static_clientY)
@@ -468,26 +456,26 @@ function create_chart() {
       context.restore();
       context.save()
       
-      const bigger = (current_Index > static_Index ? current_Index : static_Index)
-      const smaller = (current_Index > static_Index ? static_Index : current_Index)
-      const starting  = myChart.chartArea.width/label.length*smaller+myChart.chartArea.left
-      const ending = myChart.chartArea.width/label.length*bigger+myChart.chartArea.left
-      console.log(starting,ending)
-      console.log(myChart.chartArea.left,myChart.chartArea.right)
-
+      const bigger_Index = (current_Index > static_Index ? current_Index : static_Index)
+      const smaller_Index = (current_Index > static_Index ? static_Index : current_Index)
+      const starting_pos  = myChart.chartArea.width / label.length * smaller_Index + myChart.chartArea.left
+      const ending_pos = myChart.chartArea.width / label.length * bigger_Index + myChart.chartArea.left
+      context.beginPath()
       context.globalCompositeOperation = 'source-over'
-      context.fillStyle = return_horizontal_gradient(false,myChart.chartArea.left,myChart.chartArea.top,starting,myChart.chartArea.bottom)
-
-      context.fillRect(myChart.chartArea.left,myChart.chartArea.top,starting-myChart.chartArea.left,myChart.chartArea.height)
-      context.fillStyle = return_horizontal_gradient(true,starting,myChart.chartArea.top,ending,myChart.chartArea.bottom)
-      context.fillRect(starting,myChart.chartArea.top,ending-starting,myChart.chartArea.height)
-       context.fillStyle = return_horizontal_gradient(false,ending,myChart.chartArea.top,myChart.chartArea.right,myChart.chartArea.bottom)
-       //- canvas.getBoundingClientRect().left
-         //context.fillRect(ending,myChart.chartArea.top,myChart.chartArea.right -100,myChart.chartArea.bottom)
-         context.fillRect(ending,myChart.chartArea.top,myChart.chartArea.right-ending,myChart.chartArea.bottom)
+      context.fillStyle = return_horizontal_gradient('blue',myChart.chartArea.top,myChart.chartArea.bottom)
+      context.fillRect(myChart.chartArea.left,myChart.chartArea.top,starting_pos -myChart.chartArea.left,myChart.chartArea.height)
+      context.fillStyle = return_horizontal_gradient(judge_color(),myChart.chartArea.top,myChart.chartArea.bottom)
+      context.fillRect(starting_pos ,myChart.chartArea.top,ending_pos-starting_pos ,myChart.chartArea.height)
+       context.fillStyle = return_horizontal_gradient('blue',myChart.chartArea.top,myChart.chartArea.bottom)
+         context.fillRect(ending_pos,myChart.chartArea.top,myChart.chartArea.right-ending_pos,myChart.chartArea.bottom)
           context.closePath()
       context.restore();
       context.save()
+        context.closePath()
+        info_price.style.color=judge_color()
+        info_price.style.left =(starting_pos+ending_pos)/2-info_price.offsetWidth/4+'px'
+
+
 
   }
     else{
@@ -496,9 +484,12 @@ function create_chart() {
       static_Index = null;
     } 
 
-  // myChart.update()
-      info_price.style.visibility = 'visible'
+  
+      
+        info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
+      
+      if(isMouseDown) return;
       if (current_Index === valid_data_number - 1) return;
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
@@ -510,8 +501,8 @@ function create_chart() {
         if(timestamp === '1min')
         info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number + "px"
 
-      }
-      
+      } 
+    
 
     }
 
@@ -563,7 +554,16 @@ function create_chart() {
     type: 'line',
     data: {
       xLabels: label,
-      datasets: [return_data()]
+      datasets: [{
+      label: 'stock price',
+        data: dataset,
+        fill: true,
+        backgroundColor: return_linearGarident(),
+        pointHoverRadius: 0,
+        hoverBackgroundColor:return_linearGarident('color'),
+        hoverBorderColor:"rgba(82,196,250,0.8)",     
+        borderColor: return_color()
+        }]
     },
     options: {
 
@@ -658,8 +658,21 @@ function create_chart() {
           callbacks: {
             label: function(tooltipItem) {
               current_Index = tooltipItem.dataIndex
-              info_price.textContent =dataset[current_Index]
-              info_date.textContent = detail_dataset[current_Index].date
+
+              if(isMouseDown){
+                 const current_value =dataset[current_Index];
+              const previous_value = dataset[static_Index]
+              const sign = (judge_color() ==='lawngreen' ? "+" : "-")
+                info_price.innerHTML = sign+ Math.abs(current_value - previous_value).toFixed(2) +"          " +sign+(Math.abs(current_value/previous_value -1)*100).toFixed(2)+'%'
+
+                info_date.textContent ='From ' + detail_dataset[Math.min(current_Index,static_Index)].date +'   to   '+detail_dataset[Math.max(current_Index,static_Index)].date 
+              } 
+              else {
+                info_price.textContent = dataset[current_Index]
+                info_date.textContent = detail_dataset[current_Index].date
+              }
+
+              
               return tooltipItem;
             }
           },
@@ -675,7 +688,7 @@ function create_chart() {
 }
 
 
-function restore_and_fetch(time_range_name,search_content = 'At Close',expected_content = 'Latest Price'){
+function restore_and_fetch(time_range_name,restore_only,search_content = 'At Close',expected_content = 'Latest Price'){
   myChart.destroy();
   detail_dataset.length = 0;
   dataset.length = 0
@@ -689,12 +702,11 @@ function restore_and_fetch(time_range_name,search_content = 'At Close',expected_
   if(matched_element) matched_element.textContent = expected_content
   
     loader.style.display ="revert"
+  if(restore_only=== true) return;
 
 
     if(!all_fetch_data[time_range_name]){
     fetchData(symbol,timestamp).then(function(result){
-      console.log(result)
-      console.log(result)
     all_fetch_data[time_range_name] = result
     raw_data = filter_data(result,parseInt(timestamp))
     format_data(difference_time)
@@ -786,7 +798,7 @@ font-size:0.8em`
 
 
  warning.querySelector('.resize_button').addEventListener('click',function(){
-  restore_all()
+ restore_and_fetch("")
    raw_data =filter_data(API_data,parseInt(timestamp))
     format_data(difference_time)
   create_chart()
@@ -829,4 +841,3 @@ document.querySelector("#six_month").addEventListener('click',function(){
   timestamp = ''
 
 })
-
