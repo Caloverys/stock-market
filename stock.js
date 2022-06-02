@@ -1,4 +1,4 @@
-//Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
+  //Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
 const canvas = document.querySelector('#chart')
 const context = canvas.getContext('2d')
 , dataset = []
@@ -39,8 +39,9 @@ function getSymbol() {
 }
 
 function fetchData(symbol, range) {
+//apikey=c38b723e031c88753f0c9e66f505f557
 
-  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=ee684c5f9b04a3e914f9e39630f0f929`)
     .then(res => res.json())
 
 }
@@ -95,7 +96,7 @@ function format_date(dateobject) {
 
 function format_data(difference) {
   date_latest = format_date(raw_data[raw_data.length - 1].date)
-  const expected_end_date =  timestamp === '1min' ? new Date(date_latest.getFullYear(),date_latest.getMonth(),date_latest.getDate(),9,30) : new Date(global_time.getFullYear(),global_time.getMonth(),global_time.getDate()-difference,9,30) 
+  const expected_end_date = (timestamp === '1min' ? new Date(date_latest.getFullYear(),date_latest.getMonth(),date_latest.getDate(),9,30) : new Date(global_time.getFullYear(),global_time.getMonth(),global_time.getDate()-difference,9,30))
   raw_data.forEach((item, index) => {
   
     this.newdate = format_date(item.date);
@@ -114,7 +115,6 @@ function format_data(difference) {
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
 
- 
   if(timestamp === '1min'){
     label =label.map(i=>new Date(i).getHours())
     if(return_market_status() ) fill_label_array_1min()
@@ -279,14 +279,8 @@ function return_linearGarident(color) {
 
 function return_horizontal_gradient(color,pos_start,pos_end){
     const horizontal_Gradient = context.createLinearGradient(0,pos_start,0,pos_end)
-    if(color === 'blue'){
-      horizontal_Gradient.addColorStop(0, "rgba(82,196,250,0.3)");
-   
-    horizontal_Gradient.addColorStop(0.3, "rgba(82,196,250,0.1)");
-    horizontal_Gradient.addColorStop(0.3, "rgba(82,196,250,0.15)");
-    horizontal_Gradient.addColorStop(1, 'transparent')
-  }
-    else if(color === "red"){
+
+    if(color === "red"){
     
    horizontal_Gradient.addColorStop(0, "rgba(255,0,0,0.3)");
     horizontal_Gradient.addColorStop(0.3, "rgba(255,0,0,0.1)");
@@ -329,7 +323,6 @@ function filter_data(input_data,time_range){
     }
 
     //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
-    console.log(input_data)
     if(parseInt(timestamp) < 30 || range < 3){
   return input_data.sort(({
       date: a
@@ -464,21 +457,14 @@ function create_chart() {
       const ending_pos = myChart.chartArea.width / label.length * bigger_Index + myChart.chartArea.left
       context.beginPath()
       context.globalCompositeOperation = 'source-over'
-      context.fillStyle = return_horizontal_gradient('blue',myChart.chartArea.top,myChart.chartArea.bottom)
-      context.fillRect(myChart.chartArea.left,myChart.chartArea.top,starting_pos -myChart.chartArea.left,myChart.chartArea.height)
       context.fillStyle = return_horizontal_gradient(judge_color(),myChart.chartArea.top,myChart.chartArea.bottom)
       context.fillRect(starting_pos ,myChart.chartArea.top,ending_pos-starting_pos ,myChart.chartArea.height)
-       context.fillStyle = return_horizontal_gradient('blue',myChart.chartArea.top,myChart.chartArea.bottom)
-         context.fillRect(ending_pos,myChart.chartArea.top,myChart.chartArea.right-ending_pos,myChart.chartArea.bottom)
           context.closePath()
       context.restore();
       context.save()
         context.closePath()
         info_price.style.color=judge_color()
         info_price.style.left =(starting_pos+ending_pos)/2-info_price.offsetWidth/4+'px'
-
-
-
   }
     else{
       static_clientY = null;
@@ -487,11 +473,16 @@ function create_chart() {
     } 
 
   
-      
+         
         info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
-      
-      if(isMouseDown) return;
+
+      if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number) {
+        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number + "px"
+      }
+
+
+      if(isMouseDown && current_Index !== static_Index) return;
       if (current_Index === valid_data_number - 1) return;
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
@@ -500,13 +491,12 @@ function create_chart() {
         info_price.style.left = myChart.chartArea.left + window.innerWidth / 100 * 1.5 + "px"
 
       } else if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number) {
-        if(timestamp === '1min')
         info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number + "px"
 
       } 
-    
-
     }
+
+    
 
 
 
@@ -694,7 +684,7 @@ function create_chart() {
 }
 
 
-function restore_and_fetch(time_range_name,restore_only,search_content = 'At Close',expected_content = 'Latest Price'){
+function restore_and_fetch(time_range_name,restore_only = false,search_content = 'At Close',expected_content = 'Latest Price'){
   canvas.style.display = 'none'
   detail_dataset.length = 0;
   dataset.length = 0
@@ -708,7 +698,7 @@ function restore_and_fetch(time_range_name,restore_only,search_content = 'At Clo
   if(matched_element) matched_element.textContent = expected_content
   
     loader.style.display ="revert"
-  if(restore_only=== true)  return;
+  if(restore_only  === true)  return;
   
 
 
@@ -827,8 +817,7 @@ font-size:0.8em`
 
 
  warning.querySelector('.resize_button').addEventListener('click',function(){
- restore_and_fetch("")
- all_fetch_data
+ restore_and_fetch("",true)
    raw_data =filter_data(all_fetch_data[variable_name],parseInt(timestamp))
     format_data(difference_time)
   create_chart()
@@ -846,7 +835,7 @@ document.querySelector('#one_day').addEventListener('click',function(){
    difference_time = 0;
    variable_name ="one_day"
 
-    restore_and_fetch(variable_name,"Latest value","At Close")
+    restore_and_fetch(variable_name,false,"Latest value","At Close")
 })
 
 document.querySelector('#one_week').addEventListener('click',function(){
@@ -881,18 +870,6 @@ document.querySelector("#six_month").addEventListener('click',function(){
   timestamp = ''
 
 })
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
