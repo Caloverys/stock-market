@@ -9,7 +9,7 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 let current_Index = 0
-let max_value, min_value, raw_data, API_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time;
+let max_value, min_value, raw_data,  global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time,variable_name;
 let isVisible = true;
 let [label, grid_color] = [[],[]]
 let chartArea;
@@ -18,7 +18,8 @@ let all_fetch_data ={
   "one_day":null,
   "one_week":null,
   "one_month":null,
-  "two_month":null
+  "two_month":null,
+  "three_month":null
 
 }
 
@@ -200,7 +201,7 @@ function size_calculation(word, fontSize) {
 function get_global_time() {
   //fetch the time from new york timezone 
 
-  return fetch("http://worldtimeapi.org/api/timezone/america/new_york")
+  return fetch("https://worldtimeapi.org/api/timezone/america/new_york")
     .then(res => res.json())
     .then(raw_data => new Date(raw_data.datetime))
 }
@@ -328,6 +329,7 @@ function filter_data(input_data,time_range){
     }
 
     //filter data by range and sort data based on the date (newest date like 15:59 pm ) to the end 
+    console.log(input_data)
     if(parseInt(timestamp) < 30 || range < 3){
   return input_data.sort(({
       date: a
@@ -428,14 +430,14 @@ function create_chart() {
 
 
 
-      if(isMouseDown){
+      if(isMouseDown && static_clientX !== current_Index){
 
         if(!static_clientX){
         static_clientY =chart.tooltip._active[0].element.y;
         static_clientX = this_position_x
         static_Index = current_Index
       }
-      if(static_clientX === current_Index) return;
+    
 
     context.beginPath();
  context.globalCompositeOperation ='source-over'
@@ -550,6 +552,8 @@ function create_chart() {
 
   };
   if(timestamp === "1min") Chart.register(horizonalLinePlugin);
+  //if previous chart existed, clear it and redraw new chart
+  if(myChart) myChart.destroy();;
   myChart = new Chart(context, {
     type: 'line',
     data: {
@@ -663,6 +667,7 @@ function create_chart() {
                  const current_value =dataset[current_Index];
               const previous_value = dataset[static_Index]
               const sign = (judge_color() ==='lawngreen' ? "+" : "-")
+              //Already use white-space: pre-wrap for info_price and info_date so the white space will be significent and "       " will not be parse as " "
                 info_price.innerHTML = sign+ Math.abs(current_value - previous_value).toFixed(2) +"          " +sign+(Math.abs(current_value/previous_value -1)*100).toFixed(2)+'%'
 
                 info_date.textContent ='From ' + detail_dataset[Math.min(current_Index,static_Index)].date +'   to   '+detail_dataset[Math.max(current_Index,static_Index)].date 
@@ -683,13 +688,14 @@ function create_chart() {
 
 })
   loader.style.display ="none"
-  chartArea=myChart.chartArea
+  chartArea=myChart.chartArea;
+   canvas.style.display = 'revert'
 
 }
 
 
 function restore_and_fetch(time_range_name,restore_only,search_content = 'At Close',expected_content = 'Latest Price'){
-  myChart.destroy();
+  canvas.style.display = 'none'
   detail_dataset.length = 0;
   dataset.length = 0
   label.length = 0;
@@ -702,7 +708,8 @@ function restore_and_fetch(time_range_name,restore_only,search_content = 'At Clo
   if(matched_element) matched_element.textContent = expected_content
   
     loader.style.display ="revert"
-  if(restore_only=== true) return;
+  if(restore_only=== true)  return;
+  
 
 
     if(!all_fetch_data[time_range_name]){
@@ -711,15 +718,27 @@ function restore_and_fetch(time_range_name,restore_only,search_content = 'At Clo
     raw_data = filter_data(result,parseInt(timestamp))
     format_data(difference_time)
     create_chart()
+
   })
   }else{
-
+    
     raw_data = filter_data(all_fetch_data[time_range_name],parseInt(timestamp))
     format_data(difference_time)
     create_chart()
+
   }
 
 }
+let worker;
+function startWorker(){
+ if(!worker) worker = new Worker('fetch_data_worker.js')
+  worker.onmessage = function(event){
+    console.log(event.data)
+  }
+  worker.postMessage('hola')
+}
+
+
 
 window.onload = function() {
   window.symbol = "FB"
@@ -730,9 +749,9 @@ window.onload = function() {
 
 
     global_time = new Date(values[0])
-    API_data = values[1]
-    all_fetch_data["one_day"] = values[1]
-   raw_data = filter_data(API_data,parseInt(timestamp))
+    variable_name = "one_day"
+    all_fetch_data[variable_name] = values[1]
+   raw_data = filter_data( values[1],parseInt(timestamp))
     format_data(difference_time)
      const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
@@ -749,6 +768,16 @@ window.onload = function() {
   
     
     create_chart()
+    var blob = new Blob([
+    document.querySelector('#worker1').textContent
+  ], { type: "text/javascript" })
+
+  // Note: window.webkitURL.createObjectURL() in Chrome 10+.
+  var worker = new Worker(window.URL.createObjectURL(blob));
+  worker.onmessage = function(e) {
+    console.log("Received: " + e.data);
+  }
+  worker.postMessage("hello"); // Start the worker.()
 
 
       //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
@@ -799,7 +828,8 @@ font-size:0.8em`
 
  warning.querySelector('.resize_button').addEventListener('click',function(){
  restore_and_fetch("")
-   raw_data =filter_data(API_data,parseInt(timestamp))
+ all_fetch_data
+   raw_data =filter_data(all_fetch_data[variable_name],parseInt(timestamp))
     format_data(difference_time)
   create_chart()
   warning.remove()
@@ -814,30 +844,55 @@ document.body.appendChild(warning)
 document.querySelector('#one_day').addEventListener('click',function(){
   timestamp = '1min'
    difference_time = 0;
+   variable_name ="one_day"
 
-    restore_and_fetch("one_day","Latest value","At Close")
+    restore_and_fetch(variable_name,"Latest value","At Close")
 })
 
 document.querySelector('#one_week').addEventListener('click',function(){
   timestamp = '5min'
   difference_time = 7
-  restore_and_fetch("one_week")
+  variable_name = 'one_week'
+
+  restore_and_fetch(variable_name)
 })
 
 document.querySelector('#one_month').addEventListener('click',function(){
   timestamp = '30min'
   difference_time = 30
-  restore_and_fetch("one_month")
+  variable_name = 'one_month'
+  restore_and_fetch(variable_name)
   
 })
 
 document.querySelector('#two_month').addEventListener('click',function(){
   timestamp = '1hour'
+
   difference_time = 60
-  restore_and_fetch("two_month")
+  variable_name = 'two_month'
+  //pass by parameter without diretly access  global variable variable_name reduce the run time a little bit since it takes more performance time for JS run search for a global variable
+  restore_and_fetch(variable_name)
 })
 
+document.querySelector('#three_month').addEventListener('click',function(){
+
+})
 document.querySelector("#six_month").addEventListener('click',function(){
   timestamp = ''
 
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
