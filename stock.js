@@ -9,8 +9,8 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 let current_Index = 0
-let max_value, min_value, raw_data,  global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time,variable_name;
-let isVisible = true;
+let max_value, min_value, raw_data,  global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time,variable_name,button_being_clicked;
+let [isVisible,isWaiting] = [true,true]
 let [label, grid_color] = [[],[]]
 let chartArea;
 
@@ -19,7 +19,8 @@ let all_fetch_data ={
   "one_week":null,
   "one_month":null,
   "two_month":null,
-  "three_month":null
+  "three_month":null,
+  "all_data":null
 
 }
 
@@ -95,11 +96,14 @@ function format_date(dateobject) {
 
 
 function format_data(difference) {
-  date_latest = format_date(raw_data[raw_data.length - 1].date)
+  console.log(raw_data)
+  date_latest =  format_date(raw_data[raw_data.length - 1].date)
   const expected_end_date = (timestamp === '1min' ? new Date(date_latest.getFullYear(),date_latest.getMonth(),date_latest.getDate(),9,30) : new Date(global_time.getFullYear(),global_time.getMonth(),global_time.getDate()-difference,9,30))
+
+
   raw_data.forEach((item, index) => {
   
-    this.newdate = format_date(item.date);
+    this.newdate =  format_date(item.date)
    
     if (this.newdate >= expected_end_date) {
 
@@ -109,7 +113,7 @@ function format_data(difference) {
     }
   })
 
-
+   console.log(label,detail_dataset)
 
   valid_data_number = label.length 
   max_value = Math.max.apply(null, dataset)
@@ -679,6 +683,7 @@ function create_chart() {
 })
   loader.style.display ="none"
   chartArea=myChart.chartArea;
+  console.log('what')
    canvas.style.display = 'revert'
 
 }
@@ -719,14 +724,7 @@ function restore_and_fetch(time_range_name,restore_only = false,search_content =
   }
 
 }
-let worker;
-function startWorker(){
- if(!worker) worker = new Worker('fetch_data_worker.js')
-  worker.onmessage = function(event){
-    console.log(event.data)
-  }
-  worker.postMessage('hola')
-}
+
 
 
 
@@ -741,7 +739,9 @@ window.onload = function() {
     global_time = new Date(values[0])
     variable_name = "one_day"
     all_fetch_data[variable_name] = values[1]
+    console.log(raw_data)
    raw_data = filter_data( values[1],parseInt(timestamp))
+   console.log(raw_data)
     format_data(difference_time)
      const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
@@ -758,17 +758,7 @@ window.onload = function() {
   
     
     create_chart()
-    var blob = new Blob([
-    document.querySelector('#worker1').textContent
-  ], { type: "text/javascript" })
-
-  // Note: window.webkitURL.createObjectURL() in Chrome 10+.
-  var worker = new Worker(window.URL.createObjectURL(blob));
-  worker.onmessage = function(e) {
-    console.log("Received: " + e.data);
-  }
-  worker.postMessage("hello"); // Start the worker.()
-
+    console.log(performance.now())
 
       //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
       context.strokeStyle = '#52c4fa';
@@ -778,6 +768,35 @@ window.onload = function() {
           context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth /500 : 2.5
           context.globalCompositeOperation = 'destination-over'
           context.save()
+
+    setTimeout(()=>{
+          var blob = new Blob([
+    document.querySelector('#worker1').textContent
+  ], { type: "text/javascript" })
+
+  // Note: window.webkitURL.createObjectURL() in Chrome 10+.
+  var worker = new Worker(window.URL.createObjectURL(blob));
+  worker.onmessage = function(e) {
+    all_fetch_data["all_data"] = JSON.parse(e.data)
+     
+    if(isWaiting && button_being_clicked){
+      document.querySelector(`#${button_being_clicked}`).click();
+      loader.style.display ='none'
+      console.log(document.querySelector(`#${button_being_clicked}`))
+
+    } 
+    isWaiting = false;
+    
+    
+
+  }
+
+  worker.postMessage("hello"); // Start the worker.()
+
+
+
+    })
+
 
    
 
@@ -863,13 +882,142 @@ document.querySelector('#two_month').addEventListener('click',function(){
   restore_and_fetch(variable_name)
 })
 
-document.querySelector('#three_month').addEventListener('click',function(){
+document.querySelector('#three_month').addEventListener('click',function(event){
+  restore_and_fetch("",true)
+  timestamp = false;
+  difference = 3
+   variable_name = 'all_data'
+  if(isWaiting) {
+     loader.style.display ='revert'
+    button_being_clicked =event.target.id
+    return 
+  }
+
+    raw_data =  all_fetch_data[variable_name] 
+  format_data_two(difference,false,0)
+  create_chart()
+
+
 
 })
-document.querySelector("#six_month").addEventListener('click',function(){
-  timestamp = ''
+document.querySelector("#six_month").addEventListener('click',function(event){
+   restore_and_fetch("",true)
+  timestamp = false
+      variable_name = 'all_data'
+     difference = 6;
+    if(isWaiting) {
+    button_being_clicked =event.target.id
+    return 
+  }
+   
+    raw_data =  all_fetch_data[variable_name] 
+  format_data_two(difference,false,0)
+  create_chart()
 
 })
+document.querySelector('#one_year').addEventListener('click',function(event){
+    restore_and_fetch("",true)
+  timestamp = false
+      variable_name = 'all_data'
+     difference = 2;
+    if(isWaiting) {
+    button_being_clicked =event.target.id
+    return 
+  }
+  
+    raw_data =  all_fetch_data[variable_name] 
+  format_data_two(difference,true,2,2)
+  create_chart()
+})
+
+document.querySelector('#two_year').addEventListener('click',function(event){
+  restore_and_fetch("",true)
+  timestamp = false
+      variable_name = 'all_data'
+     difference = 2;
+
+    if(isWaiting) {
+    button_being_clicked = event.target.id
+    return;
+  }
+  
+
+     raw_data = all_fetch_data[variable_name]
+     format_data_two(difference,true,4,3)
+      create_chart()
+  
+})
+
+
+function format_data_two(difference,isYear,filter_value,filter_data_range =1 ){
+  Chart.unregister(horizonalLinePlugin);
+  dataset.length = 0
+  const lastest_date = new Date(all_fetch_data['all_data'][all_fetch_data['all_data'].length-1].date)
+  const oldest_date = (!isYear ? new Date(lastest_date.getFullYear(),lastest_date.getMonth()-difference,lastest_date.getDate(),23,59) : new Date(lastest_date.getFullYear()-difference,lastest_date.getMonth(),lastest_date.getDate(),23,59))
+
+  all_fetch_data['all_data'].forEach((item,index)=>{
+
+    let current_date = new Date(item.date)
+    /*
+
+    Important notice:
+    The default timestamp for new date constructor is GMT timestamp,
+    but the item.date retrieving from API is UTC/GMC timestamp,
+    they have four hour difference 
+    For example, in GMT time is 8:00, in UTC/GMC, the time will be 12:00
+    So we must add 4 hours to GMT timestamp to make them the same
+
+    Should be very careful handle this
+    P.S. spend 2 hours find out the bug caused by this
+
+    */
+   if(index % filter_data_range === 0){
+    current_date = new Date(current_date.setHours(current_date.getHours()+4))
+
+    if(current_date >= oldest_date){
+      label.push(current_date)
+      detail_dataset.push(item)
+      dataset.push(item.price.toFixed(2))
+    }
+  }
+  })
+
+   valid_data_number = label.length 
+     max_value = Math.max.apply(null, dataset)
+     min_value = Math.min.apply(null, dataset)
+     grid_color = Array(valid_data_number).fill('transparent')
+
+ let passed_months = [0];
+let currentMonth = new Date(label[0]).toLocaleString("default", {month: 'long'});
+  
+   
+
+    label = label.map((i,index)=>{
+      const label_month = new Date(i).toLocaleString("default", {month: 'long'});
+      if(label_month !== currentMonth){ 
+        passed_months.push(index)
+        currentMonth = label_month
+      };
+
+      return label_month
+    })
+
+    
+
+    if(filter_value !==0 ) passed_months = passed_months.filter((i,index)=>{
+      return index % filter_value === 0
+    })
+
+     for(let i = 0;i<label.length;i++){
+        if(passed_months.includes(i) ) 
+          grid_color[i] = "rgba(255,255,255,0.4)"
+       } 
+
+       grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
+       console.log(label,dataset)
+
+
+}
 
 
 
