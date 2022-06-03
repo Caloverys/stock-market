@@ -9,7 +9,7 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 let current_Index = 0
-let max_value, min_value, raw_data,  global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time,variable_name,button_being_clicked;
+let max_value, min_value, raw_data,  global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number,timestamp,closed_price,isMouseDown,difference_time,variable_name,button_being_clicked,parameter_list;
 let [isVisible,isWaiting] = [true,true]
 let [label, grid_color] = [[],[]]
 let chartArea;
@@ -153,22 +153,22 @@ function format_data(difference) {
   }else if(timestamp === '1hour'){
     //Use internationalization API to convert number of month to full name (e.g. 0=> January)
     let currentMonth = new Date(label[0]).toLocaleString("default", {month: 'long'});
-    const passed_months = [];
+    const passed_range = [];
     label = label.map((i,index)=>{
       const label_month = new Date(i).toLocaleString("default", {month: 'long'});
       if(label_month !== currentMonth){ 
         currentMonth = label_month
-        passed_months.push(index)
+        passed_range.push(index)
       };
       return label_month
 
     })
       grid_color = Array(label.length).fill("transparent");
       //Sometimes there will not be enough (three) labels, so we could push the start month as well.
-      if(passed_months.length < 3) passed_months.unshift(0)
+      if(passed_range.length < 3) passed_range.unshift(0)
 
        for(let i = 0;i<label.length;i++){
-        if(passed_months.includes(i) ) 
+        if(passed_range.includes(i) ) 
           grid_color[i] = "rgba(255,255,255,0.4)"
        } 
        grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
@@ -427,12 +427,13 @@ function create_chart() {
 
 
 
-      if(isMouseDown && static_clientX !== current_Index){
+      if(isMouseDown){
 
         if(!static_clientX){
         static_clientY =chart.tooltip._active[0].element.y;
         static_clientX = this_position_x
         static_Index = current_Index
+        return;
       }
     
 
@@ -455,10 +456,9 @@ function create_chart() {
       context.restore();
       context.save()
       
-      const bigger_Index = (current_Index > static_Index ? current_Index : static_Index)
-      const smaller_Index = (current_Index > static_Index ? static_Index : current_Index)
-      const starting_pos  = myChart.chartArea.width / label.length * smaller_Index + myChart.chartArea.left
-      const ending_pos = myChart.chartArea.width / label.length * bigger_Index + myChart.chartArea.left
+      
+      const starting_pos  = Math.min(this_position_x,static_clientX)
+      const ending_pos = Math.max(this_position_x,static_clientX)
       context.beginPath()
       context.globalCompositeOperation = 'source-over'
       context.fillStyle = return_horizontal_gradient(judge_color(),myChart.chartArea.top,myChart.chartArea.bottom)
@@ -769,7 +769,6 @@ window.onload = function() {
           context.globalCompositeOperation = 'destination-over'
           context.save()
 
-    setTimeout(()=>{
           var blob = new Blob([
     document.querySelector('#worker1').textContent
   ], { type: "text/javascript" })
@@ -798,9 +797,6 @@ window.onload = function() {
     })
 
 
-   
-
-  })
 
 
 
@@ -837,8 +833,14 @@ font-size:0.8em`
 
  warning.querySelector('.resize_button').addEventListener('click',function(){
  restore_and_fetch("",true)
+ if(timestamp ){
    raw_data =filter_data(all_fetch_data[variable_name],parseInt(timestamp))
     format_data(difference_time)
+  }else{
+    console.log(document.querySelector(`#${button_being_clicked}`))
+    document.querySelector(`#${button_being_clicked}`).click()
+
+  }
   create_chart()
   warning.remove()
  })
@@ -887,6 +889,7 @@ document.querySelector('#three_month').addEventListener('click',function(event){
   timestamp = false;
   difference = 3
    variable_name = 'all_data'
+   parameter_list = [difference,false,0]
   if(isWaiting) {
      loader.style.display ='revert'
     button_being_clicked =event.target.id
@@ -894,7 +897,7 @@ document.querySelector('#three_month').addEventListener('click',function(event){
   }
 
     raw_data =  all_fetch_data[variable_name] 
-  format_data_two(difference,false,0)
+  format_data_two(parameter_list)
   create_chart()
 
 
@@ -905,13 +908,14 @@ document.querySelector("#six_month").addEventListener('click',function(event){
   timestamp = false
       variable_name = 'all_data'
      difference = 6;
+     parameter_list =[difference,false,0]
     if(isWaiting) {
     button_being_clicked =event.target.id
     return 
   }
    
     raw_data =  all_fetch_data[variable_name] 
-  format_data_two(difference,false,0)
+  format_data_two(...parameter_list)
   create_chart()
 
 })
@@ -920,13 +924,14 @@ document.querySelector('#one_year').addEventListener('click',function(event){
   timestamp = false
       variable_name = 'all_data'
      difference = 2;
+     parameter_list = [difference,true,2,2]
     if(isWaiting) {
     button_being_clicked =event.target.id
     return 
   }
   
     raw_data =  all_fetch_data[variable_name] 
-  format_data_two(difference,true,2,2)
+  format_data_two(...parameter_list)
   create_chart()
 })
 
@@ -935,7 +940,60 @@ document.querySelector('#two_year').addEventListener('click',function(event){
   timestamp = false
       variable_name = 'all_data'
      difference = 2;
+parameter_list = [difference,true,4,3]
+    if(isWaiting) {
+    button_being_clicked = event.target.id
+    return;
+  }
 
+     raw_data = all_fetch_data[variable_name]
+     format_data_two(...parameter_list)
+      create_chart()
+  
+})
+document.querySelector('#five_year').addEventListener('click',function(event){
+  restore_and_fetch("",true)
+  timestamp = false
+      variable_name = 'all_data'
+     difference = 5;
+     parameter_list = [difference,true,0,10,true]
+    if(isWaiting) {
+    button_being_clicked = event.target.id
+    return;
+  }
+     raw_data = all_fetch_data[variable_name]
+     format_data_two(...parameter_list)
+      create_chart()
+  
+
+})
+
+document.querySelector("#ten_year").addEventListener("click",function(event){
+     console.log(isWaiting)
+   restore_and_fetch("",true)
+
+     timestamp = false
+      variable_name = 'all_data'
+     difference = 10;
+     parameter_list = [difference,true,2,20,true]
+    if(isWaiting) {
+    button_being_clicked = event.target.id
+    return;
+  }
+     console.log(raw_data)
+
+     raw_data = all_fetch_data[variable_name]
+      format_data_two(...parameter_list)
+      create_chart()
+
+})
+
+document.querySelector('#all_time').addEventListener('click',function(){
+   restore_and_fetch("",true)
+  timestamp = false
+      variable_name = 'all_data'
+     difference = null;
+     parameter_list = [difference,true,3,30,true]
     if(isWaiting) {
     button_being_clicked = event.target.id
     return;
@@ -943,21 +1001,20 @@ document.querySelector('#two_year').addEventListener('click',function(event){
   
 
      raw_data = all_fetch_data[variable_name]
-     format_data_two(difference,true,4,3)
+     format_data_two(...parameter_list)
       create_chart()
-  
 })
 
-
-function format_data_two(difference,isYear,filter_value,filter_data_range =1 ){
+function format_data_two(difference,isYear,filter_value,filter_data_range = 1,label_by_year){
   Chart.unregister(horizonalLinePlugin);
   dataset.length = 0
   const lastest_date = new Date(all_fetch_data['all_data'][all_fetch_data['all_data'].length-1].date)
   const oldest_date = (!isYear ? new Date(lastest_date.getFullYear(),lastest_date.getMonth()-difference,lastest_date.getDate(),23,59) : new Date(lastest_date.getFullYear()-difference,lastest_date.getMonth(),lastest_date.getDate(),23,59))
-
+  
   all_fetch_data['all_data'].forEach((item,index)=>{
 
     let current_date = new Date(item.date)
+
     /*
 
     Important notice:
@@ -971,53 +1028,89 @@ function format_data_two(difference,isYear,filter_value,filter_data_range =1 ){
     P.S. spend 2 hours find out the bug caused by this
 
     */
+    
    if(index % filter_data_range === 0){
     current_date = new Date(current_date.setHours(current_date.getHours()+4))
-
+    if(difference){
     if(current_date >= oldest_date){
       label.push(current_date)
       detail_dataset.push(item)
       dataset.push(item.price.toFixed(2))
     }
+
+    }else{
+       label.push( new Date(current_date.setHours(current_date.getHours()+4)))
+      detail_dataset.push(item)
+      dataset.push(item.price.toFixed(2))
   }
+
+}
   })
+
 
    valid_data_number = label.length 
      max_value = Math.max.apply(null, dataset)
      min_value = Math.min.apply(null, dataset)
      grid_color = Array(valid_data_number).fill('transparent')
 
- let passed_months = [0];
-let currentMonth = new Date(label[0]).toLocaleString("default", {month: 'long'});
-  
-   
+ let passed_range = [0];
 
+  
+
+    if(!label_by_year){
+       let currentMonth = new Date(label[0]).toLocaleString("default", {month: 'long'});
     label = label.map((i,index)=>{
       const label_month = new Date(i).toLocaleString("default", {month: 'long'});
       if(label_month !== currentMonth){ 
-        passed_months.push(index)
+        passed_range.push(index)
         currentMonth = label_month
       };
 
       return label_month
     })
 
+  }else{
+     let currentYear = new Date(label[0]).getFullYear()
+    label = label.map((i,index)=>{
+      const label_year = new Date(i).getFullYear()
+      
+      if(label_year !== currentYear){ 
+        passed_range.push(index)
+        currentYear = label_year
+      };
+
+      return label_year
+    })
+
+  }
+
     
 
-    if(filter_value !==0 ) passed_months = passed_months.filter((i,index)=>{
+    if(filter_value) passed_range = passed_range.filter((i,index)=>{
       return index % filter_value === 0
     })
 
      for(let i = 0;i<label.length;i++){
-        if(passed_months.includes(i) ) 
+        if(passed_range.includes(i) ) 
           grid_color[i] = "rgba(255,255,255,0.4)"
        } 
 
        grid_color[grid_color.length -1] = "rgba(255,255,255,0.4)"
-       console.log(label,dataset)
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
