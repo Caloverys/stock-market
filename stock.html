@@ -47,7 +47,12 @@
 
 <script src="https://use.fontawesome.com/523d8f4491.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+<!-- Chrome doesn't allow use web webworker from local file, this I have to use a script and blob to set the web worker. But after I build up the web sever, it could be put in a separate file to increase code readbility -->
 <script id='web_worker_one' type='javascript/worker'>
+
+
+
 self.onmessage = function(e) {
   start_fetching_data(e.data).then(function(result){
     const full_data = result
