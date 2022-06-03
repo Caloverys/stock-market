@@ -103,6 +103,7 @@ function format_date(dateobject) {
 
 
 function format_data(difference) {
+
   date_latest = format_date(raw_data[raw_data.length - 1].date)
   const expected_end_date = (timestamp === '1min' ? new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 9, 30) : new Date(global_time.getFullYear(), global_time.getMonth(), global_time.getDate() - difference, 9, 30))
 
@@ -126,11 +127,13 @@ function format_data(difference) {
 
   if (timestamp === '1min') {
     label = label.map(i => new Date(i).getHours())
-    if (return_market_status()) fill_label_array_1min()
+  if (return_market_status()) fill_label_array_1min()
 
     label = label.map(i => i + (i < 12 ? 'am' : 'pm'))
     grid_color = Array(label.length).fill("transparent")
+
     for (let i = 30 / range; i < label.length; i += 60 / range) grid_color[i] = "rgba(255,255,255,0.4)"
+  
 
   } else if (timestamp === "5min") {
     label = label.map(i => new Date(i).getDate())
@@ -327,16 +330,19 @@ function fill_label_array_5min() {
 }
 
 function fill_label_array_1min() {
-  const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
+ // const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
+ const expectedDate =new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15,59)
+
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
 
   //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
   //first fill the label_array to full hour (60 min)
   label.push.apply(label, Array(Math.floor((59 - date_latest.getMinutes()) / range)).fill(date_latest.getHours()))
-  for (let i = date_latest.getHours(); i < 16; i++) label.push.apply(label, Array(60 / range).fill(i))
+  for (let i = date_latest.getHours()+1; i < 16; i++) label.push.apply(label, Array(60 / range).fill(i))
   //at last 16:00
   label.push(16)
+  debugger
 
 }
 
@@ -896,6 +902,7 @@ function assign_web_worker_two(){
 
 
 window.onload = function() {
+  
 
   window.symbol = "FB"
   timestamp = "1min"
@@ -912,8 +919,8 @@ window.onload = function() {
     all_fetch_data[variable_name] = values[1]
     raw_data = filter_data(values[1], parseInt(timestamp))
     format_data(difference_time)
-    assign_web_worker_one()
-    assign_web_worker_two()
+    //assign_web_worker_one()
+    //assign_web_worker_two()
     const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
@@ -921,11 +928,13 @@ window.onload = function() {
     percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
+
     const created_span = document.createElement('span')
     created_span.style.color = 'grey';
     created_span.textContent = 'At Close'
     price_element.appendChild(created_span)
-
+    
+    document.querySelector('#name > h2').textContent = symbol
     create_chart()
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
 
@@ -940,8 +949,6 @@ window.onload = function() {
 
 
   })
-
-
 
 }
 
@@ -1140,7 +1147,6 @@ document.querySelector('#all_time').addEventListener('click', function() {
   format_data_two(...parameter_list)
   create_chart()
 })
-
 
 
 
