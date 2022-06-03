@@ -11,7 +11,10 @@ const context = canvas.getContext('2d')
 let current_Index = 0
 let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list;
 let [isVisible, isWaiting] = [true, true]
-let [label, grid_color] = [
+let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list] = [
+  [],
+  [],
+  [],
   [],
   []
 ]
@@ -44,6 +47,7 @@ function getSymbol() {
 
 function fetchData(symbol, range) {
   //apikey=c38b723e031c88753f0c9e66f505f557
+  //apikey=136fb4fa07e6ac6ae9a246d24029dfbc
 
   return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=ee684c5f9b04a3e914f9e39630f0f929`)
     .then(res => res.json())
@@ -830,7 +834,7 @@ function restore_and_fetch(time_range_name, restore_only = false, search_content
 
 
 //Assign web worker to fetch the data 
-function assignWorker() {
+function assign_web_worker_one() {
   //By using Blob, we are able to run web worker in a single script without putting it in a separate file 
   //Note that we are unable to use web worker in file type website in chrome 
   const blob = new Blob([
@@ -838,7 +842,6 @@ function assignWorker() {
   ], {
     type: "text/javascript"
   })
-
 
   const worker = new Worker(window.URL.createObjectURL(blob));
   worker.onmessage = function(e) {
@@ -855,23 +858,62 @@ function assignWorker() {
   worker.postMessage(symbol);
 }
 
+function assign_web_worker_two(){
+
+  const blob = new Blob([
+    document.querySelector('#web_worker_two').textContent
+  ], {
+    type: "text/javascript"
+  })
+
+  const worker = new Worker(window.URL.createObjectURL(blob));
+
+  worker.onmessage = function(e) {
+    /* 
+    In order to improve efficency and optimize performance, the object keys have all been renamed, now the symbol_list looks  something like this:
+    {
+    "0":"CMCSA",
+    "1":"Comcast Corporation",
+     "2":43.8,
+     "3":"NASDAQ Global Select",
+     "4":"NASDAQ"
+     }
+    */
+
+    //check the type of the return data to determine which list it should go to
+    //altough check if item is object includes array, function and null, but it is pretty enough for the work below.
+    const retrieved_data = JSON.parse(e.data)
+     if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
+    else if(retrieved_data[0].length > 0) symbol_name_list =  retrieved_data
+      else if(!isNaN(retrieved_data[0])) symbol_price_list =  retrieved_data
+    
+}
+  //web worker no access to variable in main script, so we need to transfer it 
+  worker.postMessage("Start");
+}
+
+
 
 
 window.onload = function() {
+
   window.symbol = "FB"
   timestamp = "1min"
+  //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
   difference_time = 0
+
+  //Prevent all buttons to be clicked 
   document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
   Promise.all([get_global_time(), fetchData(symbol, timestamp), getSymbol()]).then(function(values) {
-    //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
-
+    
 
     global_time = new Date(values[0])
     variable_name = "one_day"
     all_fetch_data[variable_name] = values[1]
     raw_data = filter_data(values[1], parseInt(timestamp))
     format_data(difference_time)
-    assignWorker()
+    assign_web_worker_one()
+    assign_web_worker_two()
     const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
@@ -884,9 +926,9 @@ window.onload = function() {
     created_span.textContent = 'At Close'
     price_element.appendChild(created_span)
 
-
     create_chart()
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
+
     //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
     context.strokeStyle = '#52c4fa';
     context.fillStyle = "#52c4fa";
@@ -901,10 +943,10 @@ window.onload = function() {
 
 
 
-
-
-
 }
+
+
+
 window.addEventListener('resize', function() {
   if (document.querySelector('.warning')) return;
 
@@ -1098,12 +1140,6 @@ document.querySelector('#all_time').addEventListener('click', function() {
   format_data_two(...parameter_list)
   create_chart()
 })
-
-
-
-
-
-
 
 
 
