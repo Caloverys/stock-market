@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 
 <html lang="en">
 <meta charset="UTF-8">
@@ -37,50 +37,53 @@
        <button id='two_month'>2M</button>
        <button id='three_month'>3M</button>
         <button id='six_month'>6M</button>
+        <button id='one_year'>1Y</button>
+        <button id='two_year'>2Y</button>
+        <button id='five_year'>5Y</button>
+        <button id='ten_year'>10Y</button>
+
       <button id='all_time'>All</button>
     </div>
 
 <script src="https://use.fontawesome.com/523d8f4491.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script id='worker1' type='javascript/worker'>
-fetch()
+<script id='web_worker_one' type='javascript/worker'>
 self.onmessage = function(e) {
-  start_fetching_data().then(function(result){
-    self.postMessage(result)
-
+  start_fetching_data(e.data).then(function(result){
+    const full_data = result
+      self.postMessage(JSON.stringify(result))
 
   });
     self.postMessage('msg from worker');
   };
 
-function start_fetching_data(){
-  return fetch('https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&outputsize=full&apikey=FXLQF9OPEP8ROBMD')
+
+function start_fetching_data(symbol){
+  return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol.toUpperCase()}&outputsize=full&apikey=FXLQF9OPEP8ROBMD`)
   .then(res=> res.json())
   .then(data =>{
    const all_data =data["Time Series (Daily)"]    
-
-
-    const organized_data = []
     
+    const organized_data = []
+    //ES2020 adds the feature of Intl.NumberFormat() constructor, we could use Intl.NumberFormat() constructor here to format the large number properly (e.g. 1000 => 1k)
+    const formatter = Intl.NumberFormat('en', { notation: 'compact' })
  Object.keys(all_data).forEach((info,index)=>{
-  console.log('what')
       organized_data.push({
         "date":info,
-        "price":all_data[info]["4. close"],
-         "volume":all_data[info]["5. volume"]
+        "price":parseInt(all_data[info]["4. close"]),
+         "volume":formatter.format(all_data[info]["5. volume"])
       })
        
      })
-     console.log(organized_data)
-      return organized_data;
-  
+     
+      return organized_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0));
   
 
     })
-    
-
-
-    
   
 }
 
@@ -88,7 +91,9 @@ function start_fetching_data(){
  
 <script src='stock.js'></script>
 
-
 </body>
 
 </html>
+
+
+
