@@ -13,37 +13,46 @@
 <body>
 
 
-   <input type='text'placeholder="Search...">
-    <button id='deletebutton'>+</button>
-  <i class="fa fa-search" id='searchicon'></i>
+   
+  <input type='text' placeholder="Search...">
+<button id='deletebutton'>+</button>
+<i class="fa fa-search" id='searchicon'></i>
 <div id='parent_of_canvas'>
-    <div class='loader'></div>
-  <canvas id="chart"></canvas>
-   </div>
-
-    <div id='info_price'></div>
-    <div id='info_date'></div>
-    <div id='customToolTip'></div>
+  <div id='meta_element'>
+    <div id='name'>
+      <h2>Symbol</h2>
+      <h4>Full Name</h4>
+    </div>
     <div id='price'>
-
-      <span id='dollar'><span class='small_loader' style='position: absolute;left: 15%'></span></span>
+      <span id='dollar'><span class='small_loader' ></span></span>
       <span id='percent'></span><br>
     </div>
-    </div>
+
     <div id='range'>
+      <hr>
       <button id='one_day'>1D</button>
       <button id='one_week'>1W</button>
       <button id='one_month'>1M</button>
-       <button id='two_month'>2M</button>
-       <button id='three_month'>3M</button>
-        <button id='six_month'>6M</button>
-        <button id='one_year'>1Y</button>
-        <button id='two_year'>2Y</button>
-        <button id='five_year'>5Y</button>
-        <button id='ten_year'>10Y</button>
-
+      <button id='two_month'>2M</button>
+      <button id='three_month'>3M</button>
+      <button id='six_month'>6M</button>
+      <button id='one_year'>1Y</button>
+      <button id='two_year'>2Y</button>
+      <button id='five_year'>5Y</button>
+      <button id='ten_year'>10Y</button>
       <button id='all_time'>All</button>
+      <hr>
     </div>
+  </div>
+
+  <div class='loader'></div>
+
+  <canvas id="chart"></canvas>
+</div>
+
+<div id='info_price'></div>
+<div id='info_date'></div>
+<div id='customToolTip'></div>
 
 <script src="https://use.fontawesome.com/523d8f4491.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
