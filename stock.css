@@ -48,38 +48,47 @@ canvas {
   visibility: hidden;
 }
 
-input[type=text] {
-  border-radius: 3px;
+#search_engine > input[type=text] {
+  border-radius: 4px;
   border: 1px solid grey;
-  padding: 8px 40px;
-  width: 20vw;
+  position: fixed;
+  margin: 15px calc(1vw);
+  padding: 7.5px calc(2.5vw);
+  z-index: -1;
+  width: calc(17vw);
 }
 
-#searchicon {
-  position: absolute;
-  top: 17px;
-  left: 20px;
+#search_engine > #search_icon {
+  position: fixed;
+  top: 3.5%;
+  left: 1.5%;
   color: grey;
   font-weight: normal;
 }
 
-#deletebutton {
-  background-color: rgba(122, 121, 125, 0.6);
-  font-weight: bold;
-  /*display: flex;
-    justify-content: center;
-    align-items: center;
-          transform: rotate(45deg) scale(0.8);*/
-  font-size: 3em;
-  color: rgba(83, 81, 86, 0.8);
-  text-align: center;
-  border-radius: 50%;
+ #search_engine > #deletebutton {
   border: none;
-  display: ;
+   
+   border-radius: 50%;
+   background-color: rgba(122, 121, 125, 0.6);
+
+   width: 17.5px;
+   height: 17.5px;
+   position: fixed;
+   left: 21%;
+   top: 3.5%;
+
+  
 }
 
-#deletebutton:after {
-  display: inline-block;
+#deletebutton:before {
+   display: inline-block;
+   margin-top: -3.5px;
+   margin-left: -2.75px;
+   font-weight: thin;
+  font-size: 20px;
+
+  color: rgba(83, 81, 86, 0.8); 
   content: "\00d7";
 }
 
@@ -89,6 +98,9 @@ input[type=text]:focus-visible {
 
 input[type=text]:not(:placeholder-shown)+#deletebutton {
   display: block;
+}
+input[type=text]:empty+#deletebutton {
+  display: none;
 }
 
 #price {
@@ -148,10 +160,42 @@ input[type=text]:not(:placeholder-shown)+#deletebutton {
   color: grey;
 }
 
-#range>hr {
+#range > hr {
   width: 71.5vw;
   margin: 0;
   color: white;
+}
+#left_area > .vertical_line{
+  border-left: 3px solid yellow;
+  height: 200vh;
+  position: fixed;
+  left: 25%;
+  top: 0%;
+}
+#left_area > #bottom_section
+{
+  position: fixed;
+  bottom: 0vh;
+  left: 0vw;
+  width: 25vw;
+  height: 5vh;
+  background-color: rgba(66,62,70,0.95);
+  display: flex;
+  align-items: center;
+}
+
+#bottom_section > #market_status{
+color: rgba(144,133,138,1);
+position: absolute;
+right: 5%;
+font-family: sans-serif;
+text-transform: capitalize;
+}
+#bottom_section > #current_time{
+  color: rgba(144,133,128,1);
+  position: absolute;
+  font-family: sans-serif;
+  left: 5%;
 }
 
 .warning {
@@ -224,4 +268,5 @@ a:hover {
     transform: rotate(360deg);
   }
 }
-    
+
+
