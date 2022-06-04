@@ -45,7 +45,7 @@ document.querySelector('#search_icon').addEventListener('click', () => {
 document.querySelector('input[type=text]').addEventListener('change',() =>{
 
   const search_value  = document.querySelector('input').value.toUpperCase()
-  const list=[]
+  let list=[]
    const expected_first_letter =search_value[0]
    //debugger
   for(let i =0;i< symbol_name_list.length;i++){
@@ -69,18 +69,17 @@ document.querySelector('input[type=text]').addEventListener('change',() =>{
 
     for(let i =0;i< symbol_full_name_list.length;i++){
         if(symbol_full_name_list[i].startsWith(search_value))
-          list.push(i)
-        
+        list.push(i)  
       }
 
 
- //use new Set to remove all duplicate index
+ //use new Set to remove all duplicate values and sort from lowerest to greatest
 list =[...new Set(list)].sort((a,b)=>{
 return a -b
 })
 
 
-for(let i =0;i<list.length;i++) console.log(symbol_full_list[list[i]])
+create_sections(list,true)
 
 })
 
@@ -228,9 +227,6 @@ function format_data(difference) {
   }
   grid_color[grid_color.length - 1] = "rgba(255,255,255,0.4)"
 
-
-
-
 }
 
 function format_data_two(difference, isYear, filter_value, filter_data_range = 1, label_by_year) {
@@ -330,7 +326,36 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 }
 
 
+function create_sections(data,isSearch){
+  const data_section = document.querySelector("#data_section")
 
+  data_section.innerHTML = `<h2 id='header'>${isSearch ? "Recommand" : "Symbols" }:</h2>`
+  //The list contains 12 random non-repeating choosed index for data that going to be displayed
+  const display_list = []
+  //The list contains others indexes that are not chosen which will be used if user later clicked the load_more button
+  const rest_list = data.slice()
+  let i =0;
+  while(i<12){
+    const selected_index = Math.floor(Math.random()*rest_list.length)
+  
+  if(symbol_full_list[selected_index]["2"] < 100) continue;
+    rest_list.splice(selected_index,1)
+    display_list.push(selected_index)
+    i++;
+  }
+  display_list.forEach(i=>{
+    const current_data = symbol_full_list[i];
+    data_section.innerHTML+=`
+    <hr>
+    <div id='element_${i}'>
+    <div id='symbol'>${current_data['0']}</div>
+    <span id='exchange_market_symbol'>${current_data["4"]}</div>
+    <div id='company_name'>${current_data["1"]}</div>
+    <div id='current_price'>${current_data["2"].toFixed(2)}</div>
+    </div>
+    `
+  })
+}
 
 function size_calculation(word, fontSize) {
   const div = document.body.appendChild(document.createElement('div'));
@@ -822,7 +847,7 @@ function create_chart() {
                 //Already use white-space: pre-wrap for info_price and info_date so the white space will be significent and "       " will not be parse as " "
                 info_price.innerHTML = sign + Math.abs(current_value - previous_value).toFixed(2) + "          " + sign + (Math.abs(current_value / previous_value - 1) * 100).toFixed(2) + '%'
 
-                info_date.textContent = 'From ' + detail_dataset[Math.min(current_Index, static_Index)].date + '   to   ' + detail_dataset[Math.max(current_Index, static_Index)].date
+                info_date.innerHTML = 'From <b>' + detail_dataset[Math.min(current_Index, static_Index)].date + '</b>   to   <b>' + detail_dataset[Math.max(current_Index, static_Index)].date +'</b>'
               } else {
                 info_price.textContent = dataset[current_Index]
                 info_date.textContent = detail_dataset[current_Index].date
@@ -961,7 +986,6 @@ function assign_web_worker_two(){
 
 
 window.onload = function() {
-  
 
   window.symbol = "NKE"
   timestamp = "1min"
@@ -971,7 +995,7 @@ window.onload = function() {
   //Prevent all buttons to be clicked 
   document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
 
-  Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
+ Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
     
 
     global_time = new Date(values[0])
