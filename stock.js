@@ -9,9 +9,10 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 let current_Index = 0
-let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list;
+let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY;
 let [isVisible, isWaiting] = [true, true]
-let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list] = [
+let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list,symbol_full_name_list] = [
+  [],
   [],
   [],
   [],
@@ -30,33 +31,75 @@ let all_fetch_data = {
 
 }
 
+
 document.querySelector('#deletebutton').addEventListener('click', () => {
   input.blur();
   input.value = ""
 })
-document.querySelector('#searchicon').addEventListener('click', () => {
+
+document.querySelector('#search_icon').addEventListener('click', () => {
   document.activeElement === input ? input.blur() : input.focus()
 })
 
 
-function getSymbol() {
-  //return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
-  // .then(res => res.json())
+document.querySelector('input[type=text]').addEventListener('change',() =>{
 
-}
+  const search_value  = document.querySelector('input').value.toUpperCase()
+  const list=[]
+   const expected_first_letter =search_value[0]
+   //debugger
+  for(let i =0;i< symbol_name_list.length;i++){
+
+    if(symbol_name_list[i][0] === expected_first_letter){
+
+      symbol_name_list[i].forEach((values,index)=>{
+
+        if(values.startsWith(search_value)){
+          let global_index = 0
+          for(let a =0;a<symbol_name_list.slice(0,i).length;a++) global_index += symbol_name_list.slice(0,i)[a].length
+          list.push(global_index+index)
+      }
+      })
+
+      break
+    }
+
+  }
+
+
+    for(let i =0;i< symbol_full_name_list.length;i++){
+        if(symbol_full_name_list[i].startsWith(search_value))
+          list.push(i)
+        
+      }
+
+
+ //use new Set to remove all duplicate index
+list =[...new Set(list)].sort((a,b)=>{
+return a -b
+})
+
+
+for(let i =0;i<list.length;i++) console.log(symbol_full_list[list[i]])
+
+})
+
+
 
 function fetchData(symbol, range) {
   //apikey=c38b723e031c88753f0c9e66f505f557
   //apikey=136fb4fa07e6ac6ae9a246d24029dfbc
+  //apikey=ee684c5f9b04a3e914f9e39630f0f929
 
-  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=ee684c5f9b04a3e914f9e39630f0f929`)
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=136fb4fa07e6ac6ae9a246d24029dfbc`)
     .then(res => res.json())
 
 }
 //only screenX works here, clientX doesn't work expected.
-canvas.addEventListener('mousemove', e => {
+document.body.addEventListener('mousemove', e => {
   isInsideCanvas = isInCanvas(e.clientX, e.clientY)
   if (isInsideCanvas && isVisible) {
+     clientY =e.clientY
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
@@ -64,6 +107,7 @@ canvas.addEventListener('mousemove', e => {
   } else {
     info_price.style.visibility = 'hidden'
     info_date.style.visibility = 'hidden'
+     document.querySelectorAll('#range > button').forEach(i=>i.style.visibility = 'visible')
   }
 
 })
@@ -124,11 +168,11 @@ function format_data(difference) {
   valid_data_number = label.length
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
-
   if (timestamp === '1min') {
     label = label.map(i => new Date(i).getHours())
-  if (return_market_status()) fill_label_array_1min()
 
+  if (return_market_status()) fill_label_array_1min()
+   
     label = label.map(i => i + (i < 12 ? 'am' : 'pm'))
     grid_color = Array(label.length).fill("transparent")
 
@@ -201,10 +245,10 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
     /*
 
     Important notice:
-    The default timestamp for new date constructor is GMT timestamp,
-    but the item.date retrieving from API is UTC/GMC timestamp,
+    The default timestamp for new date constructor is EDT timestamp,
+    but the item.date retrieving from API is UTC/GMT timestamp,
     they have four hour difference 
-    For example, in GMT time is 8:00, in UTC/GMC, the time will be 12:00
+    For example, in EDT time is 8:00, in UTC/GMT, the time will be 12:00
     So we must add 4 hours to GMT timestamp to make them the same
 
     Should be very careful handle this
@@ -313,7 +357,6 @@ function size_calculation(word, fontSize) {
 
 function get_global_time() {
   //fetch the time from new york timezone 
-
   return fetch("https://worldtimeapi.org/api/timezone/america/new_york")
     .then(res => res.json())
     .then(raw_data => new Date(raw_data.datetime))
@@ -323,14 +366,12 @@ function get_global_time() {
 function fill_label_array_5min() {
 
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 16, 0)
-
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60 / 5
   label.push.apply(label, Array(Math.ceil(amountToAdd / range)).fill(expectedDate.getDate()))
 
 }
 
 function fill_label_array_1min() {
- // const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
  const expectedDate =new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15,59)
 
 
@@ -339,10 +380,11 @@ function fill_label_array_1min() {
   //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
   //first fill the label_array to full hour (60 min)
   label.push.apply(label, Array(Math.floor((59 - date_latest.getMinutes()) / range)).fill(date_latest.getHours()))
+
   for (let i = date_latest.getHours()+1; i < 16; i++) label.push.apply(label, Array(60 / range).fill(i))
+
   //at last 16:00
   label.push(16)
-  debugger
 
 }
 
@@ -358,6 +400,7 @@ function find_closed_price() {
 
 }
 
+
 function return_color() {
   //raw_data[0].close give us latest/current stock price
   if (timestamp === '1min')
@@ -367,9 +410,9 @@ function return_color() {
 }
 
 
+
 function return_linearGarident(color) {
   const canvasHeight = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('height'))
-
   const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
   if (color) {
     gradient.addColorStop(0, "#52c4fa");
@@ -394,6 +437,7 @@ function return_linearGarident(color) {
 
 }
 
+
 function return_horizontal_gradient(color, pos_start, pos_end) {
   const horizontal_Gradient = context.createLinearGradient(0, pos_start, 0, pos_end)
 
@@ -414,16 +458,17 @@ function return_horizontal_gradient(color, pos_start, pos_end) {
   return horizontal_Gradient
 }
 
+
 function return_market_status() {
   //390 => 60 * 6 (from 9:30 to 16:00) + 30
   //return true if market open and return false if market close
-  return (global_time.getHours() <= 16 && valid_data_number !== 390 / range + 1 && global_time.getDate() !== (5 || 6) ? true : false)
+  return (global_time.getHours() < 16 && global_time.getDay() !== 5 && global_time.getDay() !==  6 ? true : false)
 
 
 }
 
 function filter_data(input_data, time_range) {
-  if (window.innerWidth > 1000) window.range = 1
+  if (window.innerWidth > 1100) window.range = 1
   else if (window.innerWidth > 800) window.range = 2
   else if (window.innerWidth > 600) window.range = (timestamp !== `30min` ? 3 : 4)
   else if (window.innerWidth > 400) window.range = (timestamp === `${5 || 30}min` ? 6 : 5)
@@ -463,7 +508,6 @@ function filter_data(input_data, time_range) {
 }
 
 function judge_color() {
-
   if (current_Index === static_Index) return "#52c4fa"
   else if (current_Index > static_Index) return dataset[current_Index] >= dataset[static_Index] ? "lawngreen" : "red"
   else return dataset[static_Index] >= dataset[current_Index] ? "lawngreen" : "red"
@@ -473,11 +517,13 @@ function judge_color() {
 
 
 function create_chart() {
-
-  let [first_index, final_index, static_clientX, static_clientY] = new Array(3).fill(null)
+  window.fire = false;
+  window.first_index = null
+  let [static_clientX, static_clientY] = new Array(2).fill(null)
   window.static_Index = null
   const annotation = {
     id: 'annotationline',
+
     afterDraw: function(chart) {
       if (!chart.tooltip._active.length || !isInsideCanvas) {
         info_price.style.visibility = 'hidden'
@@ -485,23 +531,25 @@ function create_chart() {
         isVisible = false;
         return;
       } else isVisible = true;
+       document.querySelectorAll('#range > button').forEach(i=>i.style.visibility = 'hidden')
       info_price.style.color = "#52c4fa"
 
 
       let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      let this_position_x = chart.tooltip._active[0].element.x
-      if (current_Index === detail_dataset.length - 1 && !final_index)
-        final_index = this_position_x
-      else if (current_Index === 0 && !first_index) first_index = this_position_x
+      let this_position_x = chart.tooltip._active[0].element.x;
+      let this_position_y =  chart.tooltip._active[0].element.y;
+    
+      if (current_Index === 0 && !first_index) first_index = this_position_y
 
+
+      const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left  - info_price.offsetWidth/2
+      
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
-      if (first_index && current_Index === 0 && left_position.toFixed(2) === (myChart.chartArea.left + window.innerWidth / 100 * 1.5).toFixed(2)) {
-        this_position_x = first_index
-
-      } else if (final_index && current_Index === dataset.length - 1 && left_position.toFixed(2) === (myChart.chartArea.right - info_price.offsetWidth / 2).toFixed(2))
-
-        this_position_x = final_index
-
+      if (left_position.toFixed(2) === pos_X.toFixed(2) ){
+        fire = true
+        this_position_x = myChart.chartArea.left
+        if(first_index) this_position_y = first_index
+      }else  fire = false
 
       context.beginPath()
       context.strokeStyle = (!isMouseDown ? '#52c4fa' : judge_color());
@@ -520,7 +568,7 @@ function create_chart() {
 
       context.beginPath()
       context.fillStyle = (!isMouseDown ? '#52c4fa' : judge_color());
-      context.arc(this_position_x, chart.tooltip._active[0].element.y, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
+      context.arc(this_position_x, this_position_y, window.innerWidth / 110 > 10 ? window.innerWidth / 110 : 10, 0, 2 * Math.PI);
       context.fill();
       context.strokeStyle = 'rgba(0,0,0,0.8)';
       context.stroke();
@@ -540,13 +588,11 @@ function create_chart() {
       if (isMouseDown) {
 
         if (!static_clientX) {
-          static_clientY = chart.tooltip._active[0].element.y;
+          static_clientY = this_position_y;
           static_clientX = this_position_x
           static_Index = current_Index
           return;
         }
-
-
 
 
         context.beginPath();
@@ -559,7 +605,7 @@ function create_chart() {
         context.closePath();
         context.moveTo(static_clientX, static_clientY)
         context.beginPath();
-        context.arc(static_clientX, static_clientY, window.innerWidth / 100 > 11 ? window.innerWidth / 100 : 11, 0, 2 * Math.PI);
+        context.arc(static_clientX, static_clientY, window.innerWidth / 110 > 10 ? window.innerWidth / 110 : 10, 0, 2 * Math.PI);
         context.fillStyle = judge_color()
         context.fill();
         context.strokeStyle = 'rgba(0,0,0,0.8)';
@@ -580,7 +626,7 @@ function create_chart() {
         context.save()
         context.closePath()
         info_price.style.color = judge_color()
-        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 4 + 'px'
+        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 +canvas.getBoundingClientRect().left + 'px'
       } else {
         static_clientY = null;
         static_clientX = null;
@@ -592,8 +638,8 @@ function create_chart() {
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
 
-      if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number) {
-        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number + "px"
+      if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
+        info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number + "px"
       }
 
 
@@ -602,19 +648,14 @@ function create_chart() {
       //globalAlpha 
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
+      if (left_position < pos_X ) {
+        info_price.style.left = pos_X + "px"
 
-      if (left_position < myChart.chartArea.left + window.innerWidth / 100 * 1.5) {
-        info_price.style.left = myChart.chartArea.left + window.innerWidth / 100 * 1.5 + "px"
-
-      } else if (left_position >= myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number) {
-        info_price.style.left = myChart.chartArea.left + myChart.chartArea.width / label.length * valid_data_number + "px"
+      } else if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
+        info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number  +"px"
 
       }
     }
-
-
-
-
 
   }
 
@@ -657,9 +698,11 @@ function create_chart() {
     }
 
   };
+
   if (timestamp === "1min") Chart.register(horizonalLinePlugin);
   //if previous chart existed, clear it and redraw new chart
   if (myChart) myChart.destroy();;
+
   myChart = new Chart(context, {
     type: 'line',
     data: {
@@ -769,6 +812,8 @@ function create_chart() {
           callbacks: {
             label: function(tooltipItem) {
               current_Index = tooltipItem.dataIndex
+              if(fire && first_index ) current_Index = 0
+              
 
               if (isMouseDown) {
                 const current_value = dataset[current_Index];
@@ -796,6 +841,7 @@ function create_chart() {
   loader.style.display = "none"
   chartArea = myChart.chartArea;
   canvas.style.display = 'revert'
+  
 
 }
 
@@ -852,8 +898,10 @@ function assign_web_worker_one() {
   const worker = new Worker(window.URL.createObjectURL(blob));
   worker.onmessage = function(e) {
     all_fetch_data["all_data"] = JSON.parse(e.data)
+
     if (isWaiting && button_being_clicked) {
-      setTimeout(() => button_being_clicked.click());
+
+      setTimeout(() => button_being_clicked.click(),100);
       loader.style.display = 'none'
 
     }
@@ -887,11 +935,22 @@ function assign_web_worker_two(){
     */
 
     //check the type of the return data to determine which list it should go to
-    //altough check if item is object includes array, function and null, but it is pretty enough for the work below.
+    //altough check if item is object includes array, function and null
     const retrieved_data = JSON.parse(e.data)
-     if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
-    else if(retrieved_data[0].length > 0) symbol_name_list =  retrieved_data
+     if(Array.isArray(retrieved_data[0])) symbol_name_list =  retrieved_data
+
+      else if(isNaN(retrieved_data[0]) && retrieved_data[0].length > 0) symbol_full_name_list = retrieved_data
+
+
+    
       else if(!isNaN(retrieved_data[0])) symbol_price_list =  retrieved_data
+
+      else if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
+       
+       
+
+                console.log(retrieved_data)
+              console.log(symbol_full_name_list,symbol_name_list,symbol_price_list,symbol_full_list)
     
 }
   //web worker no access to variable in main script, so we need to transfer it 
@@ -904,14 +963,15 @@ function assign_web_worker_two(){
 window.onload = function() {
   
 
-  window.symbol = "FB"
+  window.symbol = "NKE"
   timestamp = "1min"
   //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
   difference_time = 0
 
   //Prevent all buttons to be clicked 
   document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
-  Promise.all([get_global_time(), fetchData(symbol, timestamp), getSymbol()]).then(function(values) {
+
+  Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
     
 
     global_time = new Date(values[0])
@@ -919,8 +979,8 @@ window.onload = function() {
     all_fetch_data[variable_name] = values[1]
     raw_data = filter_data(values[1], parseInt(timestamp))
     format_data(difference_time)
-    //assign_web_worker_one()
-    //assign_web_worker_two()
+    assign_web_worker_one()
+    assign_web_worker_two()
     const price_element = document.querySelector('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
@@ -937,6 +997,16 @@ window.onload = function() {
     document.querySelector('#name > h2').textContent = symbol
     create_chart()
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
+
+    document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed"
+    const time_element = document.querySelector("#current_time")
+    let time =  global_time
+    time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
+
+    setInterval(()=>{
+      time = new Date(time.getTime() + 1000)
+      time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
+    },1000)
 
     //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
     context.strokeStyle = '#52c4fa';
@@ -984,6 +1054,7 @@ font-size:0.8em`
 
 
   warning.querySelector('.resize_button').addEventListener('click', function() {
+
     restore_and_fetch("", true)
     if (timestamp) {
       raw_data = filter_data(all_fetch_data[variable_name], parseInt(timestamp))
@@ -1039,7 +1110,7 @@ document.querySelector('#three_month').addEventListener('click', function(event)
   parameter_list = [difference, false, 0]
   if (isWaiting) {
     loader.style.display = 'revert'
-    button_being_clicked = event.target.id
+    button_being_clicked = event.target
     return
   }
 
@@ -1057,7 +1128,7 @@ document.querySelector("#six_month").addEventListener('click', function(event) {
   difference = 6;
   parameter_list = [difference, false, 0]
   if (isWaiting) {
-    button_being_clicked = event.target.id
+    button_being_clicked = event.target
     return
   }
 
@@ -1073,7 +1144,7 @@ document.querySelector('#one_year').addEventListener('click', function(event) {
   difference = 2;
   parameter_list = [difference, true, 2, 2]
   if (isWaiting) {
-    button_being_clicked = event.target.id
+    button_being_clicked = event.target
     return
   }
 
@@ -1089,7 +1160,7 @@ document.querySelector('#two_year').addEventListener('click', function(event) {
   difference = 2;
   parameter_list = [difference, true, 4, 3]
   if (isWaiting) {
-    button_being_clicked = event.target.id
+    button_being_clicked = event.target
     return;
   }
 
@@ -1105,7 +1176,7 @@ document.querySelector('#five_year').addEventListener('click', function(event) {
   difference = 5;
   parameter_list = [difference, true, 0, 10, true]
   if (isWaiting) {
-    button_being_clicked = event.target.id
+    button_being_clicked = event.target
     return;
   }
   raw_data = all_fetch_data[variable_name]
@@ -1140,13 +1211,10 @@ document.querySelector('#all_time').addEventListener('click', function() {
   difference = null;
   parameter_list = [difference, true, 3, 30, true]
   if (isWaiting) {
-    button_being_clicked = event.target.id
+    button_being_clicked = event.target
     return;
   }
   raw_data = all_fetch_data[variable_name]
   format_data_two(...parameter_list)
   create_chart()
 })
-
-
-
