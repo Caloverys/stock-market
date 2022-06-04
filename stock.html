@@ -17,6 +17,10 @@
 <button id='deletebutton'>&times;</button>
 <i class="fa fa-search" id='search_icon'></i>
 </div>
+<div id='data_section'>
+
+</div>
+
 <div class='vertical_line'></div>
 <div id='bottom_section'>
 <div id='market_status'>Market Status</div>
@@ -151,13 +155,15 @@ function start_fetching_data(symbol){
   };
 
   function fetching_symbol(){
-    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
+    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=ee684c5f9b04a3e914f9e39630f0f929")
   .then(res=> res.json())
   .then(data =>{
     let symbol_list = data;
+    console.log(symbol_list)
   symbol_list = symbol_list.filter(i=>{
     //check if the symbol contains only the characters (e.g "a1.b" or "ab.ll" will not pass the test)
-    return i["type"] === 'stock' && /^[a-zA-Z]+$/.test(i["symbol"]) &&  isNaN(i["name"][0]);
+    //i["name"][0] => The first character in i["name"]
+    return i["type"] === 'stock' && /^[a-zA-Z]+$/.test(i["symbol"]) &&  isNaN(i["name"][0]) && i["price"] !== 0;
    }).sort((a,b) =>{
     return a['symbol'].localeCompare(b["symbol"])
   })
