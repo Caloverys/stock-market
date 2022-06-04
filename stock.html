@@ -14,7 +14,7 @@
 <div id='left_area'>
 <div id='search_engine'>
 <input type='text' placeholder="Search...">
-<button id='deletebutton'></button>
+<button id='deletebutton'>&times;</button>
 <i class="fa fa-search" id='search_icon'></i>
 </div>
 <div class='vertical_line'></div>
@@ -32,6 +32,7 @@
     <div id='name'>
       <h2>Symbol</h2>
       <h4>Full Name</h4>
+
     </div>
     <div id='price'>
       <span id='dollar'><span class='small_loader' ></span></span>
@@ -52,17 +53,19 @@
       <button id='ten_year'>10Y</button>
       <button id='all_time'>All</button>
       <hr>
+       <div id='info_date'></div>
     </div>
+
   </div>
 
   <div class='loader'></div>
 
   <canvas id="chart"></canvas>
 </div>
-
+<div id='#othervalue'>
 <div id='info_price'></div>
-<div id='info_date'></div>
 <div id='customToolTip'></div>
+</div>
 </div>
     
 
@@ -114,14 +117,35 @@ function start_fetching_data(symbol){
   fetching_symbol().then(function(result){
       self.postMessage(JSON.stringify(result))
       const all_data = result;
-      const symbolname_list = all_data.map(i=>{
-       return i["0"]
+      let symbolname_list = {}
+      let character_list = []
+
+       all_data.forEach(i=>{
+        //i["0"][0] => first character of the symbol
+      if(!character_list.includes(i["0"][0])){
+         character_list.push(i["0"][0])
+         symbolname_list[i["0"][0]] = []
+        }
+         symbolname_list[i["0"][0]].push(i["0"])
       })
+
+
+      //convert the object to array contain object
+      symbolname_list = Object.keys(symbolname_list).map(key => {
+       return  symbolname_list[key];
+      })
+
+
       self.postMessage(JSON.stringify(symbolname_list))
       const price_list = all_data.map(i=>{
         return i["2"]
       })
       self.postMessage(JSON.stringify(price_list))
+
+      const full_name_list = all_data.map(i=>{
+        return i["1"].split(' ')[0]
+      })
+      self.postMessage(JSON.stringify(full_name_list))
 
   });
   };
@@ -132,8 +156,12 @@ function start_fetching_data(symbol){
   .then(data =>{
     let symbol_list = data;
   symbol_list = symbol_list.filter(i=>{
-    return i["type"] === 'stock'
-   })
+    //check if the symbol contains only the characters (e.g "a1.b" or "ab.ll" will not pass the test)
+    return i["type"] === 'stock' && /^[a-zA-Z]+$/.test(i["symbol"]) &&  isNaN(i["name"][0]);
+   }).sort((a,b) =>{
+    return a['symbol'].localeCompare(b["symbol"])
+  })
+
   for(let i =0;i<symbol_list.length;i++){
     //rename all the object.keys to integer to minimize the size of JSON string and improve peformance
     
@@ -149,7 +177,7 @@ function start_fetching_data(symbol){
             Object.defineProperty(symbol_list[i], "4",
       Object.getOwnPropertyDescriptor(symbol_list[i], "exchangeShortName"));
 
-      //Now delete now previous item
+      //Now delete now previous Object keys and values
       delete symbol_list[i]['symbol']
      delete symbol_list[i]['name']
      delete symbol_list[i]['price']
