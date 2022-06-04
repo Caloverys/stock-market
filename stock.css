@@ -17,7 +17,7 @@ canvas {
   z-index: 9999;
   position: absolute;
   left: 40%;
-  top: 30%;
+  top: 22.5%;
   color: #52c4fa;
   font-weight: bold;
   visibility: hidden;
@@ -41,12 +41,13 @@ canvas {
 }
 
 #info_date {
-  position: absolute;
+  font-size:16px;
+ margin-top: calc(-6.5vh);
+
   color: white;
-  top: 25%;
-  left: 40vw;
   visibility: hidden;
 }
+
 
 #search_engine > input[type=text] {
   border-radius: 4px;
@@ -56,6 +57,7 @@ canvas {
   padding: 7.5px calc(2.5vw);
   z-index: -1;
   width: calc(17vw);
+
 }
 
 #search_engine > #search_icon {
@@ -67,41 +69,34 @@ canvas {
 }
 
  #search_engine > #deletebutton {
-  border: none;
-   
+
+  border: none;  
    border-radius: 50%;
    background-color: rgba(122, 121, 125, 0.6);
-
-   width: 17.5px;
-   height: 17.5px;
+   color: rgba(83, 81, 86, 0.8); 
+   font-weight: thin;
+  
+  padding: 0;
+  width: 17.5px;
+  height: 17.5px;
    position: fixed;
-   left: 21%;
-   top: 3.5%;
+   left:21vw;
+   top: 3.5vh;
+   
+   z-index: 999;
+    
+    
+    
 
   
 }
 
-#deletebutton:before {
-   display: inline-block;
-   margin-top: -3.5px;
-   margin-left: -2.75px;
-   font-weight: thin;
-  font-size: 20px;
 
-  color: rgba(83, 81, 86, 0.8); 
-  content: "\00d7";
-}
 
 input[type=text]:focus-visible {
   outline: 3px solid rgba(59, 106, 180, 255);
 }
 
-input[type=text]:not(:placeholder-shown)+#deletebutton {
-  display: block;
-}
-input[type=text]:empty+#deletebutton {
-  display: none;
-}
 
 #price {
   float: right;
@@ -193,6 +188,7 @@ text-transform: capitalize;
 }
 #bottom_section > #current_time{
   color: rgba(144,133,128,1);
+  font-size: 12px;
   position: absolute;
   font-family: sans-serif;
   left: 5%;
@@ -268,5 +264,11 @@ a:hover {
     transform: rotate(360deg);
   }
 }
+
+
+
+
+
+
 
 
