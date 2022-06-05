@@ -11,7 +11,7 @@ const context = canvas.getContext('2d')
 , delete_button = document.querySelector('#deletebutton')
 let current_Index = 0
 let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY,symbol, horizonalLinePlugin;
-let [isVisible, isWaiting] = [true, true]
+let [isVisible, isWaiting_one,isWaiting_two,isWaiting_three] = [true, true,false,false]
 let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list,symbol_full_name_list] = [
   [],
   [],
@@ -42,24 +42,16 @@ document.querySelector('#search_icon').addEventListener('click', () => {
   document.activeElement === input ? input.blur() : input.focus()
 })
 
-
-document.querySelector('input[type=text]').addEventListener('keypress',() =>{
-
-  const search_value  = document.querySelector('input').value.toUpperCase()
-  if(search_value == ""){
-     delete_button.style.visibility = 'hidden'
-     return
-  }
-   delete_button.style.visibility = 'visible'
-  let list=[]
-   const expected_first_letter =search_value[0]
+function search_through(value){
+    let list=[]
+   const expected_first_letter =value[0]
   for(let i =0;i< symbol_name_list.length;i++){
 
     if(symbol_name_list[i][0] === expected_first_letter){
 
       symbol_name_list[i].forEach((values,index)=>{
 
-        if(values.startsWith(search_value)){
+        if(values.startsWith(value)){
           let global_index = 0
           for(let a =0;a<symbol_name_list.slice(0,i).length;a++) global_index += symbol_name_list.slice(0,i)[a].length
           list.push(global_index+index)
@@ -70,18 +62,44 @@ document.querySelector('input[type=text]').addEventListener('keypress',() =>{
 
   }
 
-     console.log(symbol_full_name_list)
+     if(value.length > 1){
     for(let i =0;i< symbol_full_name_list.length;i++){
-        if(symbol_full_name_list[i].toUpperCase().includes(search_value))
-        list.push(i)  
+         if( symbol_full_name_list[i].toUpperCase().indexOf(value) > -1&& !symbol_full_name_list[i].endsWith(value)){
+          list.push(i)
+        }
+      
+        
       }
+    }
+
 
  //use new Set to remove all duplicate values and sort from lowerest to greatest
 list =[...new Set(list)].sort((a,b)=>{
 return a -b
 })
-
 create_sections(list,true)
+
+}
+
+input.addEventListener('keyup',(e) =>{
+  //immediately return if  key is enter
+  if (e.key === 'Enter' || e.keyCode === 13) return;
+  if(symbol_full_name_list.length === 0 ) {
+       document.querySelector("#data_section").innerHTML =`
+       <div id='loader'>
+       </div>
+       `
+       isWaiting_three = true
+       return
+    }
+  const search_value  = input.value.toUpperCase()
+  if(search_value === ""){
+     delete_button.style.visibility = 'hidden'
+     return
+  }
+   delete_button.style.visibility = 'visible'
+   search_through(search_value)
+
 
 })
 
@@ -102,7 +120,6 @@ document.body.addEventListener('mousemove', e => {
   if (isInsideCanvas && isVisible) {
      clientY =e.clientY
     clientX = e.clientX;
-    console.log(clientX)
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
 
@@ -322,25 +339,36 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 function create_sections(data,isSearch){
   const data_section = document.querySelector("#data_section")
+  if(data.length === 0){
+  data_section.innerHTML =`
+  <h3>No result for "${input.value}" </h3>
+  `
+  data_section.style.textAlign = 'center'
+  return
+}
+data_section.style.textAlign = 'left'
 
-  data_section.innerHTML = `<h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
-  //The list contains 12 random non-repeating choosed index for data that going to be displayed
+  data_section.innerHTML = `
+  <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>
+  `
+  //The list contains 15 random non-repeating choosed index for data that going to be displayed
   let display_list = []
   //The list contains others indexes that are not chosen which will be used if user later clicked the load_more button
   const rest_list = data.slice()
 if(data.length > 15){
-  let i =0;
-  while(i<15){
+  while(display_list.length<15){
     const selected_index = Math.floor(Math.random()*rest_list.length)
-  if(symbol_full_list[selected_index]["2"] < 100) continue;
+  if(symbol_full_list[selected_index]["2"] < 100 ) continue;
+   display_list.push(isSearch ? rest_list[selected_index] : selected_index)
     rest_list.splice(selected_index,1)
-    display_list.push(selected_index)
-    i++;
+   
   }
 }
 else display_list = data.slice()
+
   display_list.forEach((i,index)=>{
     const current_data = symbol_full_list[i];
+
     data_section.innerHTML+=`
     <div id='element_${i}'>
     <div id='symbol'>${current_data['0']}</div>
@@ -725,7 +753,6 @@ function create_chart() {
 
       context.restore()
       context.save()
-      console.log(left_position,clientX)
 
 
       if (isMouseDown) {
@@ -780,9 +807,6 @@ function create_chart() {
 
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
-     document.querySelector('#tested').style.left = clientX+'px'
-      info_price.style.left = clientX- info_price.offsetWidth / 2 + "px"
-
       if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
         info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number + "px"
       }
@@ -793,7 +817,6 @@ function create_chart() {
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
 
-      console.log(this_position_x,left_position,pos_X,pos_X + myChart.chartArea.width / label.length * valid_data_number,clientX)
 
       if (left_position < pos_X ) {
         info_price.style.left = pos_X + "px"
@@ -1045,13 +1068,13 @@ function assign_web_worker_one() {
   worker.onmessage = function(e) {
     all_fetch_data["all_data"] = JSON.parse(e.data)
 
-    if (isWaiting && button_being_clicked) {
+    if (isWaiting_one && button_being_clicked) {
 
       setTimeout(() => button_being_clicked.click(),100);
       loader.style.display = 'none'
 
     }
-    isWaiting = false;
+    isWaiting_one = false;
 
   }
   //web worker no access to variable in main script, so we need to transfer it 
@@ -1093,8 +1116,12 @@ function assign_web_worker_two(){
 
       else if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
        
-     // /  if(symbol_price_list.length > 0 && symbol_name_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0) 
-        //create_sections(symbol_full_name_list,false)
+      if(symbol_price_list.length > 0 && symbol_name_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0){
+        if(isWaiting_two) 
+        create_sections(symbol_full_name_list,false)
+      else if(isWaiting_three)
+        search_through(input.value.toUpperCase())
+    }
     
 }
   //web worker no access to variable in main script, so we need to transfer it 
@@ -1133,7 +1160,16 @@ document.querySelector('#data_section').innerHTML=`
 
   `
   document.querySelector('#stock_market_button').addEventListener('click',function(){
-    create_sections(symbol_full_name_list,false)
+    if(symbol_full_name_list.length === 0 ) {
+       document.querySelector("#data_section").innerHTML =`
+       <div id='loader'>
+       </div>
+       `
+       isWaiting_two = true
+    }else{
+      create_sections(symbol_full_name_list,false)
+
+    } 
   })
     setInterval(()=>{
       time = new Date(time.getTime() + 1000)
@@ -1142,8 +1178,6 @@ document.querySelector('#data_section').innerHTML=`
       
   })
 
-
- 
 
     //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
     context.strokeStyle = '#52c4fa';
@@ -1177,7 +1211,7 @@ function setup(index){
 
     restore_and_fetch('',true,"At Close")
     symbol = symbol_full_list[index]["0"]
-    console.log(symbol)
+
     assign_web_worker_one(symbol)
     variable_name = "one_day"
     timestamp = "1min"
@@ -1190,7 +1224,6 @@ function setup(index){
 
 
     raw_data = filter_data(values[1], parseInt(timestamp))
-    console.log( raw_data)
     format_data(difference_time)
 
     const price_element = document.querySelector('#price')
@@ -1304,7 +1337,7 @@ document.querySelector('#three_month').addEventListener('click', function(event)
   difference = 3
   variable_name = 'all_data'
   parameter_list = [difference, false, 0]
-  if (isWaiting) {
+  if (isWaiting_one) {
     loader.style.display = 'revert'
     button_being_clicked = event.target
     return
@@ -1323,7 +1356,7 @@ document.querySelector("#six_month").addEventListener('click', function(event) {
   variable_name = 'all_data'
   difference = 6;
   parameter_list = [difference, false, 0]
-  if (isWaiting) {
+  if (isWaiting_one) {
     button_being_clicked = event.target
     return
   }
@@ -1339,7 +1372,7 @@ document.querySelector('#one_year').addEventListener('click', function(event) {
   variable_name = 'all_data'
   difference = 2;
   parameter_list = [difference, true, 2, 2]
-  if (isWaiting) {
+  if (isWaiting_one) {
     button_being_clicked = event.target
     return
   }
@@ -1355,7 +1388,7 @@ document.querySelector('#two_year').addEventListener('click', function(event) {
   variable_name = 'all_data'
   difference = 2;
   parameter_list = [difference, true, 4, 3]
-  if (isWaiting) {
+  if (isWaiting_one) {
     button_being_clicked = event.target
     return;
   }
@@ -1371,7 +1404,7 @@ document.querySelector('#five_year').addEventListener('click', function(event) {
   variable_name = 'all_data'
   difference = 5;
   parameter_list = [difference, true, 0, 10, true]
-  if (isWaiting) {
+  if (isWaiting_one) {
     button_being_clicked = event.target
     return;
   }
@@ -1389,7 +1422,7 @@ document.querySelector("#ten_year").addEventListener("click", function(event) {
   variable_name = 'all_data'
   difference = 10;
   parameter_list = [difference, true, 2, 20, true]
-  if (isWaiting) {
+  if (isWaiting_one) {
     button_being_clicked = event.target
     return;
   }
@@ -1406,7 +1439,7 @@ document.querySelector('#all_time').addEventListener('click', function() {
   variable_name = 'all_data'
   difference = null;
   parameter_list = [difference, true, 3, 30, true]
-  if (isWaiting) {
+  if (isWaiting_one) {
     button_being_clicked = event.target
     return;
   }
