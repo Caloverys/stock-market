@@ -31,6 +31,13 @@
 </div>
 
 <div id='right_area'>
+  <div id='starting'>
+    <svg  width="600" height="600">
+  <text fill='transparent'  x="50%" y="50%"  text-anchor="middle" stroke="white" stroke-width="5.5" font-size="110">Stock market</text>
+  <text  fill='red'x="50%" y="60%"  text-anchor="middle" stroke="red" stroke-width="2.5" font-size='35' ></text>
+</svg>
+<canvas id='animated_effect'></canvas>
+</div>
 <div id='parent_of_canvas'>
   <div id='meta_element'>
     <div id='name'>
@@ -67,11 +74,11 @@
   <canvas id="chart"></canvas>
 </div>
 <div id='#othervalue'>
-<div id='info_price'></div>
 <div id='customToolTip'></div>
 </div>
 </div>
-    
+    <div id='tested' style='width:1px;height:1px;z-index:999999;background-color:red;position: absolute;top:100px;left: 1px'></div>
+    <div id='info_price'></div>
 
 <script src="https://use.fontawesome.com/523d8f4491.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -90,6 +97,7 @@ function start_fetching_data(symbol){
   .then(res=> res.json())
   .then(data =>{
    const all_data =data["Time Series (Daily)"]    
+   console.log(all_data,Object.keys(all_data))
     
     const organized_data = []
     //ES2020 adds the feature of Intl.NumberFormat() constructor, we could use Intl.NumberFormat() constructor here to format the large number properly (e.g. 1000 => 1k)
@@ -123,7 +131,7 @@ function start_fetching_data(symbol){
       const all_data = result;
       let symbolname_list = {}
       let character_list = []
-
+       
        all_data.forEach(i=>{
         //i["0"][0] => first character of the symbol
       if(!character_list.includes(i["0"][0])){
