@@ -367,12 +367,17 @@ function create_sections(data,isSearch,watch_list){
      data_section.style.textAlign = 'center'
      return
    }
-     if(watch_list && watch_list.length > 0){
+     if(watch_list && watch_list.length > 0 || !isSearch && my_watched_list.length > 0){
        data_section.innerHTML += `
   <h2 id='header'>My watch_list:</h2>
   `
+  if(!watch_list) watch_list = my_watched_list.map((i,index)=>{
+    return index;
+  })
+     console.log(my_watched_list)
+    console.log(watch_list)
      watch_list.forEach(i=>{
-      console.log(my_watched_list[i].data_section['0'])
+      console.log(i)
       data_section.innerHTML +=`
       <div id='element_${my_watched_list[i].index}'>
     <div id='symbol'>${my_watched_list[i].data_section['0']}</div>
@@ -1248,10 +1253,21 @@ color_list.splice(color_one,1)
 
 
 function setup(index){
-   //Prevent all buttons to be clicked 
-   my_watched_button.textContent ='+Add to Watchlist' 
+   //Prevent all buttons to be clicked
+   let existed = false;
+  for(let i =0;i<my_watched_list.length;i++){
+    if(my_watched_list[i].index === index ){
+      existed =true;
+      break;
+    }
+  }
+   if(!existed){
+     my_watched_button.style.display ='revert'
+   my_watched_buttontextContent ='+Add to Watchlist' 
       my_watched_button.classList.remove('has_clicked')
-  
+   
+   }else my_watched_button.style.display ='none'
+   
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
     document.querySelector('#starting').style.display = 'none'
     parent_of_canvas.style.display = 'revert'
