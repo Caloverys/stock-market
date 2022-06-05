@@ -155,6 +155,7 @@ function start_fetching_data(symbol){
       self.postMessage(JSON.stringify(price_list))
 
       const full_name_list = all_data.map(i=>{
+
         return i["1"]
       })
       self.postMessage(JSON.stringify(full_name_list))
