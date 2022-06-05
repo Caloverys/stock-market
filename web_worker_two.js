@@ -4,7 +4,7 @@
       const all_data = result;
       let symbolname_list = {}
       let character_list = []
-
+       
        all_data.forEach(i=>{
         //i["0"][0] => first character of the symbol
       if(!character_list.includes(i["0"][0])){
@@ -28,7 +28,8 @@
       self.postMessage(JSON.stringify(price_list))
 
       const full_name_list = all_data.map(i=>{
-        return i["1"].split(' ')[0]
+
+        return i["1"]
       })
       self.postMessage(JSON.stringify(full_name_list))
 
@@ -36,13 +37,15 @@
   };
 
   function fetching_symbol(){
-    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
+    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=ee684c5f9b04a3e914f9e39630f0f929")
   .then(res=> res.json())
   .then(data =>{
     let symbol_list = data;
+    console.log(symbol_list)
   symbol_list = symbol_list.filter(i=>{
     //check if the symbol contains only the characters (e.g "a1.b" or "ab.ll" will not pass the test)
-    return i["type"] === 'stock' && /^[a-zA-Z]+$/.test(i["symbol"]) &&  isNaN(i["name"][0]);
+    //i["name"][0] => The first character in i["name"]
+    return i["type"] === 'stock' && /^[a-zA-Z]+$/.test(i["symbol"]) &&  isNaN(i["name"][0]) && i["price"] !== 0;
    }).sort((a,b) =>{
     return a['symbol'].localeCompare(b["symbol"])
   })
