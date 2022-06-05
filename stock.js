@@ -8,8 +8,9 @@ const context = canvas.getContext('2d')
 , parent_of_canvas = document.querySelector('#parent_of_canvas')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
+, delete_button = document.querySelector('#deletebutton')
 let current_Index = 0
-let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY;
+let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY,symbol, horizonalLinePlugin;
 let [isVisible, isWaiting] = [true, true]
 let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list,symbol_full_name_list] = [
   [],
@@ -32,7 +33,7 @@ let all_fetch_data = {
 }
 
 
-document.querySelector('#deletebutton').addEventListener('click', () => {
+ delete_button.addEventListener('click', () => {
   input.blur();
   input.value = ""
 })
@@ -42,12 +43,16 @@ document.querySelector('#search_icon').addEventListener('click', () => {
 })
 
 
-document.querySelector('input[type=text]').addEventListener('change',() =>{
+document.querySelector('input[type=text]').addEventListener('keypress',() =>{
 
   const search_value  = document.querySelector('input').value.toUpperCase()
+  if(search_value == ""){
+     delete_button.style.visibility = 'hidden'
+     return
+  }
+   delete_button.style.visibility = 'visible'
   let list=[]
    const expected_first_letter =search_value[0]
-   //debugger
   for(let i =0;i< symbol_name_list.length;i++){
 
     if(symbol_name_list[i][0] === expected_first_letter){
@@ -60,24 +65,21 @@ document.querySelector('input[type=text]').addEventListener('change',() =>{
           list.push(global_index+index)
       }
       })
-
       break
     }
 
   }
 
-
+     console.log(symbol_full_name_list)
     for(let i =0;i< symbol_full_name_list.length;i++){
-        if(symbol_full_name_list[i].startsWith(search_value))
+        if(symbol_full_name_list[i].toUpperCase().includes(search_value))
         list.push(i)  
       }
-
 
  //use new Set to remove all duplicate values and sort from lowerest to greatest
 list =[...new Set(list)].sort((a,b)=>{
 return a -b
 })
-
 
 create_sections(list,true)
 
@@ -131,15 +133,6 @@ canvas.addEventListener('mousedown', function(e) {
 canvas.addEventListener('mouseup', function() {
   isMouseDown = false;
 })
-/*canvas.addEventListener('mousedown',function(){
-})
-canvas.addEventListener('mouseup',function(){
-  
-})
-canvas.addEventListener('mouseenter',()=> isInCanvas = true )
-canvas.addEventListener('mouseleave',()=> isInCanvas = false )*/
-
-
 function format_date(dateobject) {
   return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7) - 1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
 }
@@ -329,32 +322,46 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 function create_sections(data,isSearch){
   const data_section = document.querySelector("#data_section")
 
-  data_section.innerHTML = `<h2 id='header'>${isSearch ? "Recommand" : "Symbols" }:</h2>`
+  data_section.innerHTML = `<h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   //The list contains 12 random non-repeating choosed index for data that going to be displayed
-  const display_list = []
+  let display_list = []
   //The list contains others indexes that are not chosen which will be used if user later clicked the load_more button
   const rest_list = data.slice()
+if(data.length > 15){
   let i =0;
-  while(i<12){
+  while(i<15){
     const selected_index = Math.floor(Math.random()*rest_list.length)
-  
   if(symbol_full_list[selected_index]["2"] < 100) continue;
     rest_list.splice(selected_index,1)
     display_list.push(selected_index)
     i++;
   }
-  display_list.forEach(i=>{
+}
+else display_list = data.slice()
+  display_list.forEach((i,index)=>{
     const current_data = symbol_full_list[i];
     data_section.innerHTML+=`
-    <hr>
     <div id='element_${i}'>
     <div id='symbol'>${current_data['0']}</div>
-    <span id='exchange_market_symbol'>${current_data["4"]}</div>
+    <span id='exchange_market_symbol'>${current_data["4"]}</span>
     <div id='company_name'>${current_data["1"]}</div>
     <div id='current_price'>${current_data["2"].toFixed(2)}</div>
     </div>
     `
   })
+//use regular expression in dom here, to select any divs have id starts with element_ 
+document.querySelectorAll("div[id^='element_']").forEach(div=>{
+div.addEventListener('click',function(e){
+
+  //remove the string and leave with number only
+
+  const index = e.target.id.split('element_')[1]
+
+  if(document.querySelector('.active')) document.querySelector('.active').classList.toggle('active')
+  event.target.classList.add('active')
+  setup(index)
+})
+})
 }
 
 function size_calculation(word, fontSize) {
@@ -487,6 +494,8 @@ function return_horizontal_gradient(color, pos_start, pos_end) {
 function return_market_status() {
   //390 => 60 * 6 (from 9:30 to 16:00) + 30
   //return true if market open and return false if market close
+  console.log(global_time)
+
   return (global_time.getHours() < 16 && global_time.getDay() !== 5 && global_time.getDay() !==  6 ? true : false)
 
 
@@ -685,7 +694,7 @@ function create_chart() {
   }
 
 
-  window.horizonalLinePlugin = {
+   horizonalLinePlugin = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
 
@@ -871,18 +880,20 @@ function create_chart() {
 }
 
 
-function restore_and_fetch(time_range_name, restore_only = false, search_content = 'At Close', expected_content = 'Latest Price') {
+function restore_and_fetch(time_range_name, restore_only = false, expected_content = 'Latest Price') {
   canvas.style.display = 'none'
   detail_dataset.length = 0;
   dataset.length = 0
   label.length = 0;
 
   //use Chart.unregister to remove the horizonalLine which shows previous price if timestamp is not '1min'
-  if (timestamp !== '1min') Chart.unregister(horizonalLinePlugin);
+  if (timestamp !== '1min' && horizonalLinePlugin) Chart.unregister(horizonalLinePlugin);
+   
+   const matched_element = document.querySelector('#price_name')
+  if(matched_element) matched_element.innerHTML = expected_content +" (AS OF <span style='font-size:0.8em;'>"+new Date(global_time).toString().substring(4,21) + " EDT"+'</span>)'
+    
+  //const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
-  //use XML here to search for html tag by content
-  const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  if (matched_element) matched_element.textContent = expected_content
 
   loader.style.display = "revert"
   if (restore_only === true) return;
@@ -972,10 +983,8 @@ function assign_web_worker_two(){
 
       else if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
        
-       
-
-                console.log(retrieved_data)
-              console.log(symbol_full_name_list,symbol_name_list,symbol_price_list,symbol_full_list)
+     // /  if(symbol_price_list.length > 0 && symbol_name_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0) 
+        //create_sections(symbol_full_name_list,false)
     
 }
   //web worker no access to variable in main script, so we need to transfer it 
@@ -986,51 +995,37 @@ function assign_web_worker_two(){
 
 
 window.onload = function() {
+  //assign_web_worker_two()
+  get_global_time().then(function(result){
+    global_time = new Date(result)
+    document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";    
+  const time_element = document.querySelector("#current_time")
+  let time =  global_time
+  time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
+document.querySelector('#data_section').innerHTML=`
+  <div id='starting_buttons'>
+  <div id='stock_market_button'>
+  <h2>Stock Market</h2>
+  <div>Status: ${return_market_status() ? "Market Open" : "Market Closed"}</div>
+  </div>
+  <div id='watch_list' '>
+  <h2 style='background-image:${return_color()}'>My Watch List</h2>
+  </div>
+  <div id='simulator'>
+  <h2 style='background-image:${return_color()}'>Stock simulator</h2>
+  </div>
+  </div>
 
-  window.symbol = "NKE"
-  timestamp = "1min"
-  //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
-  difference_time = 0
-
-  //Prevent all buttons to be clicked 
-  document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
-
- Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
-    
-
-    global_time = new Date(values[0])
-    variable_name = "one_day"
-    all_fetch_data[variable_name] = values[1]
-    raw_data = filter_data(values[1], parseInt(timestamp))
-    format_data(difference_time)
-    assign_web_worker_one()
-    assign_web_worker_two()
-    const price_element = document.querySelector('#price')
-    price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
-    const difference = raw_data[raw_data.length - 1].close - find_closed_price();
-    const percentage = price_element.querySelector('#percent');
-    percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
-    percentage.style.color = return_color();
-    info_price.textContent = find_closed_price();
-
-    const created_span = document.createElement('span')
-    created_span.style.color = 'grey';
-    created_span.textContent = 'At Close'
-    price_element.appendChild(created_span)
-    
-    document.querySelector('#name > h2').textContent = symbol
-    create_chart()
-    document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
-
-    document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed"
-    const time_element = document.querySelector("#current_time")
-    let time =  global_time
-    time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
-
+  `
     setInterval(()=>{
       time = new Date(time.getTime() + 1000)
       time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
     },1000)
+      
+  })
+
+
+ 
 
     //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
     context.strokeStyle = '#52c4fa';
@@ -1042,8 +1037,71 @@ window.onload = function() {
     context.save()
 
 
-  })
+}
 
+/*function assign_color(element_list){
+  const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#979A9A", "#40B5AD", "#A52A2A"];
+  console.log(element_list)
+  element_list.forEach(element=>{
+    const color_one = color_list[Math.floor(Math.random() * color_list.length)]
+    const color_two = color_list[Math.floor(Math.random() * color_list.length)]
+    console.log(element,color_one)
+    element.style.backgroundImage = `-webkit-linear-gradient(left,${color_one},${color_two})`
+  })
+}*/
+function return_color(){
+  const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#979A9A", "#40B5AD", "#A52A2A"];
+const color_one = color_list[Math.floor(Math.random() * color_list.length)]
+color_list.splice(color_one,1)
+    const color_two = color_list[Math.floor(Math.random() * color_list.length)]
+
+    return  `-webkit-linear-gradient(left,${color_one},${color_two})`
+  }
+
+
+
+function setup(index){
+   //Prevent all buttons to be clicked 
+    document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
+    restore_and_fetch('',true,"At Close")
+    symbol = symbol_full_list[index]["0"]
+    console.log(symbol)
+    assign_web_worker_one(symbol)
+    variable_name = "one_day"
+    timestamp = "1min"
+    //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
+    difference_time = 0
+     Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
+
+  
+    all_fetch_data[variable_name] = values[1]
+
+    raw_data = filter_data(values[1], parseInt(timestamp))
+    format_data(difference_time)
+
+    const price_element = document.querySelector('#price')
+    price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
+    const difference = raw_data[raw_data.length - 1].close - find_closed_price();
+    const percentage = price_element.querySelector('#percent');
+
+    percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
+    percentage.style.color = return_color();
+    info_price.textContent = find_closed_price();
+    if(!document.querySelector('#price_name')){
+    const created_span = document.createElement('div')
+    created_span.style.color = 'grey';
+    created_span.id='price_name'
+    const shortened_date = new Date(global_time).toString().substring(4,21) + "EDT"
+    created_span.innerHTML = `At Close <span style='font-size:0.8em'>(AS OF ${shortened_date}) </span>`
+    price_element.appendChild(created_span)
+  }
+    
+    document.querySelector('#name > h2').textContent = symbol_full_list[index]["0"]
+    document.querySelector("#name > h4").textContent = symbol_full_list[index]["1"]
+
+    create_chart()
+    document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
+})    
 }
 
 
@@ -1098,7 +1156,7 @@ document.querySelector('#one_day').addEventListener('click', function() {
   difference_time = 0;
   variable_name = "one_day"
 
-  restore_and_fetch(variable_name, false, "Latest value", "At Close")
+  restore_and_fetch(variable_name, false, "At Close")
 })
 
 document.querySelector('#one_week').addEventListener('click', function() {
