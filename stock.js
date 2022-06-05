@@ -102,6 +102,7 @@ document.body.addEventListener('mousemove', e => {
   if (isInsideCanvas && isVisible) {
      clientY =e.clientY
     clientX = e.clientX;
+    console.log(clientX)
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
 
@@ -354,7 +355,6 @@ document.querySelectorAll("div[id^='element_']").forEach(div=>{
 div.addEventListener('click',function(e){
 
   //remove the string and leave with number only
-
   const index = e.target.id.split('element_')[1]
 
   if(document.querySelector('.active')) document.querySelector('.active').classList.toggle('active')
@@ -363,6 +363,117 @@ div.addEventListener('click',function(e){
 })
 })
 }
+
+
+function create_small_animated_chart(){
+   
+   setTimeout(()=>{
+    const last_text_element = document.querySelector('text:last-child')
+    last_text_element.textContent ="Let's get start!"
+   last_text_element.style.animation = "draw2 12s forwards, appearing 3s "
+   },10000)
+    const data_one = []
+    const data_two = [];
+    let previous_point_one = 50;
+    let previous_point_two = 40
+    for(let i =0;i<500;i++){
+      data_one.push({x:i,y:previous_point_one})
+      previous_point_one += 5-Math.random()*10
+      data_two.push({x:i,y:previous_point_two})
+       previous_point_two += 5-Math.random()*10
+    }
+ //10 seconds animation
+ const delay = 10000 / data_one.length;
+const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+
+  const animation = {
+  x: {
+    type: 'number',
+    easing: 'linear',
+   
+    duration:  delay ,
+    from: NaN, 
+    delay(ctx) {
+      if (ctx.type !== 'data' || ctx.xStarted) return 0;
+      ctx.xStarted = true;
+      return ctx.index * delay;
+    }
+  },
+  y: {
+    type: 'number',
+    easing: 'linear',
+    duration: 10000 / data_one.length,
+    from: previousY,
+    delay(ctx) {
+      if (ctx.type !== 'data' || ctx.yStarted) return 0; 
+      ctx.yStarted = true;
+      return ctx.index * delay;
+    }
+  }
+}
+   const starting_chart  = new Chart(document.querySelector('#animated_effect'),{
+  type: 'line',
+  data: {
+    datasets: [{
+      borderColor: "red",
+      borderWidth: 1.5,
+      radius: 0,
+      pointHoverRadius:0,
+      data: data_one,
+    },
+    {
+      borderColor: "lawngreen",
+      borderWidth: 1,
+      radius: 0,
+      pointHoverRadius:0,
+      data: data_two,
+    }]
+  },
+  options: {
+    animation,
+      responsive: true,
+      maintainAspectRatio: false,
+    tooltips: {
+        enabled: false
+      },
+    interaction: {
+      intersect: false
+    },
+     plugins: {
+            tooltip: { 
+              enabled: false 
+            },
+            legend:false
+    },
+    scales: {
+      x: {
+        type: 'linear',
+         ticks: {
+          //only disable the x-axis label from showing 
+                  display: false 
+                },
+                grid:{
+                  //display:false
+                  color:"rgba(256,256,256,0.25)"
+                }
+      },
+      y:{
+        ticks: {
+                    //only disable the y-axis label from showing 
+                    display: false 
+                },
+                grid:{
+                  //display:false
+                  color:"rgba(256,256,256,0.25)"
+                }
+
+      }
+    }
+  }
+})
+
+}
+
 
 function size_calculation(word, fontSize) {
   const div = document.body.appendChild(document.createElement('div'));
@@ -494,9 +605,7 @@ function return_horizontal_gradient(color, pos_start, pos_end) {
 function return_market_status() {
   //390 => 60 * 6 (from 9:30 to 16:00) + 30
   //return true if market open and return false if market close
-  console.log(global_time)
-
-  return (global_time.getHours() < 16 && global_time.getDay() !== 5 && global_time.getDay() !==  6 ? true : false)
+  return (global_time.getHours() < 16 && global_time.getDay() !== 6 && global_time.getDay() !==  0 ? true : false)
 
 
 }
@@ -569,8 +678,8 @@ function create_chart() {
       info_price.style.color = "#52c4fa"
 
 
-      let left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      let this_position_x = chart.tooltip._active[0].element.x;
+      window.left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
+      window.this_position_x = chart.tooltip._active[0].element.x;
       let this_position_y =  chart.tooltip._active[0].element.y;
     
       if (current_Index === 0 && !first_index) first_index = this_position_y
@@ -579,11 +688,11 @@ function create_chart() {
       const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left  - info_price.offsetWidth/2
       
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
-      if (left_position.toFixed(2) === pos_X.toFixed(2) ){
+      /*if (left_position.toFixed(2) === pos_X.toFixed(2) ){
         fire = true
         this_position_x = myChart.chartArea.left
         if(first_index) this_position_y = first_index
-      }else  fire = false
+      }else  fire = false*/
 
       context.beginPath()
       context.strokeStyle = (!isMouseDown ? '#52c4fa' : judge_color());
@@ -616,7 +725,7 @@ function create_chart() {
 
       context.restore()
       context.save()
-
+      console.log(left_position,clientX)
 
 
       if (isMouseDown) {
@@ -671,17 +780,21 @@ function create_chart() {
 
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
+     document.querySelector('#tested').style.left = clientX+'px'
+      info_price.style.left = clientX- info_price.offsetWidth / 2 + "px"
 
       if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
         info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number + "px"
       }
-
+ 
 
       if (isMouseDown && current_Index !== static_Index) return;
       if (current_Index === valid_data_number - 1) return;
-      //globalAlpha 
-      info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
+      info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
+
+      console.log(this_position_x,left_position,pos_X,pos_X + myChart.chartArea.width / label.length * valid_data_number,clientX)
+
       if (left_position < pos_X ) {
         info_price.style.left = pos_X + "px"
 
@@ -701,7 +814,7 @@ function create_chart() {
 
       //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
-
+      if(!chartInstance.options.horizontalLine) return
       for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
         const line = chartInstance.options.horizontalLine[index];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1
@@ -756,9 +869,6 @@ function create_chart() {
 
       responsive: true,
       maintainAspectRatio: false,
-      tooltips: {
-        enabled: false
-      },
 
       "horizontalLine": [{
         "y": find_closed_price() > min_value - 0.15 ? find_closed_price() : min_value - 0.1,
@@ -995,28 +1105,36 @@ function assign_web_worker_two(){
 
 
 window.onload = function() {
-  //assign_web_worker_two()
+  create_small_animated_chart()
+  assign_web_worker_two()
+
   get_global_time().then(function(result){
     global_time = new Date(result)
     document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";    
   const time_element = document.querySelector("#current_time")
   let time =  global_time
   time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
+
 document.querySelector('#data_section').innerHTML=`
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
-  <div>Status: ${return_market_status() ? "Market Open" : "Market Closed"}</div>
+  <div>Status: 
+  <span style='color:${return_market_status() ? "green" : "red"}'>${return_market_status() ? "Market Open" : "Market Closed"}</span>
+  </div>
   </div>
   <div id='watch_list' '>
-  <h2 style='background-image:${return_color()}'>My Watch List</h2>
+  <h2 style='background-image:${return_color_gradient()}'>My Watch List</h2>
   </div>
   <div id='simulator'>
-  <h2 style='background-image:${return_color()}'>Stock simulator</h2>
+  <h2 style='background-image:${return_color_gradient()}'>Stock simulator</h2>
   </div>
   </div>
 
   `
+  document.querySelector('#stock_market_button').addEventListener('click',function(){
+    create_sections(symbol_full_name_list,false)
+  })
     setInterval(()=>{
       time = new Date(time.getTime() + 1000)
       time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
@@ -1039,18 +1157,9 @@ document.querySelector('#data_section').innerHTML=`
 
 }
 
-/*function assign_color(element_list){
-  const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#979A9A", "#40B5AD", "#A52A2A"];
-  console.log(element_list)
-  element_list.forEach(element=>{
-    const color_one = color_list[Math.floor(Math.random() * color_list.length)]
-    const color_two = color_list[Math.floor(Math.random() * color_list.length)]
-    console.log(element,color_one)
-    element.style.backgroundImage = `-webkit-linear-gradient(left,${color_one},${color_two})`
-  })
-}*/
-function return_color(){
-  const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#979A9A", "#40B5AD", "#A52A2A"];
+
+function return_color_gradient(){
+  const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#f05463", "#40B5AD", "#A52A2A","#e833c7"];
 const color_one = color_list[Math.floor(Math.random() * color_list.length)]
 color_list.splice(color_one,1)
     const color_two = color_list[Math.floor(Math.random() * color_list.length)]
@@ -1063,6 +1172,9 @@ color_list.splice(color_one,1)
 function setup(index){
    //Prevent all buttons to be clicked 
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
+    document.querySelector('#starting').style.display = 'none'
+    parent_of_canvas.style.display = 'revert'
+
     restore_and_fetch('',true,"At Close")
     symbol = symbol_full_list[index]["0"]
     console.log(symbol)
@@ -1076,7 +1188,9 @@ function setup(index){
   
     all_fetch_data[variable_name] = values[1]
 
+
     raw_data = filter_data(values[1], parseInt(timestamp))
+    console.log( raw_data)
     format_data(difference_time)
 
     const price_element = document.querySelector('#price')
