@@ -8,6 +8,7 @@ const context = canvas.getContext('2d')
 , parent_of_canvas = document.querySelector('#parent_of_canvas')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
+,my_watched_button = document.querySelector('#add_to_watchlist')
 , delete_button = document.querySelector('#deletebutton')
 let current_Index = 0
 let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY,symbol, horizonalLinePlugin;
@@ -20,8 +21,10 @@ let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list,symbo
   [],
   []
 ]
-let chartArea;
 
+
+let my_watched_list =JSON.parse(localStorage.getItem('my_watched_list'))
+if(!my_watched_list) my_watched_list = []
 let all_fetch_data = {
   "one_day": null,
   "one_week": null,
@@ -33,9 +36,12 @@ let all_fetch_data = {
 }
 
 
- delete_button.addEventListener('click', () => {
+ delete_button.addEventListener('click', (e) => {
   input.blur();
   input.value = ""
+  e.target.style.visibility = 'hidden'
+  create_sections(symbol_full_name_list,false)
+
 })
 
 document.querySelector('#search_icon').addEventListener('click', () => {
@@ -77,13 +83,32 @@ function search_through(value){
 list =[...new Set(list)].sort((a,b)=>{
 return a -b
 })
-create_sections(list,true)
+const extra_list = []
+if(my_watched_list.length > 0){
+my_watched_list.forEach((i,index)=>{
+  console.log(i.data_section['0'],value)
+  if(i.data_section['0'].startsWith(value) || i.data_section['1'].toUpperCase().indexOf(value) > -1)
+    extra_list.push(index)
 
+})
+
+}
+console.log(extra_list)
+
+create_sections(list,true,extra_list)
 }
 
 input.addEventListener('keyup',(e) =>{
   //immediately return if  key is enter
   if (e.key === 'Enter' || e.keyCode === 13) return;
+   const search_value  = input.value.toUpperCase()
+  if(search_value === ""){
+     delete_button.style.visibility = 'hidden'
+     return
+  }
+   delete_button.style.visibility = 'visible'
+   search_through(search_value)
+
   if(symbol_full_name_list.length === 0 ) {
        document.querySelector("#data_section").innerHTML =`
        <div id='loader'>
@@ -92,14 +117,7 @@ input.addEventListener('keyup',(e) =>{
        isWaiting_three = true
        return
     }
-  const search_value  = input.value.toUpperCase()
-  if(search_value === ""){
-     delete_button.style.visibility = 'hidden'
-     return
-  }
-   delete_button.style.visibility = 'visible'
-   search_through(search_value)
-
+ 
 
 })
 
@@ -234,11 +252,12 @@ function format_data(difference) {
       if (passed_range.includes(i))
         grid_color[i] = "rgba(255,255,255,0.4)"
     }
-
   }
-  grid_color[grid_color.length - 1] = "rgba(255,255,255,0.4)"
+    grid_color[grid_color.length - 1] = "rgba(255,255,255,0.4)"
+  }
 
-}
+
+
 
 function format_data_two(difference, isYear, filter_value, filter_data_range = 1, label_by_year) {
   Chart.unregister(horizonalLinePlugin);
@@ -250,20 +269,18 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
     let current_date = new Date(item.date)
     /*
-
     Important notice:
     The default timestamp for new date constructor is EDT timestamp,
     but the item.date retrieving from API is UTC/GMT timestamp,
     they have four hour difference 
     For example, in EDT time is 8:00, in UTC/GMT, the time will be 12:00
     So we must add 4 hours to GMT timestamp to make them the same
-
     Should be very careful handle this
     P.S. spend 2 hours find out the bug caused by this
-
     */
 
     if (index % filter_data_range === 0) {
+
       current_date = new Date(current_date.setHours(current_date.getHours() + 4))
       if (difference) {
         if (current_date >= oldest_date) {
@@ -278,8 +295,9 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
         dataset.push(item.price.toFixed(2))
       }
 
-    }
-  })
+  
+  }
+})
 
 
   valid_data_number = label.length
@@ -287,7 +305,7 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
   min_value = Math.min.apply(null, dataset)
   grid_color = Array(valid_data_number).fill('transparent')
 
-  let passed_range = [0];
+  let passed_value = [0];
 
   if (!label_by_year) {
     let currentMonth = new Date(label[0]).toLocaleString("default", {
@@ -298,7 +316,7 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
         month: 'long'
       });
       if (label_month !== currentMonth) {
-        passed_range.push(index)
+        passed_value.push(index)
         currentMonth = label_month
       };
 
@@ -311,7 +329,7 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
       const label_year = new Date(i).getFullYear()
 
       if (label_year !== currentYear) {
-        passed_range.push(index)
+        passed_value.push(index)
         currentYear = label_year
       };
 
@@ -322,12 +340,12 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 
 
-  if (filter_value) passed_range = passed_range.filter((i, index) => {
+  if (filter_value) passed_value  = passed_value.filter((i, index) => {
     return index % filter_value === 0
   })
 
   for (let i = 0; i < label.length; i++) {
-    if (passed_range.includes(i))
+    if (passed_value.includes(i))
       grid_color[i] = "rgba(255,255,255,0.4)"
   }
 
@@ -337,18 +355,41 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 }
 
 
-function create_sections(data,isSearch){
+function create_sections(data,isSearch,watch_list){
+
   const data_section = document.querySelector("#data_section")
+   data_section.innerHTML=""
   if(data.length === 0){
+
   data_section.innerHTML =`
   <h3>No result for "${input.value}" </h3>
   `
-  data_section.style.textAlign = 'center'
-  return
-}
+     data_section.style.textAlign = 'center'
+     return
+   }
+     if(watch_list && watch_list.length > 0){
+       data_section.innerHTML += `
+  <h2 id='header'>My watch_list:</h2>
+  `
+     watch_list.forEach(i=>{
+      console.log(my_watched_list[i].data_section['0'])
+      data_section.innerHTML +=`
+      <div id='element_${my_watched_list[i].index}'>
+    <div id='symbol'>${my_watched_list[i].data_section['0']}</div>
+    <span id='exchange_market_symbol'>${my_watched_list[i].data_section["4"]}</span>
+    <div id='company_name'>${my_watched_list[i].data_section["1"]}</div>
+    <div id='current_price'>${my_watched_list[i].data_section["2"].toFixed(2)}</div>
+    </div>
+     `
+     })
+
+  }
+
+ 
+
 data_section.style.textAlign = 'left'
 
-  data_section.innerHTML = `
+  data_section.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>
   `
   //The list contains 15 random non-repeating choosed index for data that going to be displayed
@@ -716,7 +757,8 @@ function create_chart() {
       const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left  - info_price.offsetWidth/2
       
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
-      /*if (left_position.toFixed(2) === pos_X.toFixed(2) ){
+
+     /* if (left_position.toFixed(2) === pos_X.toFixed(2) ){
         fire = true
         this_position_x = myChart.chartArea.left
         if(first_index) this_position_y = first_index
@@ -814,16 +856,16 @@ function create_chart() {
 
       if (isMouseDown && current_Index !== static_Index) return;
       if (current_Index === valid_data_number - 1) return;
+       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
 
-
-      if (left_position < pos_X ) {
+      if (left_position.toFixed(2) <= pos_X.toFixed(2) ) {
         info_price.style.left = pos_X + "px"
+        console.log(pos_X)
 
       } else if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
+        console.log(left_position)
         info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number  +"px"
-
       }
     }
 
@@ -1006,7 +1048,6 @@ function create_chart() {
 
   })
   loader.style.display = "none"
-  chartArea = myChart.chartArea;
   canvas.style.display = 'revert'
   
 
@@ -1141,8 +1182,30 @@ window.onload = function() {
   const time_element = document.querySelector("#current_time")
   let time =  global_time
   time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
+    setInterval(()=>{
+      time = new Date(time.getTime() + 1000)
+      time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
+    },1000)
+    load_main_page()
+      
+  })
 
-document.querySelector('#data_section').innerHTML=`
+
+    //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
+    context.strokeStyle = '#52c4fa';
+    context.fillStyle = "#52c4fa";
+    context.setLineDash([])
+    context.strokeStyle = '#52c4fa'
+    context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth / 500 : 2.5
+    context.globalCompositeOperation = 'destination-over'
+    context.save()
+
+
+}
+
+
+function load_main_page(){
+  document.querySelector('#data_section').innerHTML=`
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
@@ -1171,27 +1234,8 @@ document.querySelector('#data_section').innerHTML=`
 
     } 
   })
-    setInterval(()=>{
-      time = new Date(time.getTime() + 1000)
-      time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
-    },1000)
-      
-  })
-
-
-    //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
-    context.strokeStyle = '#52c4fa';
-    context.fillStyle = "#52c4fa";
-    context.setLineDash([])
-    context.strokeStyle = '#52c4fa'
-    context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth / 500 : 2.5
-    context.globalCompositeOperation = 'destination-over'
-    context.save()
-
 
 }
-
-
 function return_color_gradient(){
   const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#f05463", "#40B5AD", "#A52A2A","#e833c7"];
 const color_one = color_list[Math.floor(Math.random() * color_list.length)]
@@ -1205,6 +1249,9 @@ color_list.splice(color_one,1)
 
 function setup(index){
    //Prevent all buttons to be clicked 
+   my_watched_button.textContent ='+Add to Watchlist' 
+      my_watched_button.classList.remove('has_clicked')
+  
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
     document.querySelector('#starting').style.display = 'none'
     parent_of_canvas.style.display = 'revert'
@@ -1274,11 +1321,13 @@ font-size:0.8em`
   <button class='remove_button' style='position:fixed; right:3%;'></button>
   `
   warning.className = 'warning'
+  const timeout = setTimeout( ()=>warning.remove(), 5000)
 
   const remove_button = warning.querySelector('.remove_button')
   remove_button.addEventListener('click', () => {
+    window.clearTimeout(timeout)
     warning.classList.add('remove_class')
-    setTimeout(() => warning.remove(), 1500)
+    setTimeout(() => warning.remove(), 500)
   })
 
 
@@ -1447,3 +1496,43 @@ document.querySelector('#all_time').addEventListener('click', function() {
   format_data_two(...parameter_list)
   create_chart()
 })
+
+
+document.querySelector('#add_to_watchlist').addEventListener('click',function(event){
+  
+  if(!event.target.classList.contains('has_clicked')){
+    event.target.classList.add('has_clicked')
+    event.target.innerHTML = '&#10004;Added'
+    //select item with id starts with element_ and with class name active
+    const index_of_stock =document.querySelector(" div[id^='element_'].active").id.split('element_')[1]
+    my_watched_list.push({
+      index:index_of_stock,
+      data_section:symbol_full_list[index_of_stock],
+      date_added: global_time.toString().substring(4,24)
+    })
+  }else{
+    event.target.classList.remove('has_clicked')
+     event.target.textContent = '+Add to Watchlist'
+    my_watched_list =  my_watched_list.filter(i=>i['index'] !== document.querySelector(" div[id^='element_'].active").id.split('element_')[1])
+
+  }
+  console.log(my_watched_list)
+
+})
+
+document.querySelector('#back_button').addEventListener("click",function(){
+  load_main_page()
+})
+
+    window.addEventListener('beforeunload', function(e) {
+      localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
+    })
+
+
+
+
+
+
+
+
+
