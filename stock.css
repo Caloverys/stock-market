@@ -3,14 +3,25 @@
 }
 
 body {
-  margin: 0
+  margin: 0;
+  overflow: hidden;
 }
 
-canvas {
+#parent_of_canvas > canvas {
   position: absolute;
   top: 20vh;
   width: inherit;
   height: inherit;
+}
+
+#starting > canvas{
+  width: 65vw !important;
+  position: absolute;
+  height: 60vh !important;
+  top: 35vh;
+  left: 5vw;
+  border:none;
+  
 }
 
 #info_price {
@@ -23,9 +34,10 @@ canvas {
   visibility: hidden;
 }
 
-#parent_of_canvas {
+#right_area > #parent_of_canvas {
+   display: none;
   border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.8);
+
   position: relative;
   display: flex;
   justify-content: center;
@@ -33,13 +45,68 @@ canvas {
   padding: calc(2vw);
   padding-top: 100px;
   margin: 5px;
+  margin-left: 0;
   height: 75vh;
   width: 70vw;
-  position: absolute;
-  top: 5%;
-  left: 25%;
+  display: none;
+
 }
 
+svg{
+  position:absolute;
+  left: 20%;
+  top:-25%;
+}
+text:first-child{
+  
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw1 10s forwards;
+  font-style: italic ;
+}
+text:last-child{
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+
+  font-family: sans-serif;
+  font-style: italic;
+  transition: appearing 3s ;
+}
+
+@keyframes appearing{
+  from{
+    opacity: 0.3;
+  }
+}
+@keyframes draw1 {
+
+  to{
+    stroke-dashoffset: 0;
+     fill: whitesmoke;
+  }
+}
+
+@keyframes draw2 {
+
+  to{
+    stroke-dashoffset: 0;
+     fill: red;
+  }
+}
+
+#right_area {
+  position: absolute;
+  top: 0;
+  height: 100vh;
+  width: 75%;
+  background-color:   rgba(0,0,0,0.8);;
+  left: calc(25% + 2.5px);
+
+
+
+
+
+}
 #info_date {
   font-size:16px;
  margin-top: calc(-6.5vh);
@@ -55,9 +122,9 @@ canvas {
   position: fixed;
   margin: 15px calc(1vw);
   padding: 7.5px calc(2.5vw);
+    background-color: rgba(90,88,92,0.8);
   width: calc(17vw);
-  background-color: rgba(90,88,92,0.8);
-
+  
   box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
   color: white;
 
@@ -77,7 +144,7 @@ canvas {
    border-radius: 50%;
    visibility: hidden;
 
-   color: rgba(83, 81, 86, 0.8); 
+  color: rgba(83, 81, 86, 0.8); 
    font-weight: thin;
   padding: 0;
   width: 17.5px;
@@ -159,11 +226,13 @@ input[type=text]:focus-visible {
   color: white;
 }
 #left_area > .vertical_line{
-  border-left: 3px solid yellow;
+  border-left: 3px solid  grey;
   height: 200vh;
   position: fixed;
+  margin: 0;
   left: 25%;
   top: 0%;
+
 }
 #left_area > #bottom_section
 {
@@ -178,7 +247,7 @@ input[type=text]:focus-visible {
 }
 
 #left_area > #search_engine{
-  background-color: rgb(83,79,83,0.9);
+  background-color: rgb(83,83,83);
   width: 25%;
    height: 100vh;
    overflow: hidden;
