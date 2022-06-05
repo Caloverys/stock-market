@@ -43,7 +43,6 @@ canvas {
 #info_date {
   font-size:16px;
  margin-top: calc(-6.5vh);
-
   color: white;
   visibility: hidden;
 }
@@ -68,7 +67,7 @@ canvas {
   position: fixed;
   top: 3.5%;
   left: 1.5%;
-  color: grey;
+  color: rgba(225,225,225);
   font-weight: normal;
 }
 
@@ -76,6 +75,7 @@ canvas {
   background-color: #848386;
   border: none;  
    border-radius: 50%;
+   visibility: hidden;
 
    color: rgba(83, 81, 86, 0.8); 
    font-weight: thin;
@@ -178,7 +178,7 @@ input[type=text]:focus-visible {
 }
 
 #left_area > #search_engine{
-  background-color: #534f53;
+  background-color: rgb(83,79,83,0.9);
   width: 25%;
    height: 100vh;
    overflow: hidden;
@@ -192,9 +192,8 @@ input[type=text]:focus-visible {
   overflow-y: scroll;
   overflow-x: hidden;
   padding-bottom: 25vh;
-  box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;
+ box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;
   border:  2px solid rgb(83,79,83,0.75);
-=
 }
 
 
@@ -285,21 +284,28 @@ a:hover {
 }
 
 #data_section #symbol{
-  margin-top: 2vh;
   color: whitesmoke;
   display: inline;
   font-size: 1.5em;
   text-transform: uppercase;
-  margin-right: 1vw;
+   margin: 1vw;
+ 
 
 }
 #data_section > div[id^='element_'] {
-
-  margin: 2vh 0;
+  padding-top: 2.5vh;
+  border-top:1px solid rgba(250,250,250,0.6);
+  margin: 0 ;
    position: relative;
   left: 5%;
+  width: 21vw;
+  height: 12.5vh;
+
 
 }
+ div[id^='element_'] > *{
+  pointer-events: none;
+ }
 
 #data_section #exchange_market_symbol{
   color: #717176;
@@ -312,23 +318,109 @@ a:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
+  top: 10%;
   left: 5%;
+;
 }
-#data_section hr{
-      width: 90%;
-    height: 1px;
-    margin: 0 auto;
-    border: none;
-    background: rgba(250,250,250,0.6);
+
+#starting_buttons > div{
+padding-top: 2.5vh;
+  border:1px solid rgba(250,250,250,0.6);
+  border-radius: 10px;
+  margin: 0;
+  margin-top: 1.5vh;
+  margin-bottom: 4vh;
+  width: 21vw;
+  height: 15vh;
+    position: relative;
+left: 1vw;
+top: 2vh;
+
+  
+}
+#stock_market_button {
+
+  background: linear-gradient(90deg,#0000 33%,whitesmoke 50%,#0000 66%) rgba(220,220,220,0.9);
+
+  background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+}
+@keyframes moving{
+  from{
+    background-position: right;
+  }to{
+    background-position: left;
+  }
 
 }
+#stock_market_button > h2{
+ background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+  background-image: radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 35%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 99%, #5d4a1f 100%);
+  position: absolute;
+  left: 1.75vw;
+  top: -0.25vh;
+}
+#stock_market_button > div{
+  color: rgba(135, 135, 135, 0.95);
+  position: absolute;
+  top: 10vh;
+  left: 1.75vw;
+
+}
+#watch_list{
+   background: linear-gradient(90deg,#0000 33%,white  50%,#0000 66%) #d3d3d3 ;
+
+  background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+}
+#watch_list > h2{
+  position: absolute;
+  left: 1.75vw;
+  top: 3vh;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+
+}
+#simulator > h2{
+    position: absolute;
+  left: 1.75vw;
+  top: 3vh;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+
+
+}
+#simulator{
+  background: linear-gradient(90deg,#0000 33%,rgba(240,240,240,0.8) 50%,#0000 66%) rgba(220,220,220,0.9);
+   background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+
+}
+
 #data_section #current_price{
-  position: relative;
-    left: 70%;
-    top: -6%;
+    position: relative;
+    right: -80%;
+    top: -30%;
     color: white;
 }
 
+#data_section > #header{
+  color: white;
+  position: relative;
+  left: 5%
+
+}
+.active{
+  background-color:rgba(127, 128, 133, 0.95);
+  border-radius: 10px;
+}
 
 
 
