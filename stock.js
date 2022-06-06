@@ -86,14 +86,12 @@ return a -b
 const extra_list = []
 if(my_watched_list.length > 0){
 my_watched_list.forEach((i,index)=>{
-  console.log(i.data_section['0'],value)
   if(i.data_section['0'].startsWith(value) || i.data_section['1'].toUpperCase().indexOf(value) > -1)
     extra_list.push(index)
 
 })
 
 }
-console.log(extra_list)
 
 create_sections(list,true,extra_list)
 }
@@ -128,7 +126,7 @@ function fetchData(symbol, range) {
   //apikey=136fb4fa07e6ac6ae9a246d24029dfbc
   //apikey=ee684c5f9b04a3e914f9e39630f0f929
 
-  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=136fb4fa07e6ac6ae9a246d24029dfbc`)
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
     .then(res => res.json())
 
 }
@@ -374,10 +372,7 @@ function create_sections(data,isSearch,watch_list){
   if(!watch_list) watch_list = my_watched_list.map((i,index)=>{
     return index;
   })
-     console.log(my_watched_list)
-    console.log(watch_list)
      watch_list.forEach(i=>{
-      console.log(i)
       data_section.innerHTML +=`
       <div id='element_${my_watched_list[i].index}'>
     <div id='symbol'>${my_watched_list[i].data_section['0']}</div>
@@ -763,11 +758,11 @@ function create_chart() {
       
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
 
-     /* if (left_position.toFixed(2) === pos_X.toFixed(2) ){
+      if (left_position === pos_X ){
         fire = true
         this_position_x = myChart.chartArea.left
         if(first_index) this_position_y = first_index
-      }else  fire = false*/
+      }else  fire = false
 
       context.beginPath()
       context.strokeStyle = (!isMouseDown ? '#52c4fa' : judge_color());
@@ -863,13 +858,10 @@ function create_chart() {
       if (current_Index === valid_data_number - 1) return;
        info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-
-      if (left_position.toFixed(2) <= pos_X.toFixed(2) ) {
+      if (left_position <= pos_X ) {
         info_price.style.left = pos_X + "px"
-        console.log(pos_X)
 
       } else if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
-        console.log(left_position)
         info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number  +"px"
       }
     }
@@ -1532,7 +1524,6 @@ document.querySelector('#add_to_watchlist').addEventListener('click',function(ev
     my_watched_list =  my_watched_list.filter(i=>i['index'] !== document.querySelector(" div[id^='element_'].active").id.split('element_')[1])
 
   }
-  console.log(my_watched_list)
 
 })
 
