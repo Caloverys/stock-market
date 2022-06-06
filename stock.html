@@ -10,12 +10,19 @@
 
 </head>
 
-<body>
+<body>  
+  <script src="https://use.fontawesome.com/523d8f4491.js"></script>
+  <script src="https://kit.fontawesome.com/44f674442e.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div id='left_area'>
 <div id='search_engine'>
+
 <input type='text' placeholder="Search...">
+<!--decimal code for html for the delete symbol X-->
+<button id='back_button' onclick='console.log("here")'><i class="fa-solid fa-angle-left"></i></button>
 <button id='deletebutton'>&times;</button>
-<i class="fa fa-search" id='search_icon'></i>
+<button id='search_icon' ><i class="fa-solid fa-magnifying-glass" ></i></button>
+
 </div>
 <div id='data_section'>
 
@@ -39,7 +46,10 @@
 <canvas id='animated_effect'></canvas>
 </div>
 <div id='parent_of_canvas'>
-  <div id='meta_element'>
+  <button id='add_to_watchlist'>+Add to Watchlist</button>_
+
+<div id='meta_element'>
+
     <div id='name'>
       <h2>Symbol</h2>
       <h4>Full Name</h4>
@@ -77,11 +87,9 @@
 <div id='customToolTip'></div>
 </div>
 </div>
-    <div id='tested' style='width:1px;height:1px;z-index:999999;background-color:red;position: absolute;top:100px;left: 1px'></div>
     <div id='info_price'></div>
 
-<script src="https://use.fontawesome.com/523d8f4491.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <!-- Chrome doesn't allow use web webworker from local file, this I have to use a script and blob to set the web worker. But after I build up the web sever, it could be put in a separate file to increase code readbility -->
 <script id='web_worker_one' type='javascript/worker'>
@@ -93,7 +101,7 @@ self.onmessage = function(e) {
 
 
 function start_fetching_data(symbol){
-  return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol.toUpperCase()}&outputsize=full&apikey=FXLQF9OPEP8ROBMD`)
+  return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol.toUpperCase()}&outputsize=full&apikey=YEKKF1VPCHPGBLE7`)
   .then(res=> res.json())
   .then(data =>{
    const all_data =data["Time Series (Daily)"]    
@@ -164,7 +172,9 @@ function start_fetching_data(symbol){
   };
 
   function fetching_symbol(){
-    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=ee684c5f9b04a3e914f9e39630f0f929")
+    //apikey=FXLQF9OPEP8ROBMD
+    //apikey=c38b723e031c88753f0c9e66f505f557
+    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
   .then(res=> res.json())
   .then(data =>{
     let symbol_list = data;
