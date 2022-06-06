@@ -28,10 +28,11 @@ body {
   z-index: 9999;
   position: absolute;
   left: 40%;
-  top: 17%;
+  top: 22.5%;
   color: #52c4fa;
   font-weight: bold;
   visibility: hidden;
+  white-space: nowrap;
 }
 
 #right_area > #parent_of_canvas {
@@ -39,6 +40,7 @@ body {
   border-radius: 10px;
 
   position: relative;
+  top: 5%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -112,6 +114,8 @@ text:last-child{
  margin-top: calc(-6.5vh);
   color: white;
   visibility: hidden;
+  white-space: nowrap;
+
 }
 
 
@@ -132,10 +136,12 @@ text:last-child{
 
 #search_engine > #search_icon {
   position: fixed;
-  top: 3.5%;
-  left: 1.5%;
-  color: rgba(225,225,225);
+  top: 3.6%;
+  left: 1.4%;
+  color: rgba(230,230,230);
   font-weight: normal;
+  border:none;
+  background:none
 }
 
  #search_engine > #deletebutton {
@@ -145,7 +151,7 @@ text:last-child{
    visibility: hidden;
 
   color: rgba(83, 81, 86, 0.8); 
-   font-weight: thin;
+   font-weight: normal;
   padding: 0;
   width: 17.5px;
   height: 17.5px;
@@ -283,7 +289,7 @@ text-transform: capitalize;
 
 .warning {
   width: 100vw;
-  height: 10vh;
+  height: 7.5vh;
   display: flex;
   align-items: center;
   z-index: 9999;
@@ -295,7 +301,7 @@ text-transform: capitalize;
   text-indent: 10px;
   position: fixed;
   bottom: 0;
-  transition: all 2s;
+  transition: all 1s;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
 }
 
@@ -511,6 +517,34 @@ top: 2vh;
   border-radius: 10px;
 }
 
+#add_to_watchlist{
+  color: white;
+  font-weight: bold;
+  position: absolute;
+  right: 5%;
+  top: -4.5%;
+  background-color: #4eacf8;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 1.1em;
+  white-space: nowrap;
+  border: none;
+}
+.has_clicked{
+  background-color: transparent !important;
+  color: #4eacf8 !important;
+  border: 2px solid #4eacf8 !important;
+}
+#back_button{
+  position: absolute;
+  left: 27%;
+  top: 1%;
+  font-size: 1.8em;
+  color:  grey;
+  border: none;
+  background: none;
+  z-index: 999;
+}
 
 
 
