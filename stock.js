@@ -100,7 +100,7 @@ const all_fetch_data = {
 }
 
 
- delete_button.addEventListener('click', (e) => {
+delete_button.addEventListener('click', (e) => {
   input.blur();
   input.value = ""
   e.target.style.visibility = 'hidden'
@@ -113,51 +113,49 @@ document.querySelector('#search_icon').addEventListener('click', () => {
 })
 
 function search_through(value){
-    let list=[]
-   const expected_first_letter =value[0]
+  const list=[[],[],[]]
   for(let i =0;i< symbol_symbol_list.length;i++){
-
-    if(symbol_symbol_list[i][0] === expected_first_letter){
-
+    //value[0] first character in search value 
+    if(symbol_symbol_list[i][0] === value[0]){
       symbol_symbol_list[i].forEach((values,index)=>{
 
         if(values.startsWith(value)){
-          let global_index = 0
-          for(let a =0;a<symbol_symbol_list.slice(0,i).length;a++) global_index += symbol_symbol_list.slice(0,i)[a].length
-          list.push(global_index+index)
+          //we need to get the index for current symbol_symbol_list[i] relative the symbol_full_list, not the index for symbol_symbol_list will not work since symbol_symbol_list is an array contains subarrays\
+
+          //use array.reduce here (prev return previosu call value and curr return call iteration value)
+          const sum_index = symbol_symbol_list.slice(0,i).reduce((prev,curr)=>{prev + curr.length},index)
+          list[0].push(sum_index)
       }
+
       })
       break
     }
 
   }
-
-     if(value.length > 1){
+    if(value.length > 1){
     for(let i =0;i< symbol_full_name_list.length;i++){
-         if( symbol_full_name_list[i].toUpperCase().indexOf(value) > -1&& !symbol_full_name_list[i].endsWith(value)){
-          list.push(i)
-        }
-      
-        
+         if(symbol_full_name_list[i].toUpperCase().indexOf(value) > -1&& !symbol_full_name_list[i].endsWith(value)){
+          list[1].push(i)
+        }      
       }
     }
 
-
- //use new Set to remove all duplicate values and sort from lowerest to greatest
-list =[...new Set(list)].sort((a,b)=>{
-return a -b
-})
-const extra_list = []
 if(my_watched_list.length > 0){
-my_watched_list.forEach((i,index)=>{
-  if(i.data_section['0'].startsWith(value) || i.data_section['1'].toUpperCase().indexOf(value) > -1)
-    extra_list.push(index)
-
+my_watched_list.forEach((data,index)=>{
+  //data.data_section['0'] => symbol of the stock
+  //data.data_section['1'] => full name of the stock
+  if(data.data_section['0'].startsWith(value) || data.data_section['1'].toUpperCase().indexOf(value) > -1)
+    list[2].push(index)
 })
 
 }
 
-create_sections(list,true,extra_list)
+//make sure the results from search array by symbol doesn't include the index in my watch_list
+list[0] = list[0].filter(i=>!list[2].includes(i))
+
+//make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
+list[1] = list[1].filter(i=>!list[2].includes(i) && !list[0].includes(i))
+create_sections(list,true)
 }
 
 input.addEventListener('keyup',(e) =>{
@@ -417,19 +415,20 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 }
 
 
-function create_sections(data,isSearch,watch_list){
+function create_sections(data,isSearch){
 
   const data_section = document.querySelector("#data_section")
    data_section.innerHTML=""
-  if(data.length === 0){
-
-  data_section.innerHTML =`
-  <h3>No result for "${input.value}" </h3>
-  `
+   //array run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
+   //data.slice(0,2) exclude the my watchList data 
+  if(data.slice(0,2).some(i=>i.length > 0)){
+  data_section.innerHTML =`<h3>No result for "${input.value}" </h3>`
      data_section.style.textAlign = 'center'
      return
    }
-     if(watch_list && watch_list.length > 0 || !isSearch && my_watched_list.length > 0){
+
+  if(watch_list && watch_list.length > 0 || !isSearch && my_watched_list.length > 0){
+
        data_section.innerHTML += `
   <h2 id='header'>My watch_list:</h2>
   `
@@ -1082,7 +1081,7 @@ function create_chart() {
           bodyColor: 'transparent',
           footerColor: 'transparent',
           callbacks: {
-            label_array: function(tooltipItem) {
+            label: function(tooltipItem) {
               current_Index = tooltipItem.dataIndex
               if(fire && first_index ) current_Index = 0
               
@@ -1100,7 +1099,6 @@ function create_chart() {
                 info_date.textContent = detail_dataset[current_Index].date
               }
 
-
               return tooltipItem;
             }
           },
@@ -1117,7 +1115,7 @@ function create_chart() {
 }
 
 
-function restore_and_fetch(time_range_name, restore_only = false, expected_content = 'Latest Price') {
+function retore_all_values(expected_content = 'Latest Price'){
   canvas.style.display = 'none'
   detail_dataset.length = 0;
   dataset.length = 0
@@ -1125,18 +1123,16 @@ function restore_and_fetch(time_range_name, restore_only = false, expected_conte
 
   //use Chart.unregister to remove the horizonalLine which shows previous price if timestamp is not '1min'
   if (timestamp !== '1min' && horizontalLine) Chart.unregister(horizontalLine);
-   
+ 
+
    const matched_element = document.querySelector('#price_name')
   if(matched_element) matched_element.innerHTML = expected_content +" (AS OF <span style='font-size:0.8em;'>"+new Date(global_time).toString().substring(4,21) + " EDT"+'</span>)'
     
   //const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-
-
   loader.style.display = "revert"
-  if (restore_only === true) return;
-
-
-
+}
+function restore_and_fetch(time_range_name,expected_content) {
+  retore_all_values(expected_content)
   if (!all_fetch_data[time_range_name]) {
     fetchData(symbol, timestamp).then(function(result) {
       all_fetch_data[time_range_name] = result
@@ -1146,7 +1142,6 @@ function restore_and_fetch(time_range_name, restore_only = false, expected_conte
 
     })
   } else {
-
     raw_data = filter_data(all_fetch_data[time_range_name], parseInt(timestamp))
     format_data(difference_time)
     create_chart()
@@ -1214,8 +1209,6 @@ function assign_web_worker_two(){
 
       else if(isNaN(retrieved_data[0]) && retrieved_data[0].length > 0) symbol_full_name_list = retrieved_data
 
-
-    
       else if(!isNaN(retrieved_data[0])) symbol_price_list =  retrieved_data
 
       else if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
@@ -1330,7 +1323,7 @@ function setup(index){
     document.querySelector('#starting').style.display = 'none'
     parent_of_canvas.style.display = 'revert'
 
-    restore_and_fetch('',true,"At Close")
+    retore_all_values("At Close")
     symbol = symbol_full_list[index]["0"]
 
     assign_web_worker_one(symbol)
@@ -1409,7 +1402,7 @@ font-size:0.8em`
 
   warning.querySelector('.resize_button').addEventListener('click', function() {
 
-    restore_and_fetch("", true)
+    retore_all_values()
     if (timestamp) {
       raw_data = filter_data(all_fetch_data[variable_name], parseInt(timestamp))
       format_data(difference_time)
@@ -1423,19 +1416,19 @@ font-size:0.8em`
 
 })
 
+
+
 document.querySelector('#one_day').addEventListener('click', function() {
   timestamp = '1min'
   difference_time = 0;
   variable_name = "one_day"
-
-  restore_and_fetch(variable_name, false, "At Close")
+  restore_and_fetch(variable_name, "At Close")
 })
 
 document.querySelector('#one_week').addEventListener('click', function() {
   timestamp = '5min'
   difference_time = 7
   variable_name = 'one_week'
-
   restore_and_fetch(variable_name)
 })
 
@@ -1444,7 +1437,6 @@ document.querySelector('#one_month').addEventListener('click', function() {
   difference_time = 30
   variable_name = 'one_month'
   restore_and_fetch(variable_name)
-
 })
 
 document.querySelector('#two_month').addEventListener('click', function() {
@@ -1456,121 +1448,49 @@ document.querySelector('#two_month').addEventListener('click', function() {
   restore_and_fetch(variable_name)
 })
 
-document.querySelector('#three_month').addEventListener('click', function(event) {
-  restore_and_fetch("", true)
+
+function buttons_click_function(difference,event,parameters){
+  retore_all_values()
   timestamp = false;
-  difference = 3
   variable_name = 'all_data'
-  parameter_list = [difference, false, 0]
+  parameter_list = parameters || [difference, false, 0];
   if (isWaiting_one) {
     loader.style.display = 'revert'
     button_being_clicked = event.target
     return
   }
-
   raw_data = all_fetch_data[variable_name]
   format_data_two(...parameter_list)
   create_chart()
+}
 
 
-
+document.querySelector('#three_month').addEventListener('click', function(event){
+  buttons_click_function(3,event)
 })
+
 document.querySelector("#six_month").addEventListener('click', function(event) {
-  restore_and_fetch("", true)
-  timestamp = false
-  variable_name = 'all_data'
-  difference = 6;
-  parameter_list = [difference, false, 0]
-  if (isWaiting_one) {
-    button_being_clicked = event.target
-    return
-  }
-
-  raw_data = all_fetch_data[variable_name]
-  format_data_two(...parameter_list)
-  create_chart()
-
+buttons_click_function(6,event)
 })
-document.querySelector('#one_year').addEventListener('click', function(event) {
-  restore_and_fetch("", true)
-  timestamp = false
-  variable_name = 'all_data'
-  difference = 2;
-  parameter_list = [difference, true, 2, 2]
-  if (isWaiting_one) {
-    button_being_clicked = event.target
-    return
-  }
 
-  raw_data = all_fetch_data[variable_name]
-  format_data_two(...parameter_list)
-  create_chart()
+document.querySelector('#one_year').addEventListener('click', function(event) {
+buttons_click_function(2,event,...[difference, true, 2, 2])
 })
 
 document.querySelector('#two_year').addEventListener('click', function(event) {
-  restore_and_fetch("", true)
-  timestamp = false
-  variable_name = 'all_data'
-  difference = 2;
-  parameter_list = [difference, true, 4, 3]
-  if (isWaiting_one) {
-    button_being_clicked = event.target
-    return;
-  }
-
-  raw_data = all_fetch_data[variable_name]
-  format_data_two(...parameter_list)
-  create_chart()
-
+  buttons_click_function(2,event,...[difference, true, 4, 3])
 })
+
 document.querySelector('#five_year').addEventListener('click', function(event) {
-  restore_and_fetch("", true)
-  timestamp = false
-  variable_name = 'all_data'
-  difference = 5;
-  parameter_list = [difference, true, 0, 10, true]
-  if (isWaiting_one) {
-    button_being_clicked = event.target
-    return;
-  }
-  raw_data = all_fetch_data[variable_name]
-  format_data_two(...parameter_list)
-  create_chart()
-
-
+  buttons_click_function(5,event,...[difference, true, 0, 10, true])
 })
 
 document.querySelector("#ten_year").addEventListener("click", function(event) {
-  restore_and_fetch("", true)
-
-  timestamp = false
-  variable_name = 'all_data'
-  difference = 10;
-  parameter_list = [difference, true, 2, 20, true]
-  if (isWaiting_one) {
-    button_being_clicked = event.target
-    return;
-  }
-
-  raw_data = all_fetch_data[variable_name]
-  format_data_two(...parameter_list)
-  create_chart()
-
+  buttons_click_function(10,event,...[difference, true, 2, 20, true])
 })
 
 document.querySelector('#all_time').addEventListener('click', function() {
-  restore_and_fetch("", true)
-  timestamp = false
-  variable_name = 'all_data'
-  difference = null;
-  parameter_list = [difference, true, 3, 30, true]
-  if (isWaiting_one) {
-    button_being_clicked = event.target
-    return;
-  }
-  raw_data = all_fetch_data[variable_name]
-  format_data_two(...parameter_list)
-  create_chart()
+  buttons_click_function(null,event,...[difference, true, 3, 30, true])
 })
 
 
@@ -1579,6 +1499,7 @@ document.querySelector('#add_to_watchlist').addEventListener('click',function(ev
   if(!event.target.classList.contains('has_clicked')){
     event.target.classList.add('has_clicked')
     event.target.innerHTML = '&#10004;Added'
+
     //select item with id starts with element_ and with class name active
     const index_of_stock =document.querySelector(" div[id^='element_'].active").id.split('element_')[1]
     my_watched_list.push({
@@ -1586,6 +1507,7 @@ document.querySelector('#add_to_watchlist').addEventListener('click',function(ev
       data_section:symbol_full_list[index_of_stock],
       date_added: global_time.toString().substring(4,24)
     })
+
   }else{
     event.target.classList.remove('has_clicked')
      event.target.textContent = '+Add to Watchlist'
@@ -1599,9 +1521,9 @@ document.querySelector('#back_button').addEventListener("click",function(){
   load_main_page()
 })
 
-    window.addEventListener('beforeunload', function(e) {
-      localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
-    })
+window.addEventListener('beforeunload', function(e) {
+  localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
+})
 
 
 
