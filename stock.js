@@ -10,22 +10,86 @@ const context = canvas.getContext('2d')
 ,loader = document.querySelector('.loader')
 ,my_watched_button = document.querySelector('#add_to_watchlist')
 , delete_button = document.querySelector('#deletebutton')
+
+//the index of raw_data that the user is hovering at
 let current_Index = 0
-let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp,  isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY,symbol, horizonalLinePlugin;
-let [isVisible, isWaiting_one,isWaiting_two,isWaiting_three] = [true, true,false,false]
-let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list,symbol_full_name_list] = [
-  [],
-  [],
-  [],
-  [],
-  [],
-  []
-]
+
+//max and min value existed in the selected time 
+let max_value, min_value;
+
+//Array contains the orginial data retrieved from the API 
+let raw_data;
+
+//date object contains the global time in EDT timezone 
+let global_time;
+
+//Contains the current ClientX value
+let clientX;
+
+//Contains the date (time) for newest data retreieved from website
+let date_latest;
+
+//Contains the stock price chart object 
+let myChart;
+
+//Boolean value return from function isInCanvas to check if mouse position is inside the chart or not
+let isInsideChart;
+
+//Contain the number of data that being retrieved from API before the fill_label_array_ function fire for 1 day or 1 week
+let valid_data_number;
+
+//Specific timestamp for retrieving data from APi
+let timestamp;
+
+//A boolean value return by mousedown to determine whether mouse is down 
+let isMouseDown;
+
+//the difference time need to be minus from the user's using date (e.g for one_day range, difference_time is 0, but for 1_week range, difference time is 7)
+//This only applies on time range less than or equal to 2 months
+let difference_time;
+
+//The variable name for getting data from all_fetch_data object (e.g. "one_day")
+let variable_name;
+
+//The id of the range button that being clicked (e.g "#one_day")
+let button_being_clicked;
+
+//The array contains the parameter to call the format_data_two function
+let parameter_list;
+
+//The symbol of the stock that the application will fetch
+let symbol;
+
+//The horizontal line that display previous value (for 1 day range only)
+let horizontalLine;
+
+//Return Boolean value that indicates whether the vertical line drawn by the hover event existed (visible)
+let isVisible = true;
 
 
+//Boolean value to check if user is waiting for the data (will be true if user click the button before the data about a specific data loaded)
+let isWaiting_one = true;
+
+//Boolean value to indicate if user is waiting for all stock symbols data (will be true if user click the stock_market button before all stock symbols data loaded)
+let isWaiting_two = false
+
+//Boolean value to indicate if user is waiting for all stock symbols data (will be true if user types something in the search engine before all stock symbols data loaded)
+let isWaiting_three = false;
+
+//label_array contains the x-axis label value for each data
+//grid_color_array contains the color for every vertical gridline for each data
+//symbol_full_list => an array contains objects that have the full data return by the API
+//symbol_price_list => an array contains all price values of stocks
+//symbol_symbol_list => an array contains array with all stocks symbol (each subarray is separating by first character e.g. symbol_symbol_list[0] contains all the symbol starts with a )
+//symbol_full_name_list => an array contains all full name of all stocks 
+let [label_array, grid_color_array,symbol_full_list,symbol_price_list,symbol_symbol_list,symbol_full_name_list] = new Array(6).fill([])
+
+//Try to get watch_list from localStorage, if there is no data, declared as []
 let my_watched_list =JSON.parse(localStorage.getItem('my_watched_list'))
 if(!my_watched_list) my_watched_list = []
-let all_fetch_data = {
+
+
+const all_fetch_data = {
   "one_day": null,
   "one_week": null,
   "one_month": null,
@@ -51,15 +115,15 @@ document.querySelector('#search_icon').addEventListener('click', () => {
 function search_through(value){
     let list=[]
    const expected_first_letter =value[0]
-  for(let i =0;i< symbol_name_list.length;i++){
+  for(let i =0;i< symbol_symbol_list.length;i++){
 
-    if(symbol_name_list[i][0] === expected_first_letter){
+    if(symbol_symbol_list[i][0] === expected_first_letter){
 
-      symbol_name_list[i].forEach((values,index)=>{
+      symbol_symbol_list[i].forEach((values,index)=>{
 
         if(values.startsWith(value)){
           let global_index = 0
-          for(let a =0;a<symbol_name_list.slice(0,i).length;a++) global_index += symbol_name_list.slice(0,i)[a].length
+          for(let a =0;a<symbol_symbol_list.slice(0,i).length;a++) global_index += symbol_symbol_list.slice(0,i)[a].length
           list.push(global_index+index)
       }
       })
@@ -132,9 +196,8 @@ function fetchData(symbol, range) {
 }
 //only screenX works here, clientX doesn't work expected.
 document.body.addEventListener('mousemove', e => {
-  isInsideCanvas = isInCanvas(e.clientX, e.clientY)
-  if (isInsideCanvas && isVisible) {
-     clientY =e.clientY
+  isInsideChart = isInCanvas(e.clientX, e.clientY)
+  if (isInsideChart && isVisible) {
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
@@ -158,7 +221,7 @@ function isInCanvas(posX, posY) {
 
 }
 canvas.addEventListener('mousedown', function(e) {
-  if (!isInsideCanvas) return;
+  if (!isInsideChart) return;
   isMouseDown = true;
 
 
@@ -173,8 +236,9 @@ function format_date(dateobject) {
 
 
 function format_data(difference) {
-
+   console.log(raw_data)
   date_latest = format_date(raw_data[raw_data.length - 1].date)
+
   const expected_end_date = (timestamp === '1min' ? new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 9, 30) : new Date(global_time.getFullYear(), global_time.getMonth(), global_time.getDate() - difference, 9, 30))
 
 
@@ -184,54 +248,54 @@ function format_data(difference) {
 
     if (this.newdate >= expected_end_date) {
 
-      label.push(this.newdate)
+      label_array.push(this.newdate)
       detail_dataset.push(item)
       dataset.push(item.close.toFixed(2))
     }
   })
 
 
-  valid_data_number = label.length
+  valid_data_number = label_array.length
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
   if (timestamp === '1min') {
-    label = label.map(i => new Date(i).getHours())
+    label_array = label_array.map(i => new Date(i).getHours())
 
   if (return_market_status()) fill_label_array_1min()
    
-    label = label.map(i => i + (i < 12 ? 'am' : 'pm'))
-    grid_color = Array(label.length).fill("transparent")
+    label_array = label_array.map(i => i + (i < 12 ? 'am' : 'pm'))
+    grid_color_array = Array(label_array.length).fill("transparent")
 
-    for (let i = 30 / range; i < label.length; i += 60 / range) grid_color[i] = "rgba(255,255,255,0.4)"
+    for (let i = 30 / range; i < label_array.length; i += 60 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
   
 
   } else if (timestamp === "5min") {
-    label = label.map(i => new Date(i).getDate())
+    label_array = label_array.map(i => new Date(i).getDate())
     fill_label_array_5min()
 
-    grid_color = Array(label.length).fill("transparent")
+    grid_color_array = Array(label_array.length).fill("transparent")
 
-    for (let i = 0; i < label.length; i += Math.ceil(79 / range)) grid_color[i] = "rgba(255,255,255,0.4)"
+    for (let i = 0; i < label_array.length; i += Math.ceil(79 / range)) grid_color_array[i] = "rgba(255,255,255,0.4)"
 
 
   } else if (timestamp === "30min") {
-    let startingDate = new Date(label[0]).getDate()
-    label = label.map(i => {
+    let startingDate = new Date(label_array[0]).getDate()
+    label_array = label_array.map(i => {
       const label_date = new Date(i).getDate()
       if (label_date >= startingDate + 7) startingDate = label_date
       return startingDate
     })
-    grid_color = Array(label.length).fill("transparent");
-    for (let i = 0; i < label.length; i += 70 / range) grid_color[i] = "rgba(255,255,255,0.4)"
+    grid_color_array = Array(label_array.length).fill("transparent");
+    for (let i = 0; i < label_array.length; i += 70 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
 
 
   } else if (timestamp === '1hour') {
     //Use internationalization API to convert number of month to full name (e.g. 0=> January)
-    let currentMonth = new Date(label[0]).toLocaleString("default", {
+    let currentMonth = new Date(label_array[0]).toLocaleString("default", {
       month: 'long'
     });
     const passed_range = [];
-    label = label.map((i, index) => {
+    label_array = label_array.map((i, index) => {
       const label_month = new Date(i).toLocaleString("default", {
         month: 'long'
       });
@@ -242,23 +306,23 @@ function format_data(difference) {
       return label_month
 
     })
-    grid_color = Array(label.length).fill("transparent");
+    grid_color_array = Array(label_array.length).fill("transparent");
     //Sometimes there will not be enough (three) labels, so we could push the start month as well.
     if (passed_range.length < 3) passed_range.unshift(0)
 
-    for (let i = 0; i < label.length; i++) {
+    for (let i = 0; i < label_array.length; i++) {
       if (passed_range.includes(i))
-        grid_color[i] = "rgba(255,255,255,0.4)"
+        grid_color_array[i] = "rgba(255,255,255,0.4)"
     }
   }
-    grid_color[grid_color.length - 1] = "rgba(255,255,255,0.4)"
+    grid_color_array[grid_color_array.length - 1] = "rgba(255,255,255,0.4)"
   }
 
 
 
 
 function format_data_two(difference, isYear, filter_value, filter_data_range = 1, label_by_year) {
-  Chart.unregister(horizonalLinePlugin);
+  Chart.unregister(horizontalLine);
   dataset.length = 0
   const lastest_date = new Date(all_fetch_data['all_data'][all_fetch_data['all_data'].length - 1].date)
   const oldest_date = (!isYear ? new Date(lastest_date.getFullYear(), lastest_date.getMonth() - difference, lastest_date.getDate(), 23, 59) : new Date(lastest_date.getFullYear() - difference, lastest_date.getMonth(), lastest_date.getDate(), 23, 59))
@@ -282,13 +346,13 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
       current_date = new Date(current_date.setHours(current_date.getHours() + 4))
       if (difference) {
         if (current_date >= oldest_date) {
-          label.push(current_date)
+          label_array.push(current_date)
           detail_dataset.push(item)
           dataset.push(item.price.toFixed(2))
         }
 
       } else {
-        label.push(new Date(current_date.setHours(current_date.getHours() + 4)))
+        label_array.push(new Date(current_date.setHours(current_date.getHours() + 4)))
         detail_dataset.push(item)
         dataset.push(item.price.toFixed(2))
       }
@@ -298,18 +362,18 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 })
 
 
-  valid_data_number = label.length
+  valid_data_number = label_array.length
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
-  grid_color = Array(valid_data_number).fill('transparent')
+  grid_color_array = Array(valid_data_number).fill('transparent')
 
   let passed_value = [0];
 
   if (!label_by_year) {
-    let currentMonth = new Date(label[0]).toLocaleString("default", {
+    let currentMonth = new Date(label_array[0]).toLocaleString("default", {
       month: 'long'
     });
-    label = label.map((i, index) => {
+    label_array = label_array.map((i, index) => {
       const label_month = new Date(i).toLocaleString("default", {
         month: 'long'
       });
@@ -322,8 +386,8 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
     })
 
   } else {
-    let currentYear = new Date(label[0]).getFullYear()
-    label = label.map((i, index) => {
+    let currentYear = new Date(label_array[0]).getFullYear()
+    label_array = label_array.map((i, index) => {
       const label_year = new Date(i).getFullYear()
 
       if (label_year !== currentYear) {
@@ -342,12 +406,12 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
     return index % filter_value === 0
   })
 
-  for (let i = 0; i < label.length; i++) {
+  for (let i = 0; i < label_array.length; i++) {
     if (passed_value.includes(i))
-      grid_color[i] = "rgba(255,255,255,0.4)"
+      grid_color_array[i] = "rgba(255,255,255,0.4)"
   }
 
-  grid_color[grid_color.length - 1] = "rgba(255,255,255,0.4)"
+  grid_color_array[grid_color_array.length - 1] = "rgba(255,255,255,0.4)"
 
 
 }
@@ -518,7 +582,7 @@ const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue
       x: {
         type: 'linear',
          ticks: {
-          //only disable the x-axis label from showing 
+          //only disable the x-axis label_array from showing 
                   display: false 
                 },
                 grid:{
@@ -528,7 +592,7 @@ const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue
       },
       y:{
         ticks: {
-                    //only disable the y-axis label from showing 
+                    //only disable the y-axis label_array from showing 
                     display: false 
                 },
                 grid:{
@@ -579,7 +643,7 @@ function fill_label_array_5min() {
 
   const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 16, 0)
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60 / 5
-  label.push.apply(label, Array(Math.ceil(amountToAdd / range)).fill(expectedDate.getDate()))
+  label_array.push.apply(label_array, Array(Math.ceil(amountToAdd / range)).fill(expectedDate.getDate()))
 
 }
 
@@ -591,12 +655,12 @@ function fill_label_array_1min() {
 
   //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
   //first fill the label_array to full hour (60 min)
-  label.push.apply(label, Array(Math.floor((59 - date_latest.getMinutes()) / range)).fill(date_latest.getHours()))
+  label_array.push.apply(label_array, Array(Math.floor((59 - date_latest.getMinutes()) / range)).fill(date_latest.getHours()))
 
-  for (let i = date_latest.getHours()+1; i < 16; i++) label.push.apply(label, Array(60 / range).fill(i))
+  for (let i = date_latest.getHours()+1; i < 16; i++) label_array.push.apply(label_array, Array(60 / range).fill(i))
 
   //at last 16:00
-  label.push(16)
+  label_array.push(16)
 
 }
 
@@ -739,7 +803,7 @@ function create_chart() {
     id: 'annotationline',
 
     afterDraw: function(chart) {
-      if (!chart.tooltip._active.length || !isInsideCanvas) {
+      if (!chart.tooltip._active.length || !isInsideChart) {
         info_price.style.visibility = 'hidden'
         info_date.style.visibility = 'hidden'
         isVisible = false;
@@ -851,8 +915,8 @@ function create_chart() {
 
       info_price.style.visibility = 'visible'
       info_date.style.visibility = 'visible'
-      if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
-        info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number + "px"
+      if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
+        info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
       }
  
 
@@ -863,15 +927,15 @@ function create_chart() {
       if (left_position <= pos_X ) {
         info_price.style.left = pos_X + "px"
 
-      } else if (left_position >= pos_X + myChart.chartArea.width / label.length * valid_data_number) {
-        info_price.style.left = pos_X + myChart.chartArea.width / label.length * valid_data_number  +"px"
+      } else if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
+        info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number  +"px"
       }
     }
 
   }
 
 
-   horizonalLinePlugin = {
+   horizontalLine = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
 
@@ -910,16 +974,16 @@ function create_chart() {
 
   };
 
-  if (timestamp === "1min") Chart.register(horizonalLinePlugin);
+  if (timestamp === "1min") Chart.register(horizontalLine);
   //if previous chart existed, clear it and redraw new chart
   if (myChart) myChart.destroy();;
 
   myChart = new Chart(context, {
     type: 'line',
     data: {
-      xLabels: label,
+      xLabels: label_array,
       datasets: [{
-        label: 'stock price',
+        label_array: 'stock price',
         data: dataset,
         fill: true,
         backgroundColor: return_linearGarident(),
@@ -985,21 +1049,21 @@ function create_chart() {
 
         x: {
           grid: {
-            color: grid_color,
+            color: grid_color_array,
             borderColor: "rgba(255,255,255,0.65)",
             borderWidth: 2.5
           },
           ticks: {
-            //get number of unqiue item in y label
-            maxTicksLimit: label.length,
+            //get number of unqiue item in y label_array
+            maxTicksLimit: label_array.length,
             color: 'rgba(255,255,255,0.75)',
             font: {
               size: window.innerWidth / 100 * 1.5
             },
             callback: function(value, index, values) {
-              if (timestamp !== "1min" && index === label.length - 1) return "";
+              if (timestamp !== "1min" && index === label_array.length - 1) return "";
 
-              return grid_color[index] !== "transparent" ? this.getLabelForValue(value) : ""
+              return grid_color_array[index] !== "transparent" ? this.getLabelForValue(value) : ""
 
             }
           }
@@ -1018,7 +1082,7 @@ function create_chart() {
           bodyColor: 'transparent',
           footerColor: 'transparent',
           callbacks: {
-            label: function(tooltipItem) {
+            label_array: function(tooltipItem) {
               current_Index = tooltipItem.dataIndex
               if(fire && first_index ) current_Index = 0
               
@@ -1057,10 +1121,10 @@ function restore_and_fetch(time_range_name, restore_only = false, expected_conte
   canvas.style.display = 'none'
   detail_dataset.length = 0;
   dataset.length = 0
-  label.length = 0;
+  label_array.length = 0;
 
   //use Chart.unregister to remove the horizonalLine which shows previous price if timestamp is not '1min'
-  if (timestamp !== '1min' && horizonalLinePlugin) Chart.unregister(horizonalLinePlugin);
+  if (timestamp !== '1min' && horizontalLine) Chart.unregister(horizontalLine);
    
    const matched_element = document.querySelector('#price_name')
   if(matched_element) matched_element.innerHTML = expected_content +" (AS OF <span style='font-size:0.8em;'>"+new Date(global_time).toString().substring(4,21) + " EDT"+'</span>)'
@@ -1146,7 +1210,7 @@ function assign_web_worker_two(){
     //check the type of the return data to determine which list it should go to
     //altough check if item is object includes array, function and null
     const retrieved_data = JSON.parse(e.data)
-     if(Array.isArray(retrieved_data[0])) symbol_name_list =  retrieved_data
+     if(Array.isArray(retrieved_data[0])) symbol_symbol_list =  retrieved_data
 
       else if(isNaN(retrieved_data[0]) && retrieved_data[0].length > 0) symbol_full_name_list = retrieved_data
 
@@ -1156,7 +1220,7 @@ function assign_web_worker_two(){
 
       else if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
        
-      if(symbol_price_list.length > 0 && symbol_name_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0){
+      if(symbol_price_list.length > 0 && symbol_symbol_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0){
         if(isWaiting_two) 
         create_sections(symbol_full_name_list,false)
       else if(isWaiting_three)
@@ -1274,10 +1338,12 @@ function setup(index){
     timestamp = "1min"
     //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
     difference_time = 0
+    console.log(symbol, timestamp)
      Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
 
   
     all_fetch_data[variable_name] = values[1]
+    console.log(values[1])
 
 
     raw_data = filter_data(values[1], parseInt(timestamp))
