@@ -11,7 +11,7 @@ const context = canvas.getContext('2d')
 ,my_watched_button = document.querySelector('#add_to_watchlist')
 , delete_button = document.querySelector('#deletebutton')
 let current_Index = 0
-let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp, closed_price, isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY,symbol, horizonalLinePlugin;
+let max_value, min_value, raw_data, global_time, clientX, date_latest, myChart, isInsideCanvas, valid_data_number, timestamp,  isMouseDown, difference_time, variable_name, button_being_clicked, parameter_list,clientY,symbol, horizonalLinePlugin;
 let [isVisible, isWaiting_one,isWaiting_two,isWaiting_three] = [true, true,false,false]
 let [label, grid_color,symbol_full_list,symbol_price_list,symbol_name_list,symbol_full_name_list] = [
   [],
@@ -600,12 +600,14 @@ function fill_label_array_1min() {
 
 }
 
-
+let closed_price = null
 function find_closed_price() {
   if (!closed_price) {
     for (let i = raw_data.length - 1; i >= 0; i--) {
-      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate())
+      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate()){
+        closed_price = raw_data[i].close
         return raw_data[i].close;
+      }
     }
   }
   return closed_price
