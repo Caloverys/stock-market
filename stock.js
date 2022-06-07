@@ -104,7 +104,7 @@ delete_button.addEventListener('click', (e) => {
   input.blur();
   input.value = ""
   e.target.style.visibility = 'hidden'
-  create_sections(symbol_full_name_list,false)
+  create_sections(symbol_full_name_list)
 
 })
 
@@ -149,13 +149,15 @@ my_watched_list.forEach((data,index)=>{
 })
 
 }
-
+console.log(list)
 //make sure the results from search array by symbol doesn't include the index in my watch_list
 list[0] = list[0].filter(i=>!list[2].includes(i))
 
 //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
 list[1] = list[1].filter(i=>!list[2].includes(i) && !list[0].includes(i))
-create_sections(list,true)
+
+console.log(list)
+create_sections(list)
 }
 
 input.addEventListener('keyup',(e) =>{
@@ -180,7 +182,6 @@ input.addEventListener('keyup',(e) =>{
  
 
 })
-
 
 
 function fetchData(symbol, range) {
@@ -414,86 +415,100 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 }
 
-
-function create_sections(data,isSearch){
-
-  const data_section = document.querySelector("#data_section")
-   data_section.innerHTML=""
-   //array run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
-   //data.slice(0,2) exclude the my watchList data 
-  if(data.slice(0,2).some(i=>i.length > 0)){
-  data_section.innerHTML =`<h3>No result for "${input.value}" </h3>`
-     data_section.style.textAlign = 'center'
-     return
-   }
-
-  if(watch_list && watch_list.length > 0 || !isSearch && my_watched_list.length > 0){
-
-       data_section.innerHTML += `
+function create_watch_list_section(display_array){
+  if(!display_array) return;
+   data_section.innerHTML += `
   <h2 id='header'>My watch_list:</h2>
   `
-  if(!watch_list) watch_list = my_watched_list.map((i,index)=>{
-    return index;
-  })
-     watch_list.forEach(i=>{
-      data_section.innerHTML +=`
-      <div id='element_${my_watched_list[i].index}'>
-    <div id='symbol'>${my_watched_list[i].data_section['0']}</div>
-    <span id='exchange_market_symbol'>${my_watched_list[i].data_section["4"]}</span>
-    <div id='company_name'>${my_watched_list[i].data_section["1"]}</div>
-    <div id='current_price'>${my_watched_list[i].data_section["2"].toFixed(2)}</div>
-    </div>
+   display_array.forEach(i=>{
+data_section.innerHTML += `
+<div id='element_${my_watched_list[i].index}'>
+  <div id='symbol'>${my_watched_list[i].data_section['0']}</div>
+  <span id='exchange_market_symbol'>${my_watched_list[i].data_section["4"]}</span>
+  <div id='company_name'>${my_watched_list[i].data_section["1"]}</div>
+  <div id='current_price'>${my_watched_list[i].data_section["2"].toFixed(2)}</div>
+</div>
      `
-     })
+   })
 
-  }
+}
 
- 
-
-data_section.style.textAlign = 'left'
-
+function search_or_recommand_section(data,isSearch){
   data_section.innerHTML += `
-  <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>
-  `
-  //The list contains 15 random non-repeating choosed index for data that going to be displayed
-  let display_list = []
-  //The list contains others indexes that are not chosen which will be used if user later clicked the load_more button
-  const rest_list = data.slice()
-if(data.length > 15){
-  while(display_list.length<15){
+  <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
+  const display_list = [];
+  console.log(isSearch)
+ 
+  if(!isSearch){ 
+    //The list contains 15 random non-repeating choosed index for data that going to be displayed
+    console.log(data)
+     let rest_list = data.slice()
+    while(display_list.length<15){
     const selected_index = Math.floor(Math.random()*rest_list.length)
   if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-   display_list.push(isSearch ? rest_list[selected_index] : selected_index)
-    rest_list.splice(selected_index,1)
-   
+   display_list.push(symbol_full_list[selected_index])
+   rest_list.splice(selected_index,1)
+
   }
 }
-else display_list = data.slice()
+  else{
+  let has_been_given = false
+  let rest_list = data[0].slice()
+  while(display_list.length<15 && rest_list.length > 0){
+    //if(rest_list.length === 0) rest_list = data[1].slice()
+  const selected_index = Math.floor(Math.random()*rest_list.length)
+console.log(rest_list,symbol_full_list,selected_index)
+  if(symbol_full_list[selected_index]["2"] < 100 ) continue;
+   display_list.push(symbol_full_list[rest_list[selected_index]]) 
+    rest_list.splice(selected_index,1)
+  }
+}
+  
+   display_list.forEach((data,index)=>{
 
-  display_list.forEach((i,index)=>{
-    const current_data = symbol_full_list[i];
 
     data_section.innerHTML+=`
-    <div id='element_${i}'>
-    <div id='symbol'>${current_data['0']}</div>
-    <span id='exchange_market_symbol'>${current_data["4"]}</span>
-    <div id='company_name'>${current_data["1"]}</div>
-    <div id='current_price'>${current_data["2"].toFixed(2)}</div>
+    <div id='element_${index}'>
+    <div id='symbol'>${data['0']}</div>
+    <span id='exchange_market_symbol'>${data["4"]}</span>
+    <div id='company_name'>${data["1"]}</div>
+    <div id='current_price'>${data["2"].toFixed(2)}</div>
     </div>
     `
   })
 //use regular expression in dom here, to select any divs have id starts with element_ 
+
 document.querySelectorAll("div[id^='element_']").forEach(div=>{
 div.addEventListener('click',function(e){
-
   //remove the string and leave with number only
   const index = e.target.id.split('element_')[1]
-
   if(document.querySelector('.active')) document.querySelector('.active').classList.toggle('active')
   event.target.classList.add('active')
   setup(index)
 })
 })
+
+
+}
+
+function create_sections(data){
+  console.log(data)
+
+  const data_section = document.querySelector("#data_section")
+   data_section.innerHTML=""
+   //array run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
+   //data.slice(0,2) exclude the my watchList data 
+
+  if(Array.isArray(data[2]) && !data.slice(0,2).some(i=>i.length > 0)){
+  data_section.innerHTML =`<h3>No result for "${input.value}" </h3>`
+     data_section.style.textAlign = 'center'
+     return
+   }
+
+
+data_section.style.textAlign = 'left'
+Array.isArray(data[0]) ? search_or_recommand_section(data,true) : search_or_recommand_section(data,false)
+
 }
 
 
@@ -1215,7 +1230,7 @@ function assign_web_worker_two(){
        
       if(symbol_price_list.length > 0 && symbol_symbol_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0){
         if(isWaiting_two) 
-        create_sections(symbol_full_name_list,false)
+        create_sections(symbol_full_name_list)
       else if(isWaiting_three)
         search_through(input.value.toUpperCase())
     }
@@ -1286,7 +1301,7 @@ function load_main_page(){
        `
        isWaiting_two = true
     }else{
-      create_sections(symbol_full_name_list,false)
+      create_sections(symbol_full_name_list)
 
     } 
   })
