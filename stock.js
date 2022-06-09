@@ -1,3 +1,15 @@
+//Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
+const canvas = document.querySelector('#chart')
+const context = canvas.getContext('2d')
+, dataset = []
+, detail_dataset = []
+, info_price = document.querySelector('#info_price')
+, info_date = document.querySelector('#info_date')
+, parent_of_canvas = document.querySelector('#parent_of_canvas')
+, input = document.querySelector('input[type=text]')
+,loader = document.querySelector('.loader')
+,my_watched_button = document.querySelector('#add_to_watchlist')
+, delete_button = document.querySelector('#deletebutton')
 //the index of raw_data that the user is hovering at
 let current_Index = 0
 
