@@ -125,10 +125,11 @@ function search_through(value){
           //we need to get the index for current symbol_symbol_list[i] relative the symbol_full_list, not the index for symbol_symbol_list will not work since symbol_symbol_list is an array contains subarrays\
 
           //use array.reduce here (prev return previosu call value and curr return call iteration value)
-          const sum_index = symbol_symbol_list.slice(0,i).reduce((prev,curr)=>prev + curr.length
-          ,index)
-          console.log(sum_index)
+          console.log(index)
+          const sum_index = symbol_symbol_list.slice(0,i).reduce((prev,curr)=>prev + curr.length ,index)
+
           list[0].push(sum_index)
+          console.log(list[0])
       }        
 
       })
@@ -417,12 +418,19 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 }
 
-function create_watch_list_section(){
-  console.log('what')
+function create_watch_list_section(data,isSearch){
+  //data.length 0 means no matched result in searching my watched list, so return
+  if(isSearch && data.length === 0) return;
+   
    data_section.innerHTML += `
-  <h2 id='header'>My watch_list:</h2>
+  <h2 id='header'>My watch list:</h2>
   `
+
+  let search_result = [] 
+  //by checking if data existed to know if this is result from search or recommand
+  isSearch ? search_result = data.slice() : search_result = my_watched_list.slice()
   console.log(my_watched_list)
+search_result = 
    my_watched_list.forEach(i=>{
 data_section.innerHTML += `
 <div id='element_${i.index}'>
@@ -437,7 +445,10 @@ data_section.innerHTML += `
 }
 
 function search_or_recommand_section(data,isSearch){
-  create_watch_list_section(data)
+  data_section.innerHTML =""
+   create_watch_list_section(data[2],isSearch)
+
+
   data_section.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   const display_list = [];
@@ -449,18 +460,28 @@ function search_or_recommand_section(data,isSearch){
     while(display_list.length<15){
     const selected_index = Math.floor(Math.random()*rest_list.length)
   if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-   display_list.push(symbol_full_list[selected_index])
+   display_list.push({
+    index: selected_index,
+    data:symbol_full_list[selected_index]
+  })
    rest_list.splice(selected_index,1)
 
   }
 }
   else{
+         //use XML here to search for html tag by content
+  //const matched_element = document.evaluate(`//h2[text()='My watch list:']`,
+  // document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  //if (matched_element) matched_element.remove();
   let rest_list = data[0].slice()
   console.log(data)
   while(display_list.length<15 && rest_list.length > 0){
   const selected_index = Math.floor(Math.random()*rest_list.length)
   if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-   display_list.push(symbol_full_list[rest_list[selected_index]]) 
+  display_list.push({
+    index: selected_index,
+    data:symbol_full_list[selected_index]
+  })
     rest_list.splice(selected_index,1)
   }
   console.log(display_list)
@@ -469,7 +490,10 @@ function search_or_recommand_section(data,isSearch){
       while(display_list.length<15 && rest_list.length > 0){
   const selected_index = Math.floor(Math.random()*rest_list.length)
   if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-   display_list.push(symbol_full_list[rest_list[selected_index]]) 
+   display_list.push({
+    index: selected_index,
+    data:symbol_full_list[selected_index]
+  })
     rest_list.splice(selected_index,1)
 
   }
@@ -480,11 +504,11 @@ function search_or_recommand_section(data,isSearch){
   console.log(display_list)
 
     data_section.innerHTML+=`
-    <div id='element_${index}'>
-    <div id='symbol'>${data['0']}</div>
-    <span id='exchange_market_symbol'>${data["4"]}</span>
-    <div id='company_name'>${data["1"]}</div>
-    <div id='current_price'>${data["2"].toFixed(2)}</div>
+    <div id='element_${data.index}'>
+    <div id='symbol'>${data.data['0']}</div>
+    <span id='exchange_market_symbol'>${data.data["4"]}</span>
+    <div id='company_name'>${data.data["1"]}</div>
+    <div id='current_price'>${data.data["2"].toFixed(2)}</div>
     </div>
     `
   })
@@ -517,6 +541,7 @@ function create_sections(data){
 
 
 data_section.style.textAlign = 'left'
+
 Array.isArray(data[0]) ? search_or_recommand_section(data,true) : search_or_recommand_section(data,false)
 
 }
