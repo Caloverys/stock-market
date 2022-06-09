@@ -1,16 +1,3 @@
-//Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
-const canvas = document.querySelector('#chart')
-const context = canvas.getContext('2d')
-, dataset = []
-, detail_dataset = []
-, info_price = document.querySelector('#info_price')
-, info_date = document.querySelector('#info_date')
-, parent_of_canvas = document.querySelector('#parent_of_canvas')
-, input = document.querySelector('input[type=text]')
-,loader = document.querySelector('.loader')
-,my_watched_button = document.querySelector('#add_to_watchlist')
-, delete_button = document.querySelector('#deletebutton')
-
 //the index of raw_data that the user is hovering at
 let current_Index = 0
 
@@ -82,11 +69,11 @@ let isWaiting_three = false;
 //symbol_price_list => an array contains all price values of stocks
 //symbol_symbol_list => an array contains array with all stocks symbol (each subarray is separating by first character e.g. symbol_symbol_list[0] contains all the symbol starts with a )
 //symbol_full_name_list => an array contains all full name of all stocks 
-let [label_array, grid_color_array,symbol_full_list,symbol_price_list,symbol_symbol_list,symbol_full_name_list] = new Array(6).fill([])
+let [label_array, grid_color_array, symbol_full_list, symbol_price_list, symbol_symbol_list, symbol_full_name_list] = new Array(6).fill([])
 
 //Try to get watch_list from localStorage, if there is no data, declared as []
-let my_watched_list =JSON.parse(localStorage.getItem('my_watched_list'))
-if(!my_watched_list) my_watched_list = []
+let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'))
+if (!my_watched_list) my_watched_list = []
 
 
 const all_fetch_data = {
@@ -112,77 +99,79 @@ document.querySelector('#search_icon').addEventListener('click', () => {
   document.activeElement === input ? input.blur() : input.focus()
 })
 
-function search_through(value){
-  const list=[[],[],[]]
-  for(let i =0;i< symbol_symbol_list.length;i++){
-   
-    //symbol_symbol_list[i][0][0] => first character in the first item in symbol_symbol_list[i]
-     //value[0] => first character in search value 
-    if(symbol_symbol_list[i][0][0] === value[0]){
-      symbol_symbol_list[i].forEach((values,index)=>{
+function search_through(value) {
+  const list = [
+    [],
+    [],
+    []
+  ]
+  for (let i = 0; i < symbol_symbol_list.length; i++) {
 
-        if(values.startsWith(value)){
+    //symbol_symbol_list[i][0][0] => first character in the first item in symbol_symbol_list[i]
+    //value[0] => first character in search value 
+    if (symbol_symbol_list[i][0][0] === value[0]) {
+      symbol_symbol_list[i].forEach((values, index) => {
+
+        if (values.startsWith(value)) {
           //we need to get the index for current symbol_symbol_list[i] relative the symbol_full_list, not the index for symbol_symbol_list will not work since symbol_symbol_list is an array contains subarrays\
 
           //use array.reduce here (prev return previosu call value and curr return call iteration value)
-          console.log(index)
-          const sum_index = symbol_symbol_list.slice(0,i).reduce((prev,curr)=>prev + curr.length ,index)
+          const sum_index = symbol_symbol_list.slice(0, i).reduce((prev, curr) => prev + curr.length, index)
 
           list[0].push(sum_index)
-          console.log(list[0])
-      }        
+
+        }
 
       })
       break
     }
 
   }
-    if(value.length > 1){
-    for(let i =0;i< symbol_full_name_list.length;i++){
-         if(symbol_full_name_list[i].toUpperCase().indexOf(value) > -1 && !symbol_full_name_list[i].endsWith(value)){
-          list[1].push(i)
-        }      
+  if (value.length > 1) {
+    for (let i = 0; i < symbol_full_name_list.length; i++) {
+      if (symbol_full_name_list[i].toUpperCase().indexOf(value) > -1 && !symbol_full_name_list[i].endsWith(value)) {
+        list[1].push(i)
       }
     }
+  }
 
-if(my_watched_list.length > 0){
-my_watched_list.forEach((data,index)=>{
-  //data.data_section['0'] => symbol of the stock
-  //data.data_section['1'] => full name of the stock
-  if(data.data_section['0'].startsWith(value) || data.data_section['1'].toUpperCase().indexOf(value) > -1)
-    list[2].push(index)
-})
+  if (my_watched_list.length > 0) {
+    my_watched_list.forEach((data, index) => {
+      //data.data_section['0'] => symbol of the stock
+      //data.data_section['1'] => full name of the stock
+      if (data.data_section['0'].startsWith(value) || data.data_section['1'].toUpperCase().indexOf(value) > -1)
+        list[2].push(index)
+    })
 
+  }
+  //make sure the results from search array by symbol doesn't include the index in my watch_list
+  list[0] = list[0].filter(i => !list[2].includes(i))
+
+  //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
+  list[1] = list[1].filter(i => !list[2].includes(i) && !list[0].includes(i))
+  create_sections(list)
 }
-//make sure the results from search array by symbol doesn't include the index in my watch_list
-list[0] = list[0].filter(i=>!list[2].includes(i))
 
-//make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
-list[1] = list[1].filter(i=>!list[2].includes(i) && !list[0].includes(i))
-console.log(list)
-create_sections(list)
-}
-
-input.addEventListener('keyup',(e) =>{
+input.addEventListener('keyup', (e) => {
   //immediately return if  key is enter
   if (e.key === 'Enter' || e.keyCode === 13) return;
-   const search_value  = input.value.toUpperCase()
-  if(search_value === ""){
-     delete_button.style.visibility = 'hidden'
-     return
+  const search_value = input.value.toUpperCase()
+  if (search_value === "") {
+    delete_button.style.visibility = 'hidden'
+    return
   }
-   delete_button.style.visibility = 'visible'
-   search_through(search_value)
+  delete_button.style.visibility = 'visible'
+  search_through(search_value)
 
-  if(symbol_full_name_list.length === 0 ) {
-       document.querySelector("#data_section").innerHTML =`
+  if (symbol_full_name_list.length === 0) {
+    document.querySelector("#data_section").innerHTML = `
        <div id='loader'>
        </div>
        `
-       isWaiting_three = true
-       return
-    }
- 
+    isWaiting_three = true
+    return
+  }
+
 
 })
 
@@ -207,7 +196,7 @@ document.body.addEventListener('mousemove', e => {
   } else {
     info_price.style.visibility = 'hidden'
     info_date.style.visibility = 'hidden'
-     document.querySelectorAll('#range > button').forEach(i=>i.style.visibility = 'visible')
+    document.querySelectorAll('#range > button').forEach(i => i.style.visibility = 'visible')
   }
 
 })
@@ -232,13 +221,13 @@ canvas.addEventListener('mousedown', function(e) {
 canvas.addEventListener('mouseup', function() {
   isMouseDown = false;
 })
+
 function format_date(dateobject) {
   return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7) - 1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
 }
 
 
 function format_data(difference) {
-   console.log(raw_data)
   date_latest = format_date(raw_data[raw_data.length - 1].date)
 
   const expected_end_date = (timestamp === '1min' ? new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 9, 30) : new Date(global_time.getFullYear(), global_time.getMonth(), global_time.getDate() - difference, 9, 30))
@@ -263,13 +252,13 @@ function format_data(difference) {
   if (timestamp === '1min') {
     label_array = label_array.map(i => new Date(i).getHours())
 
-  if (return_market_status()) fill_label_array_1min()
-   
+    if (return_market_status()) fill_label_array_1min()
+
     label_array = label_array.map(i => i + (i < 12 ? 'am' : 'pm'))
     grid_color_array = Array(label_array.length).fill("transparent")
 
     for (let i = 30 / range; i < label_array.length; i += 60 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
-  
+
 
   } else if (timestamp === "5min") {
     label_array = label_array.map(i => new Date(i).getDate())
@@ -317,8 +306,8 @@ function format_data(difference) {
         grid_color_array[i] = "rgba(255,255,255,0.4)"
     }
   }
-    grid_color_array[grid_color_array.length - 1] = "rgba(255,255,255,0.4)"
-  }
+  grid_color_array[grid_color_array.length - 1] = "rgba(255,255,255,0.4)"
+}
 
 
 
@@ -359,9 +348,9 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
         dataset.push(item.price.toFixed(2))
       }
 
-  
-  }
-})
+
+    }
+  })
 
 
   valid_data_number = label_array.length
@@ -404,7 +393,7 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 
 
-  if (filter_value) passed_value  = passed_value.filter((i, index) => {
+  if (filter_value) passed_value = passed_value.filter((i, index) => {
     return index % filter_value === 0
   })
 
@@ -418,21 +407,20 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 }
 
-function create_watch_list_section(data,isSearch){
+function create_watch_list_section(data, isSearch) {
   //data.length 0 means no matched result in searching my watched list, so return
-  if(isSearch && data.length === 0) return;
-   
-   data_section.innerHTML += `
+  if (isSearch && data.length === 0 || my_watched_list.length === 0) return;
+
+  data_section.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
 
-  let search_result = [] 
+  let search_result = []
   //by checking if data existed to know if this is result from search or recommand
   isSearch ? search_result = data.slice() : search_result = my_watched_list.slice()
-  console.log(my_watched_list)
-search_result = 
-   my_watched_list.forEach(i=>{
-data_section.innerHTML += `
+  search_result =
+    my_watched_list.forEach(i => {
+      data_section.innerHTML += `
 <div id='element_${i.index}'>
   <div id='symbol'>${i.data_section['0']}</div>
   <span id='exchange_market_symbol'>${i.data_section["4"]}</span>
@@ -440,70 +428,76 @@ data_section.innerHTML += `
   <div id='current_price'>${i.data_section["2"].toFixed(2)}</div>
 </div>
      `
-   })
+    })
 
 }
 
-function search_or_recommand_section(data,isSearch){
-  data_section.innerHTML =""
-   create_watch_list_section(data[2],isSearch)
+function search_or_recommand_section(data, isSearch) {
+  data_section.innerHTML = ""
+  create_watch_list_section(data[2], isSearch)
 
 
   data_section.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
-  const display_list = [];
-  console.log(isSearch)
- 
-  if(!isSearch){ 
+  let display_list = [];
+
+  if (!isSearch) {
     //The list contains 15 random non-repeating choosed index for data that going to be displayed
-     let rest_list = data.slice().filter(i=>my_watched_list.indexOf(i) === -1)
-    while(display_list.length<15){
-    const selected_index = Math.floor(Math.random()*rest_list.length)
-  if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-   display_list.push({
-    index: selected_index,
-    data:symbol_full_list[selected_index]
-  })
-   rest_list.splice(selected_index,1)
+    let rest_list = data.slice().filter(i => my_watched_list.indexOf(i) === -1)
+    while (display_list.length < 15) {
+      const selected_index = Math.floor(Math.random() * rest_list.length)
+      if (symbol_full_list[selected_index]["2"] < 100) continue;
+      display_list.push({
+        index: selected_index,
+        data: symbol_full_list[selected_index]
+      })
+      rest_list.splice(selected_index, 1)
 
-  }
-}
-  else{
-         //use XML here to search for html tag by content
-  //const matched_element = document.evaluate(`//h2[text()='My watch list:']`,
-  // document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  //if (matched_element) matched_element.remove();
-  let rest_list = data[0].slice()
-  console.log(data)
-  while(display_list.length<15 && rest_list.length > 0){
-  const selected_index = Math.floor(Math.random()*rest_list.length)
-  if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-  display_list.push({
-    index: selected_index,
-    data:symbol_full_list[selected_index]
-  })
-    rest_list.splice(selected_index,1)
-  }
-  console.log(display_list)
-  if(display_list.length < 15){
-    rest_list = data[0].slice()
-      while(display_list.length<15 && rest_list.length > 0){
-  const selected_index = Math.floor(Math.random()*rest_list.length)
-  if(symbol_full_list[selected_index]["2"] < 100 ) continue;
-   display_list.push({
-    index: selected_index,
-    data:symbol_full_list[selected_index]
-  })
-    rest_list.splice(selected_index,1)
+    }
+  } else {
+    //use XML here to search for html tag by content
+    //const matched_element = document.evaluate(`//h2[text()='My watch list:']`,
+    // document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    //if (matched_element) matched_element.remove()
+    if (data[0].length + data[1].length < 15) {
+      display_list = data[0].slice().concat(data[1]).map(i => {
+        return {
+          index: i,
+          data: symbol_full_list[i]
+        }
+      })
 
-  }
-}
-}
-  
-   display_list.forEach((data,index)=>{
-  console.log(display_list)
+    } else {
+      let rest_list = data[0].slice()
+      while (display_list.length < 15 && rest_list.length > 0) {
+        const selected_index = Math.floor(Math.random() * rest_list.length)
+        if (symbol_full_list[selected_index]["2"] < 100) continue;
+        display_list.push({
+          index: selected_index,
+          data: symbol_full_list[selected_index]
+        })
+        rest_list.splice(selected_index, 1)
+      }
 
-    data_section.innerHTML+=`
+      if (display_list.length < 15) {
+        rest_list = data[0].slice()
+        while (display_list.length < 15 && rest_list.length > 0) {
+          const selected_index = Math.floor(Math.random() * rest_list.length)
+          if (symbol_full_list[selected_index]["2"] < 100) continue;
+          display_list.push({
+            index: selected_index,
+            data: symbol_full_list[selected_index]
+          })
+          rest_list.splice(selected_index, 1)
+
+        }
+      }
+    }
+  }
+
+  display_list.forEach((data, index) => {
+
+    data_section.innerHTML += `
     <div id='element_${data.index}'>
     <div id='symbol'>${data.data['0']}</div>
     <span id='exchange_market_symbol'>${data.data["4"]}</span>
@@ -512,147 +506,154 @@ function search_or_recommand_section(data,isSearch){
     </div>
     `
   })
-//use regular expression in dom here, to select any divs have id starts with element_ 
+  //use regular expression in dom here, to select any divs have id starts with element_ 
 
-document.querySelectorAll("div[id^='element_']").forEach(div=>{
-div.addEventListener('click',function(e){
-  //remove the string and leave with number only
-  const index = e.target.id.split('element_')[1]
-  if(document.querySelector('.active')) document.querySelector('.active').classList.toggle('active')
-  event.target.classList.add('active')
-  setup(index)
-})
-})
+  document.querySelectorAll("div[id^='element_']").forEach(div => {
+    div.addEventListener('click', function(e) {
+      //remove the string and leave with number only
+      const index = e.target.id.split('element_')[1]
+      if (document.querySelector('.active')) document.querySelector('.active').classList.toggle('active')
+      event.target.classList.add('active')
+      setup(index)
+    })
+  })
 
 
 }
 
-function create_sections(data){
+function create_sections(data) {
   const data_section = document.querySelector("#data_section")
-   data_section.innerHTML=""
-   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
-   //data.slice(0,2) exclude the my watchList data 
+  data_section.innerHTML = ""
+  //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
+  //data.slice(0,2) exclude the my watchList data 
 
-  if(Array.isArray(data[2]) && !data.slice(0,2).some(i=>i.length > 0)){
-  data_section.innerHTML =`<h3>No result for "${input.value}" </h3>`
-     data_section.style.textAlign = 'center'
-     return
-   }
+  if (Array.isArray(data[2]) && !data.slice(0, 2).some(i => i.length > 0)) {
+    data_section.innerHTML = `<h3>No result for "${input.value}" </h3>`
+    data_section.style.textAlign = 'center'
+    return
+  }
 
 
-data_section.style.textAlign = 'left'
+  data_section.style.textAlign = 'left'
 
-Array.isArray(data[0]) ? search_or_recommand_section(data,true) : search_or_recommand_section(data,false)
+  Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
 }
 
 
-function create_small_animated_chart(){
-   
-   setTimeout(()=>{
+function create_small_animated_chart() {
+
+  setTimeout(() => {
     const last_text_element = document.querySelector('text:last-child')
-    last_text_element.textContent ="Let's get start!"
-   last_text_element.style.animation = "draw2 12s forwards, appearing 3s "
-   },10000)
-    const data_one = []
-    const data_two = [];
-    let previous_point_one = 50;
-    let previous_point_two = 40
-    for(let i =0;i<500;i++){
-      data_one.push({x:i,y:previous_point_one})
-      previous_point_one += 5-Math.random()*10
-      data_two.push({x:i,y:previous_point_two})
-       previous_point_two += 5-Math.random()*10
-    }
- //10 seconds animation
- const delay = 10000 / data_one.length;
-const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+    last_text_element.textContent = "Let's get start!"
+    last_text_element.style.animation = "draw2 12s forwards, appearing 3s "
+  }, 10000)
+  const data_one = []
+  const data_two = [];
+  let previous_point_one = 50;
+  let previous_point_two = 40
+  for (let i = 0; i < 500; i++) {
+    data_one.push({
+      x: i,
+      y: previous_point_one
+    })
+    previous_point_one += 5 - Math.random() * 10
+    data_two.push({
+      x: i,
+      y: previous_point_two
+    })
+    previous_point_two += 5 - Math.random() * 10
+  }
+  //10 seconds animation
+  const delay = 10000 / data_one.length;
+  const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
 
   const animation = {
-  x: {
-    type: 'number',
-    easing: 'linear',
-   
-    duration:  delay ,
-    from: NaN, 
-    delay(ctx) {
-      if (ctx.type !== 'data' || ctx.xStarted) return 0;
-      ctx.xStarted = true;
-      return ctx.index * delay;
-    }
-  },
-  y: {
-    type: 'number',
-    easing: 'linear',
-    duration: 10000 / data_one.length,
-    from: previousY,
-    delay(ctx) {
-      if (ctx.type !== 'data' || ctx.yStarted) return 0; 
-      ctx.yStarted = true;
-      return ctx.index * delay;
-    }
-  }
-}
-   const starting_chart  = new Chart(document.querySelector('#animated_effect'),{
-  type: 'line',
-  data: {
-    datasets: [{
-      borderColor: "red",
-      borderWidth: 1.5,
-      radius: 0,
-      pointHoverRadius:0,
-      data: data_one,
-    },
-    {
-      borderColor: "lawngreen",
-      borderWidth: 1,
-      radius: 0,
-      pointHoverRadius:0,
-      data: data_two,
-    }]
-  },
-  options: {
-    animation,
-      responsive: true,
-      maintainAspectRatio: false,
-    tooltips: {
-        enabled: false
-      },
-    interaction: {
-      intersect: false
-    },
-     plugins: {
-            tooltip: { 
-              enabled: false 
-            },
-            legend:false
-    },
-    scales: {
-      x: {
-        type: 'linear',
-         ticks: {
-          //only disable the x-axis label_array from showing 
-                  display: false 
-                },
-                grid:{
-                  //display:false
-                  color:"rgba(256,256,256,0.25)"
-                }
-      },
-      y:{
-        ticks: {
-                    //only disable the y-axis label_array from showing 
-                    display: false 
-                },
-                grid:{
-                  //display:false
-                  color:"rgba(256,256,256,0.25)"
-                }
+    x: {
+      type: 'number',
+      easing: 'linear',
 
+      duration: delay,
+      from: NaN,
+      delay(ctx) {
+        if (ctx.type !== 'data' || ctx.xStarted) return 0;
+        ctx.xStarted = true;
+        return ctx.index * delay;
+      }
+    },
+    y: {
+      type: 'number',
+      easing: 'linear',
+      duration: 10000 / data_one.length,
+      from: previousY,
+      delay(ctx) {
+        if (ctx.type !== 'data' || ctx.yStarted) return 0;
+        ctx.yStarted = true;
+        return ctx.index * delay;
       }
     }
   }
-})
+  const starting_chart = new Chart(document.querySelector('#animated_effect'), {
+    type: 'line',
+    data: {
+      datasets: [{
+          borderColor: "red",
+          borderWidth: 1.5,
+          radius: 0,
+          pointHoverRadius: 0,
+          data: data_one,
+        },
+        {
+          borderColor: "lawngreen",
+          borderWidth: 1,
+          radius: 0,
+          pointHoverRadius: 0,
+          data: data_two,
+        }
+      ]
+    },
+    options: {
+      animation,
+      responsive: true,
+      maintainAspectRatio: false,
+      tooltips: {
+        enabled: false
+      },
+      interaction: {
+        intersect: false
+      },
+      plugins: {
+        tooltip: {
+          enabled: false
+        },
+        legend: false
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          ticks: {
+            //only disable the x-axis label_array from showing 
+            display: false
+          },
+          grid: {
+            //display:false
+            color: "rgba(256,256,256,0.25)"
+          }
+        },
+        y: {
+          ticks: {
+            //only disable the y-axis label_array from showing 
+            display: false
+          },
+          grid: {
+            //display:false
+            color: "rgba(256,256,256,0.25)"
+          }
+
+        }
+      }
+    }
+  })
 
 }
 
@@ -697,7 +698,7 @@ function fill_label_array_5min() {
 }
 
 function fill_label_array_1min() {
- const expectedDate =new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15,59)
+  const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
 
 
   const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
@@ -706,7 +707,7 @@ function fill_label_array_1min() {
   //first fill the label_array to full hour (60 min)
   label_array.push.apply(label_array, Array(Math.floor((59 - date_latest.getMinutes()) / range)).fill(date_latest.getHours()))
 
-  for (let i = date_latest.getHours()+1; i < 16; i++) label_array.push.apply(label_array, Array(60 / range).fill(i))
+  for (let i = date_latest.getHours() + 1; i < 16; i++) label_array.push.apply(label_array, Array(60 / range).fill(i))
 
   //at last 16:00
   label_array.push(16)
@@ -714,10 +715,11 @@ function fill_label_array_1min() {
 }
 
 let closed_price = null
+
 function find_closed_price() {
   if (!closed_price) {
     for (let i = raw_data.length - 1; i >= 0; i--) {
-      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate()){
+      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate()) {
         closed_price = raw_data[i].close
         return raw_data[i].close;
       }
@@ -789,7 +791,7 @@ function return_horizontal_gradient(color, pos_start, pos_end) {
 function return_market_status() {
   //390 => 60 * 6 (from 9:30 to 16:00) + 30
   //return true if market open and return false if market close
-  return (global_time.getHours() < 16 && global_time.getDay() !== 6 && global_time.getDay() !==  0 ? true : false)
+  return (global_time.getHours() < 16 && global_time.getDay() !== 6 && global_time.getDay() !== 0 ? true : false)
 
 
 }
@@ -858,26 +860,26 @@ function create_chart() {
         isVisible = false;
         return;
       } else isVisible = true;
-       document.querySelectorAll('#range > button').forEach(i=>i.style.visibility = 'hidden')
+      document.querySelectorAll('#range > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = "#52c4fa"
 
 
       window.left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
       window.this_position_x = chart.tooltip._active[0].element.x;
-      let this_position_y =  chart.tooltip._active[0].element.y;
-    
+      let this_position_y = chart.tooltip._active[0].element.y;
+
       if (current_Index === 0 && !first_index) first_index = this_position_y
 
 
-      const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left  - info_price.offsetWidth/2
-      
+      const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left - info_price.offsetWidth / 2
+
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
 
-      if (left_position === pos_X ){
+      if (left_position === pos_X) {
         fire = true
         this_position_x = myChart.chartArea.left
-        if(first_index) this_position_y = first_index
-      }else  fire = false
+        if (first_index) this_position_y = first_index
+      } else fire = false
 
       context.beginPath()
       context.strokeStyle = (!isMouseDown ? '#52c4fa' : judge_color());
@@ -953,7 +955,7 @@ function create_chart() {
         context.save()
         context.closePath()
         info_price.style.color = judge_color()
-        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 +canvas.getBoundingClientRect().left + 'px'
+        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 + canvas.getBoundingClientRect().left + 'px'
       } else {
         static_clientY = null;
         static_clientX = null;
@@ -967,31 +969,31 @@ function create_chart() {
       if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
         info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
       }
- 
+
 
       if (isMouseDown && current_Index !== static_Index) return;
       if (current_Index === valid_data_number - 1) return;
-       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
+      info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
       left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      if (left_position <= pos_X ) {
+      if (left_position <= pos_X) {
         info_price.style.left = pos_X + "px"
 
       } else if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
-        info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number  +"px"
+        info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
       }
     }
 
   }
 
 
-   horizontalLine = {
+  horizontalLine = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
 
 
       //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
-      if(!chartInstance.options.horizontalLine) return
+      if (!chartInstance.options.horizontalLine) return
       for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
         const line = chartInstance.options.horizontalLine[index];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1
@@ -1133,8 +1135,8 @@ function create_chart() {
           callbacks: {
             label: function(tooltipItem) {
               current_Index = tooltipItem.dataIndex
-              if(fire && first_index ) current_Index = 0
-              
+              if (fire && first_index) current_Index = 0
+
 
               if (isMouseDown) {
                 const current_value = dataset[current_Index];
@@ -1143,7 +1145,7 @@ function create_chart() {
                 //Already use white-space: pre-wrap for info_price and info_date so the white space will be significent and "       " will not be parse as " "
                 info_price.innerHTML = sign + Math.abs(current_value - previous_value).toFixed(2) + "          " + sign + (Math.abs(current_value / previous_value - 1) * 100).toFixed(2) + '%'
 
-                info_date.innerHTML = 'From <b>' + detail_dataset[Math.min(current_Index, static_Index)].date + '</b>   to   <b>' + detail_dataset[Math.max(current_Index, static_Index)].date +'</b>'
+                info_date.innerHTML = 'From <b>' + detail_dataset[Math.min(current_Index, static_Index)].date + '</b>   to   <b>' + detail_dataset[Math.max(current_Index, static_Index)].date + '</b>'
               } else {
                 info_price.textContent = dataset[current_Index]
                 info_date.textContent = detail_dataset[current_Index].date
@@ -1160,12 +1162,12 @@ function create_chart() {
   })
   loader.style.display = "none"
   canvas.style.display = 'revert'
-  
+
 
 }
 
 
-function retore_all_values(expected_content = 'Latest Price'){
+function retore_all_values(expected_content = 'Latest Price') {
   canvas.style.display = 'none'
   detail_dataset.length = 0;
   dataset.length = 0
@@ -1173,15 +1175,16 @@ function retore_all_values(expected_content = 'Latest Price'){
 
   //use Chart.unregister to remove the horizonalLine which shows previous price if timestamp is not '1min'
   if (timestamp !== '1min' && horizontalLine) Chart.unregister(horizontalLine);
- 
 
-   const matched_element = document.querySelector('#price_name')
-  if(matched_element) matched_element.innerHTML = expected_content +" (AS OF <span style='font-size:0.8em;'>"+new Date(global_time).toString().substring(4,21) + " EDT"+'</span>)'
-    
+
+  const matched_element = document.querySelector('#price_name')
+  if (matched_element) matched_element.innerHTML = expected_content + " (AS OF <span style='font-size:0.8em;'>" + new Date(global_time).toString().substring(4, 21) + " EDT" + '</span>)'
+
   //const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
   loader.style.display = "revert"
 }
-function restore_and_fetch(time_range_name,expected_content) {
+
+function restore_and_fetch(time_range_name, expected_content) {
   retore_all_values(expected_content)
   if (!all_fetch_data[time_range_name]) {
     fetchData(symbol, timestamp).then(function(result) {
@@ -1219,7 +1222,7 @@ function assign_web_worker_one() {
 
     if (isWaiting_one && button_being_clicked) {
 
-      setTimeout(() => button_being_clicked.click(),100);
+      setTimeout(() => button_being_clicked.click(), 100);
       loader.style.display = 'none'
 
     }
@@ -1230,7 +1233,7 @@ function assign_web_worker_one() {
   worker.postMessage(symbol);
 }
 
-function assign_web_worker_two(){
+function assign_web_worker_two() {
 
   const blob = new Blob([
     document.querySelector('#web_worker_two').textContent
@@ -1255,22 +1258,22 @@ function assign_web_worker_two(){
     //check the type of the return data to determine which list it should go to
     //altough check if item is object includes array, function and null
     const retrieved_data = JSON.parse(e.data)
-     if(Array.isArray(retrieved_data[0])) symbol_symbol_list =  retrieved_data
+    if (Array.isArray(retrieved_data[0])) symbol_symbol_list = retrieved_data
 
-      else if(isNaN(retrieved_data[0]) && retrieved_data[0].length > 0) symbol_full_name_list = retrieved_data
+    else if (isNaN(retrieved_data[0]) && retrieved_data[0].length > 0) symbol_full_name_list = retrieved_data
 
-      else if(!isNaN(retrieved_data[0])) symbol_price_list =  retrieved_data
+    else if (!isNaN(retrieved_data[0])) symbol_price_list = retrieved_data
 
-      else if(typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
-       
-      if(symbol_price_list.length > 0 && symbol_symbol_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0){
-        if(isWaiting_two) 
+    else if (typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
+
+    if (symbol_price_list.length > 0 && symbol_symbol_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0) {
+      if (isWaiting_two)
         create_sections(symbol_full_name_list)
-      else if(isWaiting_three)
+      else if (isWaiting_three)
         search_through(input.value.toUpperCase())
     }
-    
-}
+
+  }
   //web worker no access to variable in main script, so we need to transfer it 
   worker.postMessage("Start");
 }
@@ -1282,36 +1285,36 @@ window.onload = function() {
   create_small_animated_chart()
   assign_web_worker_two()
 
-  get_global_time().then(function(result){
+  get_global_time().then(function(result) {
     global_time = new Date(result)
-    document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";    
-  const time_element = document.querySelector("#current_time")
-  let time =  global_time
-  time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
-    setInterval(()=>{
+    document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";
+    const time_element = document.querySelector("#current_time")
+    let time = global_time
+    time_element.textContent = time.toString().split(" GMT")[0] + ' EDT'
+    setInterval(() => {
       time = new Date(time.getTime() + 1000)
-      time_element.textContent = time.toString().split(" GMT")[0] +' EDT'
-    },1000)
+      time_element.textContent = time.toString().split(" GMT")[0] + ' EDT'
+    }, 1000)
     load_main_page()
-      
+
   })
 
 
-    //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
-    context.strokeStyle = '#52c4fa';
-    context.fillStyle = "#52c4fa";
-    context.setLineDash([])
-    context.strokeStyle = '#52c4fa'
-    context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth / 500 : 2.5
-    context.globalCompositeOperation = 'destination-over'
-    context.save()
+  //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
+  context.strokeStyle = '#52c4fa';
+  context.fillStyle = "#52c4fa";
+  context.setLineDash([])
+  context.strokeStyle = '#52c4fa'
+  context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth / 500 : 2.5
+  context.globalCompositeOperation = 'destination-over'
+  context.save()
 
 
 }
 
 
-function load_main_page(){
-  document.querySelector('#data_section').innerHTML=`
+function load_main_page() {
+  document.querySelector('#data_section').innerHTML = `
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
@@ -1328,65 +1331,64 @@ function load_main_page(){
   </div>
 
   `
-  document.querySelector('#stock_market_button').addEventListener('click',function(){
-    if(symbol_full_name_list.length === 0 ) {
-       document.querySelector("#data_section").innerHTML =`
+  document.querySelector('#stock_market_button').addEventListener('click', function() {
+    if (symbol_full_name_list.length === 0) {
+      document.querySelector("#data_section").innerHTML = `
        <div id='loader'>
        </div>
        `
-       isWaiting_two = true
-    }else{
+      isWaiting_two = true
+    } else {
       create_sections(symbol_full_name_list)
 
-    } 
+    }
   })
 
 }
-function return_color_gradient(){
-  const color_list =  ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#f05463", "#40B5AD", "#A52A2A","#e833c7"];
-const color_one = color_list[Math.floor(Math.random() * color_list.length)]
-color_list.splice(color_one,1)
-    const color_two = color_list[Math.floor(Math.random() * color_list.length)]
 
-    return  `-webkit-linear-gradient(left,${color_one},${color_two})`
-  }
+function return_color_gradient() {
+  const color_list = ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#f05463", "#40B5AD", "#A52A2A", "#e833c7"];
+  const color_one = color_list[Math.floor(Math.random() * color_list.length)]
+  color_list.splice(color_one, 1)
+  const color_two = color_list[Math.floor(Math.random() * color_list.length)]
+
+  return `-webkit-linear-gradient(left,${color_one},${color_two})`
+}
 
 
 
-function setup(index){
-   //Prevent all buttons to be clicked
-   let existed = false;
-  for(let i =0;i<my_watched_list.length;i++){
-    if(my_watched_list[i].index === index ){
-      existed =true;
+function setup(index) {
+  //Prevent all buttons to be clicked
+  let existed = false;
+  for (let i = 0; i < my_watched_list.length; i++) {
+    if (my_watched_list[i].index === index) {
+      existed = true;
       break;
     }
   }
-   if(!existed){
-     my_watched_button.style.display ='revert'
-   my_watched_buttontextContent ='+Add to Watchlist' 
-      my_watched_button.classList.remove('has_clicked')
-   
-   }else my_watched_button.style.display ='none'
-   
-    document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
-    document.querySelector('#starting').style.display = 'none'
-    parent_of_canvas.style.display = 'revert'
+  if (!existed) {
+    my_watched_button.style.display = 'revert'
+    my_watched_buttontextContent = '+Add to Watchlist'
+    my_watched_button.classList.remove('has_clicked')
 
-    retore_all_values("At Close")
-    symbol = symbol_full_list[index]["0"]
+  } else my_watched_button.style.display = 'none'
 
-    assign_web_worker_one(symbol)
-    variable_name = "one_day"
-    timestamp = "1min"
-    //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
-    difference_time = 0
-    console.log(symbol, timestamp)
-     Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
+  document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
+  document.querySelector('#starting').style.display = 'none'
+  parent_of_canvas.style.display = 'revert'
 
-  
+  retore_all_values("At Close")
+  symbol = symbol_full_list[index]["0"]
+
+  assign_web_worker_one(symbol)
+  variable_name = "one_day"
+  timestamp = "1min"
+  //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
+  difference_time = 0
+  Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
+
+
     all_fetch_data[variable_name] = values[1]
-    console.log(values[1])
 
 
     raw_data = filter_data(values[1], parseInt(timestamp))
@@ -1400,21 +1402,21 @@ function setup(index){
     percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
-    if(!document.querySelector('#price_name')){
-    const created_span = document.createElement('div')
-    created_span.style.color = 'grey';
-    created_span.id='price_name'
-    const shortened_date = new Date(global_time).toString().substring(4,21) + "EDT"
-    created_span.innerHTML = `At Close <span style='font-size:0.8em'>(AS OF ${shortened_date}) </span>`
-    price_element.appendChild(created_span)
-  }
-    
+    if (!document.querySelector('#price_name')) {
+      const created_span = document.createElement('div')
+      created_span.style.color = 'grey';
+      created_span.id = 'price_name'
+      const shortened_date = new Date(global_time).toString().substring(4, 21) + "EDT"
+      created_span.innerHTML = `At Close <span style='font-size:0.8em'>(AS OF ${shortened_date}) </span>`
+      price_element.appendChild(created_span)
+    }
+
     document.querySelector('#name > h2').textContent = symbol_full_list[index]["0"]
     document.querySelector("#name > h4").textContent = symbol_full_list[index]["1"]
 
     create_chart()
     document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
-})    
+  })
 }
 
 
@@ -1440,7 +1442,7 @@ font-size:0.8em`
   <button class='remove_button' style='position:fixed; right:3%;'></button>
   `
   warning.className = 'warning'
-  const timeout = setTimeout( ()=>warning.remove(), 5000)
+  const timeout = setTimeout(() => warning.remove(), 5000)
 
   const remove_button = warning.querySelector('.remove_button')
   remove_button.addEventListener('click', () => {
@@ -1499,7 +1501,7 @@ document.querySelector('#two_month').addEventListener('click', function() {
 })
 
 
-function buttons_click_function(difference,event,parameters){
+function buttons_click_function(difference, event, parameters) {
   retore_all_values()
   timestamp = false;
   variable_name = 'all_data'
@@ -1515,71 +1517,62 @@ function buttons_click_function(difference,event,parameters){
 }
 
 
-document.querySelector('#three_month').addEventListener('click', function(event){
-  buttons_click_function(3,event)
+document.querySelector('#three_month').addEventListener('click', function(event) {
+  buttons_click_function(3, event)
 })
 
 document.querySelector("#six_month").addEventListener('click', function(event) {
-buttons_click_function(6,event)
+  buttons_click_function(6, event)
 })
 
 document.querySelector('#one_year').addEventListener('click', function(event) {
-buttons_click_function(2,event,...[difference, true, 2, 2])
+  buttons_click_function(2, event, ...[difference, true, 2, 2])
 })
 
 document.querySelector('#two_year').addEventListener('click', function(event) {
-  buttons_click_function(2,event,...[difference, true, 4, 3])
+  buttons_click_function(2, event, ...[difference, true, 4, 3])
 })
 
 document.querySelector('#five_year').addEventListener('click', function(event) {
-  buttons_click_function(5,event,...[difference, true, 0, 10, true])
+  buttons_click_function(5, event, ...[difference, true, 0, 10, true])
 })
 
 document.querySelector("#ten_year").addEventListener("click", function(event) {
-  buttons_click_function(10,event,...[difference, true, 2, 20, true])
+  buttons_click_function(10, event, ...[difference, true, 2, 20, true])
 })
 
 document.querySelector('#all_time').addEventListener('click', function() {
-  buttons_click_function(null,event,...[difference, true, 3, 30, true])
+  buttons_click_function(null, event, ...[difference, true, 3, 30, true])
 })
 
 
-document.querySelector('#add_to_watchlist').addEventListener('click',function(event){
-  
-  if(!event.target.classList.contains('has_clicked')){
+document.querySelector('#add_to_watchlist').addEventListener('click', function(event) {
+
+  if (!event.target.classList.contains('has_clicked')) {
     event.target.classList.add('has_clicked')
     event.target.innerHTML = '&#10004;Added'
 
     //select item with id starts with element_ and with class name active
-    const index_of_stock =document.querySelector(" div[id^='element_'].active").id.split('element_')[1]
+    const index_of_stock = document.querySelector(" div[id^='element_'].active").id.split('element_')[1]
     my_watched_list.push({
-      index:index_of_stock,
-      data_section:symbol_full_list[index_of_stock],
-      date_added: global_time.toString().substring(4,24)
+      index: index_of_stock,
+      data_section: symbol_full_list[index_of_stock],
+      date_added: global_time.toString().substring(4, 24)
     })
 
-  }else{
+  } else {
     event.target.classList.remove('has_clicked')
-     event.target.textContent = '+Add to Watchlist'
-    my_watched_list =  my_watched_list.filter(i=>i['index'] !== document.querySelector(" div[id^='element_'].active").id.split('element_')[1])
+    event.target.textContent = '+Add to Watchlist'
+    my_watched_list = my_watched_list.filter(i => i['index'] !== document.querySelector(" div[id^='element_'].active").id.split('element_')[1])
 
   }
 
 })
 
-document.querySelector('#back_button').addEventListener("click",function(){
+document.querySelector('#back_button').addEventListener("click", function() {
   load_main_page()
 })
 
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
-
-
-
-
-
-
-
-
-
