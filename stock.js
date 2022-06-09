@@ -115,17 +115,21 @@ document.querySelector('#search_icon').addEventListener('click', () => {
 function search_through(value){
   const list=[[],[],[]]
   for(let i =0;i< symbol_symbol_list.length;i++){
-    //value[0] first character in search value 
-    if(symbol_symbol_list[i][0] === value[0]){
+   
+    //symbol_symbol_list[i][0][0] => first character in the first item in symbol_symbol_list[i]
+     //value[0] => first character in search value 
+    if(symbol_symbol_list[i][0][0] === value[0]){
       symbol_symbol_list[i].forEach((values,index)=>{
 
         if(values.startsWith(value)){
           //we need to get the index for current symbol_symbol_list[i] relative the symbol_full_list, not the index for symbol_symbol_list will not work since symbol_symbol_list is an array contains subarrays\
 
           //use array.reduce here (prev return previosu call value and curr return call iteration value)
-          const sum_index = symbol_symbol_list.slice(0,i).reduce((prev,curr)=>{prev + curr.length},index)
+          const sum_index = symbol_symbol_list.slice(0,i).reduce((prev,curr)=>prev + curr.length
+          ,index)
+          console.log(sum_index)
           list[0].push(sum_index)
-      }
+      }        
 
       })
       break
@@ -134,7 +138,7 @@ function search_through(value){
   }
     if(value.length > 1){
     for(let i =0;i< symbol_full_name_list.length;i++){
-         if(symbol_full_name_list[i].toUpperCase().indexOf(value) > -1&& !symbol_full_name_list[i].endsWith(value)){
+         if(symbol_full_name_list[i].toUpperCase().indexOf(value) > -1 && !symbol_full_name_list[i].endsWith(value)){
           list[1].push(i)
         }      
       }
@@ -149,13 +153,11 @@ my_watched_list.forEach((data,index)=>{
 })
 
 }
-console.log(list)
 //make sure the results from search array by symbol doesn't include the index in my watch_list
 list[0] = list[0].filter(i=>!list[2].includes(i))
 
 //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
 list[1] = list[1].filter(i=>!list[2].includes(i) && !list[0].includes(i))
-
 console.log(list)
 create_sections(list)
 }
@@ -415,18 +417,19 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 }
 
-function create_watch_list_section(display_array){
-  if(!display_array) return;
+function create_watch_list_section(){
+  console.log('what')
    data_section.innerHTML += `
   <h2 id='header'>My watch_list:</h2>
   `
-   display_array.forEach(i=>{
+  console.log(my_watched_list)
+   my_watched_list.forEach(i=>{
 data_section.innerHTML += `
-<div id='element_${my_watched_list[i].index}'>
-  <div id='symbol'>${my_watched_list[i].data_section['0']}</div>
-  <span id='exchange_market_symbol'>${my_watched_list[i].data_section["4"]}</span>
-  <div id='company_name'>${my_watched_list[i].data_section["1"]}</div>
-  <div id='current_price'>${my_watched_list[i].data_section["2"].toFixed(2)}</div>
+<div id='element_${i.index}'>
+  <div id='symbol'>${i.data_section['0']}</div>
+  <span id='exchange_market_symbol'>${i.data_section["4"]}</span>
+  <div id='company_name'>${i.data_section["1"]}</div>
+  <div id='current_price'>${i.data_section["2"].toFixed(2)}</div>
 </div>
      `
    })
@@ -434,6 +437,7 @@ data_section.innerHTML += `
 }
 
 function search_or_recommand_section(data,isSearch){
+  create_watch_list_section(data)
   data_section.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   const display_list = [];
@@ -441,8 +445,7 @@ function search_or_recommand_section(data,isSearch){
  
   if(!isSearch){ 
     //The list contains 15 random non-repeating choosed index for data that going to be displayed
-    console.log(data)
-     let rest_list = data.slice()
+     let rest_list = data.slice().filter(i=>my_watched_list.indexOf(i) === -1)
     while(display_list.length<15){
     const selected_index = Math.floor(Math.random()*rest_list.length)
   if(symbol_full_list[selected_index]["2"] < 100 ) continue;
@@ -452,20 +455,29 @@ function search_or_recommand_section(data,isSearch){
   }
 }
   else{
-  let has_been_given = false
   let rest_list = data[0].slice()
+  console.log(data)
   while(display_list.length<15 && rest_list.length > 0){
-    //if(rest_list.length === 0) rest_list = data[1].slice()
   const selected_index = Math.floor(Math.random()*rest_list.length)
-console.log(rest_list,symbol_full_list,selected_index)
   if(symbol_full_list[selected_index]["2"] < 100 ) continue;
    display_list.push(symbol_full_list[rest_list[selected_index]]) 
     rest_list.splice(selected_index,1)
   }
+  console.log(display_list)
+  if(display_list.length < 15){
+    rest_list = data[0].slice()
+      while(display_list.length<15 && rest_list.length > 0){
+  const selected_index = Math.floor(Math.random()*rest_list.length)
+  if(symbol_full_list[selected_index]["2"] < 100 ) continue;
+   display_list.push(symbol_full_list[rest_list[selected_index]]) 
+    rest_list.splice(selected_index,1)
+
+  }
+}
 }
   
    display_list.forEach((data,index)=>{
-
+  console.log(display_list)
 
     data_section.innerHTML+=`
     <div id='element_${index}'>
@@ -492,11 +504,9 @@ div.addEventListener('click',function(e){
 }
 
 function create_sections(data){
-  console.log(data)
-
   const data_section = document.querySelector("#data_section")
    data_section.innerHTML=""
-   //array run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
+   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
    //data.slice(0,2) exclude the my watchList data 
 
   if(Array.isArray(data[2]) && !data.slice(0,2).some(i=>i.length > 0)){
