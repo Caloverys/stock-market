@@ -1,4 +1,3 @@
-//Use , at the beginging before assigning variable, we are able to assign many const variable with one const keywords
 const canvas = document.querySelector('#chart')
 const context = canvas.getContext('2d')
 , dataset = []
@@ -9,7 +8,8 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 ,my_watched_button = document.querySelector('#add_to_watchlist')
-, delete_button = document.querySelector('#deletebutton')
+, delete_button = document.querySelector('#deletebutton'),
+,data_section = document.querySelector("#data_section")
 //the index of raw_data that the user is hovering at
 let current_Index = 0
 
@@ -85,6 +85,7 @@ let [label_array, grid_color_array, symbol_full_list, symbol_price_list, symbol_
 
 //Try to get watch_list from localStorage, if there is no data, declared as []
 let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'))
+
 if (!my_watched_list) my_watched_list = []
 
 
@@ -95,15 +96,14 @@ const all_fetch_data = {
   "two_month": null,
   "three_month": null,
   "all_data": null
-}
 
+}
 
 
 delete_button.addEventListener('click', (e) => {
   input.blur();
   input.value = ""
   e.target.style.visibility = 'hidden'
-  //Load recommand sections
   create_sections(symbol_full_name_list)
 
 })
@@ -113,53 +113,48 @@ document.querySelector('#search_icon').addEventListener('click', () => {
 })
 
 function search_through(value) {
-  const list = [[],[],[]]
+  const list = [
+    [],
+    [],
+    []
+  ]
   for (let i = 0; i < symbol_symbol_list.length; i++) {
 
     //symbol_symbol_list[i][0][0] => first character in the first item in symbol_symbol_list[i]
     //value[0] => first character in search value 
     if (symbol_symbol_list[i][0][0] === value[0]) {
-      
       symbol_symbol_list[i].forEach((values, index) => {
 
         if (values.startsWith(value)) {
           //we need to get the index for current symbol_symbol_list[i] relative the symbol_full_list, not the index for symbol_symbol_list will not work since symbol_symbol_list is an array contains subarrays\
 
           //use array.reduce here (prev return previosu call value and curr return call iteration value)
-           const sum_index = symbol_symbol_list.slice(0, i).reduce((prev, curr) => prev + curr.length, index)
+          const sum_index = symbol_symbol_list.slice(0, i).reduce((prev, curr) => prev + curr.length, index)
+
           list[0].push(sum_index)
 
         }
 
       })
-      
-      break;
+      break
     }
 
   }
-  
-  //Only search by company full name if search keyword have more than one character
   if (value.length > 1) {
-    
     for (let i = 0; i < symbol_full_name_list.length; i++) 
-      if (symbol_full_name_list[i].toUpperCase().indexOf(value) > -1 )  list[1].push(i)
-    
+      if (symbol_full_name_list[i].toUpperCase().indexOf(value) > -1 ) 
+        list[1].push(i)
   }
 
-  //If my_watched_list have elements, search over it by company name and symbol
   if (my_watched_list.length > 0) {
-    
     my_watched_list.forEach((data, index) => {
       //data.data_section['0'] => symbol of the stock
       //data.data_section['1'] => full name of the stock
-      
       if (data.data_section['0'].startsWith(value) || data.data_section['1'].toUpperCase().indexOf(value) > -1)
         list[2].push(index)
-      
     })
-    
+
   }
-  
   //make sure the results from search array by symbol doesn't include the index in my watch_list
   list[0] = list[0].filter(i => !list[2].includes(i))
 
@@ -169,9 +164,6 @@ function search_through(value) {
 }
 
 input.addEventListener('keyup', (e) => {
-  //immediately return if key is not a valid letter 
-  // keycode > 64 && keycode < 91 represents letter keys
-  if (e.keyCode <= 64 && e.keyCode >= 91 ) return;
 
   const search_value = input.value.toUpperCase()
   if (search_value === "") {
@@ -179,17 +171,22 @@ input.addEventListener('keyup', (e) => {
     return
   }
   delete_button.style.visibility = 'visible'
+
+  //immediately return if key is not a valid letter 
+  // keycode > 64 && keycode < 91 represents letter keys
+  if (e.keyCode <= 64 && e.keyCode >= 91) return;
+
  
 
   if (symbol_full_name_list.length === 0) {
-    document.querySelector("#data_section").innerHTML = `
-       <div id='loader'>
-       </div>
+    data_section.innerHTML = `
+       <div id='loader'></div>
        `
     isWaiting_three = true
     return
   }
-   search_through(search_value)
+
+  search_through(search_value)
 
 
 })
@@ -206,6 +203,7 @@ function fetchData(symbol, range) {
 }
 //only screenX works here, clientX doesn't work expected.
 document.body.addEventListener('mousemove', e => {
+
   isInsideChart = isInCanvas(e.clientX, e.clientY)
   if (isInsideChart && isVisible) {
     clientX = e.clientX;
@@ -541,7 +539,6 @@ function search_or_recommand_section(data, isSearch) {
 }
 
 function create_sections(data) {
-  const data_section = document.querySelector("#data_section")
   data_section.innerHTML = ""
   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
   //data.slice(0,2) exclude the my watchList data 
@@ -810,7 +807,7 @@ function return_horizontal_gradient(color, pos_start, pos_end) {
 function return_market_status() {
   //390 => 60 * 6 (from 9:30 to 16:00) + 30
   //return true if market open and return false if market close
-  return (global_time.getHours() < 16 && global_time.getDay() !== 6 && global_time.getDay() !== 0 ? true : false)
+  return (global_time.getHours() < 16 && global_time.getHours() > 8&& global_time.getDay() !== 6 && global_time.getDay() !== 0 ? true : false)
 
 
 }
@@ -1008,8 +1005,7 @@ function create_chart() {
   horizontalLine = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
-
-
+      
       //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
       const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
       if (!chartInstance.options.horizontalLine) return
@@ -1352,15 +1348,13 @@ function load_main_page() {
   `
   document.querySelector('#stock_market_button').addEventListener('click', function() {
     if (symbol_full_name_list.length === 0) {
-      document.querySelector("#data_section").innerHTML = `
-       <div id='loader'>
-       </div>
+      data_section.innerHTML = `
+       <div id='loader'></div>
        `
       isWaiting_two = true
-    } else {
-      create_sections(symbol_full_name_list)
+    } else create_sections(symbol_full_name_list)
 
-    }
+    
   })
 
 }
@@ -1421,6 +1415,7 @@ function setup(index) {
     percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
+
     if (!document.querySelector('#price_name')) {
       const created_span = document.createElement('div')
       created_span.style.color = 'grey';
@@ -1483,11 +1478,7 @@ font-size:0.8em`
     warning.remove()
   })
   document.body.appendChild(warning)
-
-
 })
-
-
 
 document.querySelector('#one_day').addEventListener('click', function() {
   timestamp = '1min'
@@ -1595,3 +1586,7 @@ document.querySelector('#back_button').addEventListener("click", function() {
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
+
+
+
+
