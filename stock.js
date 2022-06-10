@@ -8,7 +8,7 @@ const context = canvas.getContext('2d')
 , input = document.querySelector('input[type=text]')
 ,loader = document.querySelector('.loader')
 ,my_watched_button = document.querySelector('#add_to_watchlist')
-, delete_button = document.querySelector('#deletebutton'),
+, delete_button = document.querySelector('#deletebutton')
 ,data_section = document.querySelector("#data_section")
 //the index of raw_data that the user is hovering at
 let current_Index = 0
@@ -176,8 +176,6 @@ input.addEventListener('keyup', (e) => {
   // keycode > 64 && keycode < 91 represents letter keys
   if (e.keyCode <= 64 && e.keyCode >= 91) return;
 
- 
-
   if (symbol_full_name_list.length === 0) {
     data_section.innerHTML = `
        <div id='loader'></div>
@@ -201,7 +199,8 @@ function fetchData(symbol, range) {
     .then(res => res.json())
 
 }
-//only screenX works here, clientX doesn't work expected.
+
+
 document.body.addEventListener('mousemove', e => {
 
   isInsideChart = isInCanvas(e.clientX, e.clientY)
@@ -220,26 +219,24 @@ document.body.addEventListener('mousemove', e => {
 
 //Detect if the mouse is in the chart (not the whole canvas)
 function isInCanvas(posX, posY) {
-
+  //immediately return false if myChart has not be created
   if (!myChart) return false;
+
   const canvas_pos = canvas.getBoundingClientRect();
+
   return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
 
 
 
 }
-canvas.addEventListener('mousedown', function(e) {
-  if (!isInsideChart) return;
-  isMouseDown = true;
+canvas.addEventListener('mousedown', ()=>isMouseDown = (isInsideChart ? true : false))
 
+canvas.addEventListener('mouseup', ()=>isMouseDown = false)
 
-
-})
-canvas.addEventListener('mouseup', function() {
-  isMouseDown = false;
-})
 
 function format_date(dateobject) {
+  //Some broswer (safari) doesn't recognize the 2022-06-10 10:45:00 date format, so we have to reformat it
+
   return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7) - 1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
 }
 
@@ -247,18 +244,16 @@ function format_date(dateobject) {
 function format_data(difference) {
   date_latest = format_date(raw_data[raw_data.length - 1].date)
 
-  const expected_end_date = (timestamp === '1min' ? new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 9, 30) : new Date(global_time.getFullYear(), global_time.getMonth(), global_time.getDate() - difference, 9, 30))
-
+  const expected_end_date = new Date(new Date(global_time.setDate(global_time.getDate() - difference)).setHours(9,30))
 
   raw_data.forEach((item, index) => {
 
-    this.newdate = format_date(item.date)
+    if (format_date(item.date) >= expected_end_date) {
 
-    if (this.newdate >= expected_end_date) {
-
-      label_array.push(this.newdate)
+      label_array.push(format_date(item.date))
       detail_dataset.push(item)
       dataset.push(item.close.toFixed(2))
+
     }
   })
 
@@ -266,6 +261,8 @@ function format_data(difference) {
   valid_data_number = label_array.length
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
+
+  
   if (timestamp === '1min') {
     label_array = label_array.map(i => new Date(i).getHours())
 
@@ -1344,7 +1341,6 @@ function load_main_page() {
   <h2 style='background-image:${return_color_gradient()}'>Stock simulator</h2>
   </div>
   </div>
-
   `
   document.querySelector('#stock_market_button').addEventListener('click', function() {
     if (symbol_full_name_list.length === 0) {
@@ -1586,7 +1582,3 @@ document.querySelector('#back_button').addEventListener("click", function() {
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
-
-
-
-
