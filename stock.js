@@ -15,6 +15,12 @@ const context = canvas.getContext('2d')
 ,data_section = select("#data_section")
 ,search_icon = select('#search_icon')
 ,back_button = select('#back_button')
+
+
+
+
+
+
 //the index of raw_data that the user is hovering at
 let current_Index = 0
 
@@ -113,53 +119,110 @@ delete_button.addEventListener('click', (e) => {
 
 })
 
-select('#search_icon').addEventListener('click', () => {
-  document.activeElement === input ? input.blur() : input.focus()
-})
 
-function search_through(value) {
-  const list = [
-    [],
-    [],
-    []
-  ]
+function search_through(search_keyword) {
+  const list = new Array(3).fill([])
   for (let i = 0; i < symbol_symbol_list.length; i++) {
 
-    //symbol_symbol_list[i][0][0] => first character in the first item in symbol_symbol_list[i]
-    //value[0] => first character in search value 
-    if (symbol_symbol_list[i][0][0] === value[0]) {
+    /*
+    symbol_symbol_list[i][0][0] => first character in the first item in symbol_symbol_list[i]
+
+    value[0] => first character in search value 
+
+    the structure of the symbol_symbol_list looks like 
+
+    [[A,AA,AAA.....],[B,BB,BBB,BBBB......].....] 
+
+    for better search purpose.
+
+    here check if they start with the same first character
+    */
+    if (symbol_symbol_list[i][0][0] === search_keyword[0]) {
+
+
       symbol_symbol_list[i].forEach((values, index) => {
 
-        if (values.startsWith(value)) {
-          //we need to get the index for current symbol_symbol_list[i] relative the symbol_full_list, not the index for symbol_symbol_list will not work since symbol_symbol_list is an array contains subarrays\
+        if (values.startsWith(search_keyword)) {
+          /*
 
-          //use array.reduce here (prev return previosu call value and curr return call iteration value)
+          The structure of the array looks like 
+
+          [[A,AA,AAA.....],[B,BB,BBB,BBBB......].....] 
+
+          in order to be easier used (displayed) in the future
+
+          we need to get the global index (releative to symbol_full_list) for current values 
+
+
+          slice(0, i) first slice array the previous subarray exclude current subarray
+
+          use array.reduce to get the indexs passed in previous subarrays and add current i (according to this subarray) as indicated at the end of subarray
+
+          */
+
           const sum_index = symbol_symbol_list.slice(0, i).reduce((prev, curr) => prev + curr.length, index)
 
           list[0].push(sum_index)
 
         }
 
+
       })
+
+      //Immediately stop the array from looping after loop over the subarray that contains the search word first character to save performance
       break
+
+
     }
 
-  }
-  if (value.length > 1) {
-    for (let i = 0; i < symbol_full_name_list.length; i++) 
-      if (symbol_full_name_list[i].toUpperCase().indexOf(value) > -1 ) 
-        list[1].push(i)
+
   }
 
+
+  /*
+  search by company name:
+
+   only search by company name if search keyword is greater than 1 character
+
+  */
+
+  if (search_keyword.length > 1) {
+
+
+    for (let i = 0; i < symbol_full_name_list.length; i++) 
+
+      if (symbol_full_name_list[i].toUpperCase().indexOf(search_keyword) > -1 ) 
+
+        list[1].push(i)
+
+  }
+
+
+/* 
+if there is item in my watch list, search over it 
+
+data.data_section['0'] => symbol of the stock
+
+data.data_section['1'] => full name of the stock
+
+if symbol of the stock in my watch_list starts with the search keyword, push it
+
+or the company name of the stock in my watch_list contains the keywords, push it
+
+
+*/
   if (my_watched_list.length > 0) {
+
     my_watched_list.forEach((data, index) => {
-      //data.data_section['0'] => symbol of the stock
-      //data.data_section['1'] => full name of the stock
-      if (data.data_section['0'].startsWith(value) || data.data_section['1'].toUpperCase().indexOf(value) > -1)
+     
+      if (data.data_section['0'].startsWith(search_keyword) || data.data_section['1'].toUpperCase().includes(search_keyword))
         list[2].push(index)
+
+
     })
 
   }
+
   //make sure the results from search array by symbol doesn't include the index in my watch_list
   list[0] = list[0].filter(i => !list[2].includes(i))
 
