@@ -10,6 +10,8 @@ const context = canvas.getContext('2d')
 ,my_watched_button = document.querySelector('#add_to_watchlist')
 , delete_button = document.querySelector('#deletebutton')
 ,data_section = document.querySelector("#data_section")
+,search_icon = document.querySelector('#search_icon')
+,back_button = document.querySelector('#back_button')
 //the index of raw_data that the user is hovering at
 let current_Index = 0
 
@@ -241,10 +243,10 @@ function format_date(dateobject) {
 }
 
 
-function format_data(difference) {
+function format_data(difference_range) {
   date_latest = format_date(raw_data[raw_data.length - 1].date)
 
-  const expected_end_date = new Date(new Date(global_time.setDate(global_time.getDate() - difference)).setHours(9,30))
+  const expected_end_date = new Date(new Date(global_time.setDate(global_time.getDate() - difference_range)).setHours(9,30))
 
   raw_data.forEach((item, index) => {
 
@@ -1294,6 +1296,14 @@ function assign_web_worker_two() {
 
 
 window.onload = function() {
+  const script = document.createElement('script');
+  script.setAttribute('src',"https://kit.fontawesome.com/44f674442e.js")
+  document.body.appendChild(script) 
+  script.onload = () =>{
+    back_button.style.visibility = 'visible';
+    search_icon.style.visibility = 'visible'
+
+  } 
   create_small_animated_chart()
   assign_web_worker_two()
 
@@ -1507,48 +1517,56 @@ document.querySelector('#two_month').addEventListener('click', function() {
 })
 
 
-function buttons_click_function(difference, event, parameters) {
+function buttons_click_function(event, parameter_list) {
   retore_all_values()
   timestamp = false;
   variable_name = 'all_data'
-  parameter_list = parameters || [difference, false, 0];
   if (isWaiting_one) {
     loader.style.display = 'revert'
     button_being_clicked = event.target
     return
   }
   raw_data = all_fetch_data[variable_name]
+  console.log(parameter_list)
   format_data_two(...parameter_list)
+  debugger
   create_chart()
 }
 
 
 document.querySelector('#three_month').addEventListener('click', function(event) {
-  buttons_click_function(3, event)
+  difference_time = 3
+  buttons_click_function(event,...[difference_time, false, 0])
 })
 
 document.querySelector("#six_month").addEventListener('click', function(event) {
-  buttons_click_function(6, event)
+  difference_time = 6
+  buttons_click_function(event,...[difference_time, false, 0])
 })
 
 document.querySelector('#one_year').addEventListener('click', function(event) {
-  buttons_click_function(2, event, ...[difference, true, 2, 2])
+  difference_time = 1
+  buttons_click_function(event, ...[difference_time, true, 2, 2])
 })
 
 document.querySelector('#two_year').addEventListener('click', function(event) {
-  buttons_click_function(2, event, ...[difference, true, 4, 3])
+  difference_time = 2
+  buttons_click_function(event, ...[difference_time, true, 4, 3])
 })
 
 document.querySelector('#five_year').addEventListener('click', function(event) {
-  buttons_click_function(5, event, ...[difference, true, 0, 10, true])
+  difference_time = 5
+  buttons_click_function(event, ...[difference_time, true, 0, 10, true])
 })
 
 document.querySelector("#ten_year").addEventListener("click", function(event) {
-  buttons_click_function(10, event, ...[difference, true, 2, 20, true])
+  difference_time = 10
+  buttons_click_function(event, ...[difference_time, true, 2, 20, true])
 })
 
 document.querySelector('#all_time').addEventListener('click', function() {
-  buttons_click_function(null, event, ...[difference, true, 3, 30, true])
+  difference_time = 0
+  buttons_click_function(event, ...[difference_time, true, 3, 30, true])
 })
 
 
@@ -1582,3 +1600,8 @@ document.querySelector('#back_button').addEventListener("click", function() {
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
+
+
+
+
+
