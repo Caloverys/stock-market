@@ -332,6 +332,7 @@ function format_data(difference_range) {
 
 
 function format_data_two(difference, isYear, filter_value, filter_data_range = 1, label_by_year) {
+  console.log(arguments)
   Chart.unregister(horizontalLine);
   dataset.length = 0
   const lastest_date = new Date(all_fetch_data['all_data'][all_fetch_data['all_data'].length - 1].date)
@@ -1521,8 +1522,7 @@ select('#two_month').addEventListener('click', function() {
 
 
 function buttons_click_function(event, parameter_list) {
-  console.log(parameter_list)
-  parameter_list = parameter_list.map(i=>i === "true" ? true : i)
+ 
   retore_all_values()
   timestamp = false;
   variable_name = 'all_data'
@@ -1534,45 +1534,44 @@ function buttons_click_function(event, parameter_list) {
   raw_data = all_fetch_data[variable_name]
   console.log(parameter_list)
   format_data_two(...parameter_list)
-  debugger
   create_chart()
 }
 
 
 select('#three_month').addEventListener('click', function(event) {
   difference_time = 3
-  buttons_click_function(event,...[difference_time, false, 0])
+  buttons_click_function(event,[difference_time, false, 0])
 })
 
 select("#six_month").addEventListener('click', function(event) {
   difference_time = 6
-  buttons_click_function(event,...[difference_time, false, 0])
+  buttons_click_function(event,[difference_time, false, 0])
 })
 
 select('#one_year').addEventListener('click', function(event) {
   difference_time = 1
-  buttons_click_function(event, ...[difference_time, true, 2, 2])
+  buttons_click_function(event, [difference_time, true, 2, 2])
 
 })
 
 select('#two_year').addEventListener('click', function(event) {
   difference_time = 2
-  buttons_click_function(event, ...[difference_time, true, 4, 3])
+  buttons_click_function(event, [difference_time, true, 4, 3])
 })
 
 select('#five_year').addEventListener('click', function(event) {
   difference_time = 5
-  buttons_click_function(event, ...[difference_time, true, 0, 10, true])
+  buttons_click_function(event, [difference_time, true, 0, 10, true])
 })
 
 select("#ten_year").addEventListener("click", function(event) {
   difference_time = 10
-  buttons_click_function(event, ...[difference_time, true, 2, 20, true])
+  buttons_click_function(event, [difference_time, true, 2, 20, true])
 })
 
 select('#all_time').addEventListener('click', function() {
   difference_time = 0
-  buttons_click_function(event,[difference_time, true, 3, 30, true].map(String))
+  buttons_click_function(event,[difference_time, true, 4, 30, true])
 })
 
 
@@ -1604,7 +1603,6 @@ back_button.addEventListener("click", load_main_page)
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
-
 
 
 
