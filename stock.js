@@ -1,17 +1,20 @@
-const canvas = document.querySelector('#chart')
+//write alias to document.querySelector to shorten the code
+const select = document.querySelector.bind(document)
+const selectAll = document.querySelectorAll.bind(document)
+const canvas =select('#chart')
 const context = canvas.getContext('2d')
 , dataset = []
 , detail_dataset = []
-, info_price = document.querySelector('#info_price')
-, info_date = document.querySelector('#info_date')
-, parent_of_canvas = document.querySelector('#parent_of_canvas')
-, input = document.querySelector('input[type=text]')
-,loader = document.querySelector('.loader')
-,my_watched_button = document.querySelector('#add_to_watchlist')
-, delete_button = document.querySelector('#deletebutton')
-,data_section = document.querySelector("#data_section")
-,search_icon = document.querySelector('#search_icon')
-,back_button = document.querySelector('#back_button')
+, info_price = select('#info_price')
+, info_date = select('#info_date')
+, parent_of_canvas = select('#parent_of_canvas')
+, input = select('input[type=text]')
+,loader = select('.loader')
+,my_watched_button = select('#add_to_watchlist')
+, delete_button = select('#deletebutton')
+,data_section = select("#data_section")
+,search_icon = select('#search_icon')
+,back_button = select('#back_button')
 //the index of raw_data that the user is hovering at
 let current_Index = 0
 
@@ -110,7 +113,7 @@ delete_button.addEventListener('click', (e) => {
 
 })
 
-document.querySelector('#search_icon').addEventListener('click', () => {
+select('#search_icon').addEventListener('click', () => {
   document.activeElement === input ? input.blur() : input.focus()
 })
 
@@ -214,7 +217,7 @@ document.body.addEventListener('mousemove', e => {
   } else {
     info_price.style.visibility = 'hidden'
     info_date.style.visibility = 'hidden'
-    document.querySelectorAll('#range > button').forEach(i => i.style.visibility = 'visible')
+    selectAll('#range > button').forEach(i => i.style.visibility = 'visible')
   }
 
 })
@@ -524,11 +527,11 @@ function search_or_recommand_section(data, isSearch) {
   })
   //use regular expression in dom here, to select any divs have id starts with element_ 
 
-  document.querySelectorAll("div[id^='element_']").forEach(div => {
+  selectAll("div[id^='element_']").forEach(div => {
     div.addEventListener('click', function(e) {
       //remove the string and leave with number only
       const index = e.target.id.split('element_')[1]
-      if (document.querySelector('.active')) document.querySelector('.active').classList.toggle('active')
+      if (select('.active')) select('.active').classList.toggle('active')
       event.target.classList.add('active')
       setup(index)
     })
@@ -559,7 +562,7 @@ function create_sections(data) {
 function create_small_animated_chart() {
 
   setTimeout(() => {
-    const last_text_element = document.querySelector('text:last-child')
+    const last_text_element = select('text:last-child')
     last_text_element.textContent = "Let's get start!"
     last_text_element.style.animation = "draw2 12s forwards, appearing 3s "
   }, 10000)
@@ -608,7 +611,7 @@ function create_small_animated_chart() {
       }
     }
   }
-  const starting_chart = new Chart(document.querySelector('#animated_effect'), {
+  const starting_chart = new Chart(select('#animated_effect'), {
     type: 'line',
     data: {
       datasets: [{
@@ -875,7 +878,7 @@ function create_chart() {
         isVisible = false;
         return;
       } else isVisible = true;
-      document.querySelectorAll('#range > button').forEach(i => i.style.visibility = 'hidden')
+      selectAll('#range > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = "#52c4fa"
 
 
@@ -1191,7 +1194,7 @@ function retore_all_values(expected_content = 'Latest Price') {
   if (timestamp !== '1min' && horizontalLine) Chart.unregister(horizontalLine);
 
 
-  const matched_element = document.querySelector('#price_name')
+  const matched_element = select('#price_name')
   if (matched_element) matched_element.innerHTML = expected_content + " (AS OF <span style='font-size:0.8em;'>" + new Date(global_time).toString().substring(4, 21) + " EDT" + '</span>)'
 
   //const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -1225,7 +1228,7 @@ function assign_web_worker_one() {
   //By using Blob, we are able to run web worker in a single script without putting it in a separate file 
   //Note that we are unable to use web worker in file type website in chrome 
   const blob = new Blob([
-    document.querySelector('#web_worker_one').textContent
+    select('#web_worker_one').textContent
   ], {
     type: "text/javascript"
   })
@@ -1250,7 +1253,7 @@ function assign_web_worker_one() {
 function assign_web_worker_two() {
 
   const blob = new Blob([
-    document.querySelector('#web_worker_two').textContent
+    select('#web_worker_two').textContent
   ], {
     type: "text/javascript"
   })
@@ -1309,8 +1312,8 @@ window.onload = function() {
 
   get_global_time().then(function(result) {
     global_time = new Date(result)
-    document.querySelector('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";
-    const time_element = document.querySelector("#current_time")
+    select('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";
+    const time_element = select("#current_time")
     let time = global_time
     time_element.textContent = time.toString().split(" GMT")[0] + ' EDT'
     setInterval(() => {
@@ -1336,7 +1339,7 @@ window.onload = function() {
 
 
 function load_main_page() {
-  document.querySelector('#data_section').innerHTML = `
+  select('#data_section').innerHTML = `
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
@@ -1352,7 +1355,7 @@ function load_main_page() {
   </div>
   </div>
   `
-  document.querySelector('#stock_market_button').addEventListener('click', function() {
+  select('#stock_market_button').addEventListener('click', function() {
     if (symbol_full_name_list.length === 0) {
       data_section.innerHTML = `
        <div id='loader'></div>
@@ -1392,8 +1395,8 @@ function setup(index) {
 
   } else my_watched_button.style.display = 'none'
 
-  document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'none')
-  document.querySelector('#starting').style.display = 'none'
+  selectAll('button').forEach(i => i.style.pointerEvents = 'none')
+  select('#starting').style.display = 'none'
   parent_of_canvas.style.display = 'revert'
 
   retore_all_values("At Close")
@@ -1413,7 +1416,7 @@ function setup(index) {
     raw_data = filter_data(values[1], parseInt(timestamp))
     format_data(difference_time)
 
-    const price_element = document.querySelector('#price')
+    const price_element = select('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
     const difference = raw_data[raw_data.length - 1].close - find_closed_price();
     const percentage = price_element.querySelector('#percent');
@@ -1422,7 +1425,7 @@ function setup(index) {
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
 
-    if (!document.querySelector('#price_name')) {
+    if (!select('#price_name')) {
       const created_span = document.createElement('div')
       created_span.style.color = 'grey';
       created_span.id = 'price_name'
@@ -1431,18 +1434,18 @@ function setup(index) {
       price_element.appendChild(created_span)
     }
 
-    document.querySelector('#name > h2').textContent = symbol_full_list[index]["0"]
-    document.querySelector("#name > h4").textContent = symbol_full_list[index]["1"]
+    select('#name > h2').textContent = symbol_full_list[index]["0"]
+    select("#name > h4").textContent = symbol_full_list[index]["1"]
 
     create_chart()
-    document.querySelectorAll('button').forEach(i => i.style.pointerEvents = 'auto')
+    selectAll('button').forEach(i => i.style.pointerEvents = 'auto')
   })
 }
 
 
 
 window.addEventListener('resize', function() {
-  if (document.querySelector('.warning')) return;
+  if (select('.warning')) return;
 
   const warning = document.createElement('div');
   const button_style = `
@@ -1486,28 +1489,28 @@ font-size:0.8em`
   document.body.appendChild(warning)
 })
 
-document.querySelector('#one_day').addEventListener('click', function() {
+select('#one_day').addEventListener('click', function() {
   timestamp = '1min'
   difference_time = 0;
   variable_name = "one_day"
   restore_and_fetch(variable_name, "At Close")
 })
 
-document.querySelector('#one_week').addEventListener('click', function() {
+select('#one_week').addEventListener('click', function() {
   timestamp = '5min'
   difference_time = 7
   variable_name = 'one_week'
   restore_and_fetch(variable_name)
 })
 
-document.querySelector('#one_month').addEventListener('click', function() {
+select('#one_month').addEventListener('click', function() {
   timestamp = '30min'
   difference_time = 30
   variable_name = 'one_month'
   restore_and_fetch(variable_name)
 })
 
-document.querySelector('#two_month').addEventListener('click', function() {
+select('#two_month').addEventListener('click', function() {
   timestamp = '1hour'
 
   difference_time = 60
@@ -1518,6 +1521,8 @@ document.querySelector('#two_month').addEventListener('click', function() {
 
 
 function buttons_click_function(event, parameter_list) {
+  console.log(parameter_list)
+  parameter_list = parameter_list.map(i=>i === "true" ? true : i)
   retore_all_values()
   timestamp = false;
   variable_name = 'all_data'
@@ -1534,50 +1539,51 @@ function buttons_click_function(event, parameter_list) {
 }
 
 
-document.querySelector('#three_month').addEventListener('click', function(event) {
+select('#three_month').addEventListener('click', function(event) {
   difference_time = 3
   buttons_click_function(event,...[difference_time, false, 0])
 })
 
-document.querySelector("#six_month").addEventListener('click', function(event) {
+select("#six_month").addEventListener('click', function(event) {
   difference_time = 6
   buttons_click_function(event,...[difference_time, false, 0])
 })
 
-document.querySelector('#one_year').addEventListener('click', function(event) {
+select('#one_year').addEventListener('click', function(event) {
   difference_time = 1
   buttons_click_function(event, ...[difference_time, true, 2, 2])
+
 })
 
-document.querySelector('#two_year').addEventListener('click', function(event) {
+select('#two_year').addEventListener('click', function(event) {
   difference_time = 2
   buttons_click_function(event, ...[difference_time, true, 4, 3])
 })
 
-document.querySelector('#five_year').addEventListener('click', function(event) {
+select('#five_year').addEventListener('click', function(event) {
   difference_time = 5
   buttons_click_function(event, ...[difference_time, true, 0, 10, true])
 })
 
-document.querySelector("#ten_year").addEventListener("click", function(event) {
+select("#ten_year").addEventListener("click", function(event) {
   difference_time = 10
   buttons_click_function(event, ...[difference_time, true, 2, 20, true])
 })
 
-document.querySelector('#all_time').addEventListener('click', function() {
+select('#all_time').addEventListener('click', function() {
   difference_time = 0
-  buttons_click_function(event, ...[difference_time, true, 3, 30, true])
+  buttons_click_function(event,[difference_time, true, 3, 30, true].map(String))
 })
 
 
-document.querySelector('#add_to_watchlist').addEventListener('click', function(event) {
+select('#add_to_watchlist').addEventListener('click', function(event) {
 
   if (!event.target.classList.contains('has_clicked')) {
     event.target.classList.add('has_clicked')
     event.target.innerHTML = '&#10004;Added'
 
     //select item with id starts with element_ and with class name active
-    const index_of_stock = document.querySelector(" div[id^='element_'].active").id.split('element_')[1]
+    const index_of_stock = select(" div[id^='element_'].active").id.split('element_')[1]
     my_watched_list.push({
       index: index_of_stock,
       data_section: symbol_full_list[index_of_stock],
@@ -1587,20 +1593,17 @@ document.querySelector('#add_to_watchlist').addEventListener('click', function(e
   } else {
     event.target.classList.remove('has_clicked')
     event.target.textContent = '+Add to Watchlist'
-    my_watched_list = my_watched_list.filter(i => i['index'] !== document.querySelector(" div[id^='element_'].active").id.split('element_')[1])
+    my_watched_list = my_watched_list.filter(i => i['index'] !== select(" div[id^='element_'].active").id.split('element_')[1])
 
   }
 
 })
 
-document.querySelector('#back_button').addEventListener("click", function() {
-  load_main_page()
-})
+back_button.addEventListener("click", load_main_page)
 
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
-
 
 
 
