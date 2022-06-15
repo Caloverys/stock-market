@@ -258,7 +258,7 @@ input[type=text]:focus-visible {
    height: 100vh;
    overflow: hidden;
 }
-#left_area > #data_section{
+#left_area > #search_result{
   height: 85vh;
   position: fixed;
   top: 10vh;
@@ -373,7 +373,7 @@ a:hover {
   }
 }
 
-#data_section #symbol{
+#search_result #symbol{
   color: whitesmoke;
   display: inline;
   font-size: 1.5em;
@@ -383,7 +383,7 @@ a:hover {
 
 }
 
-#data_section > div[id^='element_'] {
+#search_result > div[id^='element_'] {
   padding-top: 2.5vh;
   border-top:1px solid rgba(250,250,250,0.6);
   margin: 0 ;
@@ -398,11 +398,11 @@ a:hover {
   pointer-events: none;
  }
 
-#data_section #exchange_market_symbol{
+#search_result #exchange_market_symbol{
   color: #717176;
   font-size: 0.9em;
 }
-#data_section #company_name{
+#search_result #company_name{
   color: #99989a;
   width: 15vw;
   overflow: hidden;
@@ -495,20 +495,20 @@ top: 2vh;
 
 }
  
-#data_section #current_price{
+#search_result #current_price{
     position: relative;
     right: -80%;
     top: -30%;
     color: white;
 }
 
-#data_section > #header{
+#search_result > #header{
   color: white;
   position: relative;
   left: 5%
 
 }
-#data_section > h3{
+#search_result > h3{
   color: rgba(250,250,250,0.8);
   margin-top: 10vh;
 }
@@ -545,7 +545,6 @@ top: 2vh;
   background: none;
   z-index: 999;
 }
-
 
 
 
