@@ -452,7 +452,7 @@ function format_data(difference_range) {
     if (return_market_status()) fill_label_array_1min()
 
     label_array = label_array.map(i => i + (i < 12 ? 'am' : 'pm'))
-  
+
     grid_color_array = Array(label_array.length).fill("transparent")
 
     for (let i = 30 / range; i < label_array.length; i += 60 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
@@ -1069,8 +1069,11 @@ function filter_data(input_data, time_range) {
 }
 
 function judge_color() {
-  if (current_Index === static_Index) return "#52c4fa"
-  else if (current_Index > static_Index) return dataset[current_Index] >= dataset[static_Index] ? "lawngreen" : "red"
+
+  if (current_Index === static_Index) return "#52c4fa";
+
+  else if (current_Index > static_Index) return dataset[current_Index] >= dataset[static_Index] ? "lawngreen" : "red";
+
   else return dataset[static_Index] >= dataset[current_Index] ? "lawngreen" : "red"
 
 }
@@ -1096,14 +1099,17 @@ function create_chart() {
       info_price.style.color = "#52c4fa"
 
 
-      window.left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      window.this_position_x = chart.tooltip._active[0].element.x;
+      let left_position = parseFloat(window.getComputedStyle(info_price).getPropertyValue('left'))
+
+      let this_position_x = chart.tooltip._active[0].element.x;
       let this_position_y = chart.tooltip._active[0].element.y;
 
       if (current_Index === 0 && !first_index) first_index = this_position_y
 
 
-      const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left - info_price.offsetWidth / 2
+      const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left - info_price.offsetWidth / 2;
+
+      const strokeColor = (!isMouseDown ? '#52c4fa' : judge_color())
 
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
 
@@ -1112,12 +1118,21 @@ function create_chart() {
         this_position_x = myChart.chartArea.left
         if (first_index) this_position_y = first_index
       } else fire = false
+      
 
-      context.beginPath()
-      context.strokeStyle = (!isMouseDown ? '#52c4fa' : judge_color());
-      context.globalCompositeOperation = 'source-over'
+      /* 
 
-      context.setLineDash([])
+      This is for drawing the current moving line
+
+      It will move as the mouse move
+
+      */
+
+      context.beginPath();
+      context.strokeStyle = strokeColor;
+      context.globalCompositeOperation = 'source-over';
+
+      context.setLineDash([]);
 
       context.moveTo(this_position_x, chart.chartArea.top);
       context.lineTo(this_position_x, chart.chartArea.bottom);
@@ -1125,94 +1140,166 @@ function create_chart() {
       context.stroke();
       context.closePath();
 
-
       context.moveTo(this_position_x, chart.tooltip._active[0].element.y)
 
-      context.beginPath()
-      context.fillStyle = (!isMouseDown ? '#52c4fa' : judge_color());
+      context.beginPath();
+
+      context.fillStyle = strokeColor;
+
       context.arc(this_position_x, this_position_y, window.innerWidth / 110 > 10 ? window.innerWidth / 110 : 10, 0, 2 * Math.PI);
+
       context.fill();
+
       context.strokeStyle = 'rgba(0,0,0,0.8)';
+
       context.stroke();
+
       context.closePath();
+
+      context.restore();
+
+      context.save();
+
       /*
+
       The state saved by context.save() could only be restored only once.
+
       Every time you call save, all the current default properties of the context are pushed in this stack.
+
       Every time you call restore, the last state is popped out of the stack, and all its saved properties are set to the context.
+
       So we need to use context.restore followed by a context.save() in order by keep the customized property for further used.
+
       */
 
-      context.restore()
-      context.save()
+      
+      /*
 
+      If user doesn't mousedown, then declare following variables as null
 
-      if (isMouseDown) {
+      If user mousedown, then draw the following line.
 
-        if (!static_clientX) {
-          static_clientY = this_position_y;
-          static_clientX = this_position_x
-          static_Index = current_Index
-          return;
-        }
-
-
-        context.beginPath();
-        context.globalCompositeOperation = 'source-over'
-
-        context.moveTo(static_clientX, myChart.chartArea.top)
-        context.lineTo(static_clientX, myChart.chartArea.bottom)
-        context.strokeStyle = judge_color()
-        context.stroke()
-        context.closePath();
-        context.moveTo(static_clientX, static_clientY)
-        context.beginPath();
-        context.arc(static_clientX, static_clientY, window.innerWidth / 110 > 10 ? window.innerWidth / 110 : 10, 0, 2 * Math.PI);
-        context.fillStyle = judge_color()
-        context.fill();
-        context.strokeStyle = 'rgba(0,0,0,0.8)';
-        context.stroke();
-        context.closePath()
-        context.restore();
-        context.save()
-
-
-        const starting_pos = Math.min(this_position_x, static_clientX)
-        const ending_pos = Math.max(this_position_x, static_clientX)
-        context.beginPath()
-        context.globalCompositeOperation = 'source-over'
-        context.fillStyle = return_horizontal_gradient(judge_color(), myChart.chartArea.top, myChart.chartArea.bottom)
-        context.fillRect(starting_pos, myChart.chartArea.top, ending_pos - starting_pos, myChart.chartArea.height)
-        context.closePath()
-        context.restore();
-        context.save()
-        context.closePath()
-        info_price.style.color = judge_color()
-        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 + canvas.getBoundingClientRect().left + 'px'
-      } else {
+      */
+      if(!isMouseDown){
         static_clientY = null;
         static_clientX = null;
         static_Index = null;
       }
+      else{
+
+        if (!static_clientX) {
+          static_clientY = this_position_y;
+          static_clientX = this_position_x;
+          static_Index = current_Index;
+          return;
+        }
+        
+        /* 
+
+        drawing the static line that formed at the position where user mousedown
+
+        The position of it will not be changed unless user mouseup 
+
+        */
+
+        context.beginPath();
+
+        context.moveTo(static_clientX, myChart.chartArea.top);
+        context.lineTo(static_clientX, myChart.chartArea.bottom);
+
+        context.strokeStyle = strokeColor;
+
+        context.stroke();
+
+        context.closePath();
+
+        context.moveTo(static_clientX, static_clientY);
+
+        context.beginPath();
+
+        context.arc(static_clientX, static_clientY, window.innerWidth / 110 > 10 ? window.innerWidth / 110 : 10, 0, 2 * Math.PI);
+
+        context.fillStyle = strokeColor;
+
+        context.fill();
+
+        context.strokeStyle = 'rgba(0,0,0,0.8)';
+
+        context.stroke();
+
+        context.closePath();
+
+        context.restore();
+
+        context.save();
+
+        const starting_pos = Math.min(this_position_x, static_clientX);
+
+        const ending_pos = Math.max(this_position_x, static_clientX);
+
+        context.beginPath();
+
+        /*
+
+        This is for drawing the green/red gradient rectangle effect
+
+        It will only cover the distance between the original mousedown position and current mouseover (hover) position
+
+        */
 
 
+        context.fillStyle = return_horizontal_gradient(strokeColor, myChart.chartArea.top, myChart.chartArea.bottom);
 
-      info_price.style.visibility = 'visible'
-      info_date.style.visibility = 'visible'
+        context.fillRect(starting_pos, myChart.chartArea.top, ending_pos - starting_pos, myChart.chartArea.height);
+
+        context.closePath();
+
+        context.restore();
+
+        context.save();
+
+
+        info_price.style.color = strokeColor;
+
+        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 + canvas_pos.left + 'px';
+
+     }
+
+
+      info_price.style.visibility = 'visible';
+
+      info_date.style.visibility = 'visible';
+
       if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
         info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
       }
 
+      if (isMouseDown && current_Index !== static_Index || current_Index === valid_data_number - 1) return;
 
-      if (isMouseDown && current_Index !== static_Index) return;
-      if (current_Index === valid_data_number - 1) return;
-      info_price.style.left = clientX - info_price.offsetWidth / 2 + "px"
-      left_position = parseFloat(window.getComputedStyle(info_price, null)["left"])
-      if (left_position <= pos_X) {
+
+      info_price.style.left = clientX - info_price.offsetWidth / 2 + "px";
+      
+
+     /*
+
+     Although window.getComputedStyle return a live object CSSStyleDeclaration, but its value is not live, 
+
+     we need to redeclare the left_position after left_position changed
+
+     */
+
+
+      left_position = parseFloat(window.getComputedStyle(info_price).getPropertyValue('left'))
+
+      if (left_position <= pos_X) 
+
         info_price.style.left = pos_X + "px"
 
-      } else if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
+      else if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) 
+
         info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
-      }
+
+      
     }
 
   }
@@ -1221,35 +1308,58 @@ function create_chart() {
   horizontalLine = {
     id: 'horizontalLine',
     afterDraw: function(chartInstance) {
-      
-      //the plugins will always be called every time user hover over it. Use this.has_called to prevent calling after first call to save performance. Use this to access has_called in the object horizonalLinePlug
-      const canvasWidth = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('width'))
-      if (!chartInstance.options.horizontalLine) return
-      for (let index = 0; index < chartInstance.options.horizontalLine.length; index++) {
-        const line = chartInstance.options.horizontalLine[index];
-        if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1
-        yValue = chartInstance.scales["y"].getPixelForValue(line.y)
-        context.beginPath()
-        context.setLineDash([5, 3])
+      //Immediately return if horizontalLine doesn't register to the chart
+
+      if (!chartInstance.options.horizontalLine) return;
+        /* 
+
+        we could assign several horizontalLine and loop over it to draw all of them
+
+        but we know we will only have one horizontalLine
+
+        horizontalLine[0] does the job
+
+        */
+        
+        const line = chartInstance.options.horizontalLine[0];
+        if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1;
+
+        yValue = chartInstance.scales["y"].getPixelForValue(line.y);
+
+        context.beginPath();
+
+        context.setLineDash([5, 3]);
         context.lineWidth = window.innerHeight / 250
-        context.globalCompositeOperation = "source-over"
+
         context.moveTo(myChart.chartArea.left, yValue);
+
         context.lineTo(myChart.chartArea.right, yValue);
+
         context.strokeStyle = 'white';
+
         context.stroke();
+
         context.fillStyle = 'white';
+
+        /*
+
+        size_calculation return the calulated width and height for specific text
+
+        This make sure the text will not overflow or too far away from the border even in different resoluation 
+
+        */
+
         const fontSize = window.innerWidth / 100 * 1.25
         const size_1 = size_calculation("Previous Price:", fontSize);
         const size_2 = size_calculation(line.text, fontSize);
+
         context.font = `${fontSize}px sans-serif`;
         context.fillText("Previous Price:", myChart.chartArea.right - size_1.width - fontSize / 1.5, yValue + size_1.height);
+
         context.fillText(line.text, myChart.chartArea.right - size_2.width - fontSize / 1.5, yValue + size_1.height + size_2.height);
         context.restore();
-        context.setLineDash([])
         context.save()
         context.closePath()
-
-      }
 
 
     }
@@ -1257,14 +1367,27 @@ function create_chart() {
   };
 
   if (timestamp === "1min") Chart.register(horizontalLine);
-  //if previous chart existed, clear it and redraw new chart
-  if (myChart) myChart.destroy();;
+
+  /*
+
+  if previous chart existed
+
+  destory the chart, clear canvas and draw new chart
+
+  you could only draw one graph on a canvas in chart.js
+
+
+  */
+
+
+  if (myChart) myChart.destroy();
 
   myChart = new Chart(context, {
     type: 'line',
     data: {
-      xLabels: label_array,
-      datasets: [{
+
+       xLabels: label_array,
+       datasets: [{
         label_array: 'stock price',
         data: dataset,
         fill: true,
@@ -1275,7 +1398,22 @@ function create_chart() {
         borderColor: return_color()
       }]
     },
+
     options: {
+      
+      /*
+
+      Chart.js has a feature that will automatically resize the canvas to a specific ratio 
+
+      when window resize event firing 
+
+      but by using following code, we will be able to prevent this from happing 
+
+      responsive: true,
+
+      maintainAspectRatio: false
+
+      */
 
       responsive: true,
       maintainAspectRatio: false,
@@ -1336,13 +1474,23 @@ function create_chart() {
             borderWidth: 2.5
           },
           ticks: {
-            //get number of unqiue item in y label_array
+
             maxTicksLimit: label_array.length,
+
             color: 'rgba(255,255,255,0.75)',
             font: {
               size: window.innerWidth / 100 * 1.5
             },
             callback: function(value, index, values) {
+              
+              /* 
+
+              will not going to draw the gridline when returning 1 day data or the current index is the last element in the label array
+
+              return "" represents not drawing the gridline
+
+              */
+
               if (timestamp !== "1min" && index === label_array.length - 1) return "";
 
               return grid_color_array[index] !== "transparent" ? this.getLabelForValue(value) : ""
@@ -1408,7 +1556,8 @@ function retore_all_values(expected_content = 'Latest Price') {
   if (timestamp !== '1min' && horizontalLine) Chart.unregister(horizontalLine);
 
 
-  const matched_element = select('#price_name')
+  const matched_element = select('#price_name');
+
   if (matched_element) matched_element.innerHTML = expected_content + " (AS OF <span style='font-size:0.8em;'>" + new Date(global_time).toString().substring(4, 21) + " EDT" + '</span>)'
 
   //const matched_element = document.evaluate(`//span[text()='${search_content}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -1476,7 +1625,9 @@ function assign_web_worker_two() {
 
   worker.onmessage = function(e) {
     /* 
+
     In order to improve efficency and optimize performance, the object keys have all been renamed, now the symbol_list looks  something like this:
+
     {
     "0":"CMCSA",
     "1":"Comcast Corporation",
@@ -1484,10 +1635,16 @@ function assign_web_worker_two() {
      "3":"NASDAQ Global Select",
      "4":"NASDAQ"
      }
+
     */
 
-    //check the type of the return data to determine which list it should go to
-    //altough check if item is object includes array, function and null
+    /*
+
+    Use following code to check the type of the return data to determine which list it should go to
+
+    Note that typeof array is also an object 
+    
+    */
     const retrieved_data = JSON.parse(e.data)
     if (Array.isArray(retrieved_data[0])) symbol_symbol_list = retrieved_data
 
@@ -1498,29 +1655,43 @@ function assign_web_worker_two() {
     else if (typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
 
     if (symbol_price_list.length > 0 && symbol_symbol_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0) {
+
       if (isWaiting_two)
         create_sections(symbol_full_name_list)
+
       else if (isWaiting_three)
         search_through(input.value.toUpperCase())
     }
 
+
   }
-  //web worker no access to variable in main script, so we need to transfer it 
+ 
   worker.postMessage("Start");
+
 }
 
 
 
 
 window.onload = function() {
+
+  /*
+
+  The two symbol (search symbol and left arrow) is loaded from the web
+
+  so only make them visible when the script of them successfully loaded
+
+  */
   const script = document.createElement('script');
   script.setAttribute('src',"https://kit.fontawesome.com/44f674442e.js")
   document.body.appendChild(script) 
   script.onload = () =>{
+
     back_button.style.visibility = 'visible';
     search_icon.style.visibility = 'visible'
 
   } 
+
   create_small_animated_chart()
   assign_web_worker_two()
 
@@ -1529,10 +1700,10 @@ window.onload = function() {
     select('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";
     const time_element = select("#current_time")
     let time = global_time
-    time_element.textContent = time.toString().split(" GMT")[0] + ' EDT'
+    time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
     setInterval(() => {
       time = new Date(time.getTime() + 1000)
-      time_element.textContent = time.toString().split(" GMT")[0] + ' EDT'
+      time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
     }, 1000)
     load_main_page()
 
@@ -1540,6 +1711,7 @@ window.onload = function() {
 
 
   //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
+  
   context.strokeStyle = '#52c4fa';
   context.fillStyle = "#52c4fa";
   context.setLineDash([])
