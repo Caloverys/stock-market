@@ -121,7 +121,9 @@ delete_button.addEventListener('click', (e) => {
 
 
 function search_through(search_keyword) {
-  const list = new Array(3).fill([])
+  search_keyword = search_keyword.toUpperCase()
+  const list = [[],[],[]]
+  console.log(list)
   for (let i = 0; i < symbol_symbol_list.length; i++) {
 
     /*
@@ -211,6 +213,8 @@ or the company name of the stock in my watch_list contains the keywords, push it
 
 
 */
+
+console.log(list)
   if (my_watched_list.length > 0) {
 
     my_watched_list.forEach((data, index) => {
@@ -224,7 +228,7 @@ or the company name of the stock in my watch_list contains the keywords, push it
   }
 
   //make sure the results from search array by symbol doesn't include the index in my watch_list
-  list[0] = list[0].filter(i => !list[2].includes(i))
+  list[0] = list[0].filter(i=>!list[2].includes(i))
 
   //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
   list[1] = list[1].filter(i => !list[2].includes(i) && !list[0].includes(i))
