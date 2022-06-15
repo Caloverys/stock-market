@@ -37,7 +37,7 @@ let global_time;
 let clientX;
 
 //Contains the date (time) for newest data retreieved from website
-let date_latest;
+let latest_date;
 
 //Contains the stock price chart object 
 let myChart;
@@ -308,11 +308,16 @@ Range refers to the difference between every two dataset
 
 Example: 1min 5min 15min 1hour 4hours
 
+
 */
-function fetchData(symbol, range) {
-  //apikey=c38b723e031c88753f0c9e66f505f557
-  //apikey=136fb4fa07e6ac6ae9a246d24029dfbc
-  //apikey=ee684c5f9b04a3e914f9e39630f0f929
+function fetch_data(symbol, range) {
+  /*
+
+  apikey=c38b723e031c88753f0c9e66f505f557
+  apikey=136fb4fa07e6ac6ae9a246d24029dfbc
+  apikey=ee684c5f9b04a3e914f9e39630f0f929
+
+  */
 
   return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
     .then(res => res.json())
@@ -323,12 +328,15 @@ function fetchData(symbol, range) {
 document.body.addEventListener('mousemove', e => {
 
   isInsideChart = isInCanvas(e.clientX, e.clientY)
+
   if (isInsideChart && isVisible) {
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
 
-  } else {
+  } 
+  else {
+
     info_price.style.visibility = 'hidden'
     info_date.style.visibility = 'hidden'
     selectAll('#range > button').forEach(i => i.style.visibility = 'visible')
@@ -336,8 +344,16 @@ document.body.addEventListener('mousemove', e => {
 
 })
 
-//Detect if the mouse is in the chart (not the whole canvas)
+/*
+
+Detect if the mouse is in the chart (not the whole canvas)
+
+return a boolean value to indicate that
+
+*/
+
 function isInCanvas(posX, posY) {
+
   //immediately return false if myChart has not be created
   if (!myChart) return false;
 
@@ -348,46 +364,95 @@ function isInCanvas(posX, posY) {
 
 
 }
+
+//will return false if mousedown but not inside chart
 canvas.addEventListener('mousedown', ()=>isMouseDown = (isInsideChart ? true : false))
 
 canvas.addEventListener('mouseup', ()=>isMouseDown = false)
 
 
+
+
 function format_date(dateobject) {
-  //Some broswer (safari) doesn't recognize the 2022-06-10 10:45:00 date format, so we have to reformat it
+  /*
+
+  Some broswers  doesn't recognize a speicific date format 
+
+  Example: 2022-06-10 10:45:00 
+
+  This will return Invalid Date in safari 
+
+  The always best way is to reformat to ISO string 
+
+
+
+  */
 
   return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7) - 1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
 }
 
 
-function format_data(difference_range) {
-  date_latest = format_date(raw_data[raw_data.length - 1].date)
 
-  const expected_end_date = new Date(new Date(global_time.setDate(global_time.getDate() - difference_range)).setHours(9,30))
+/* 
+
+designed for formating data from 1 day to 2 month only 
+
+difference_range => the difference of days between current date and a specific date 
+
+Example:
+
+2 month => 60 
+1 month => 30
+1 week => 7 
+1 day => 0
+
+
+*/
+
+function format_data(difference_range) {
+
+  //get the current latest date 
+
+  latest_date = format_date(raw_data[raw_data.length - 1].date)
+  
+  /*
+
+  get the small accept time
+
+  smallest_accept_time is the latest_date date - difference_range and set hours and minutes to open market time (9:30)
+
+  */
+
+  const smallest_accept_time = new Date(new Date(global_time.setDate(global_time.getDate() - difference_range)).setHours(9,30))
 
   raw_data.forEach((item, index) => {
 
-    if (format_date(item.date) >= expected_end_date) {
+    if (format_date(item.date) >= smallest_accept_time) {
 
       label_array.push(format_date(item.date))
       detail_dataset.push(item)
       dataset.push(item.close.toFixed(2))
 
     }
+
   })
 
 
-  valid_data_number = label_array.length
+  valid_data_number = label_array.length;
+
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
 
   
   if (timestamp === '1min') {
+
+    //convert label arrays to hours
     label_array = label_array.map(i => new Date(i).getHours())
 
     if (return_market_status()) fill_label_array_1min()
 
     label_array = label_array.map(i => i + (i < 12 ? 'am' : 'pm'))
+  
     grid_color_array = Array(label_array.length).fill("transparent")
 
     for (let i = 30 / range; i < label_array.length; i += 60 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
@@ -446,7 +511,6 @@ function format_data(difference_range) {
 
 
 function format_data_two(difference, isYear, filter_value, filter_data_range = 1, label_by_year) {
-  console.log(arguments)
   Chart.unregister(horizontalLine);
   dataset.length = 0
   const lastest_date = new Date(all_fetch_data['all_data'][all_fetch_data['all_data'].length - 1].date)
@@ -455,6 +519,7 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
   raw_data.forEach((item, index) => {
 
     let current_date = new Date(item.date)
+
     /*
     
     Important notice:
@@ -476,6 +541,7 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
     P.S. spend 2 hours find out the bug caused by this
 
     */
+
 
     if (index % filter_data_range === 0) {
 
@@ -499,13 +565,35 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 
   valid_data_number = label_array.length
+
   max_value = Math.max.apply(null, dataset)
   min_value = Math.min.apply(null, dataset)
+
+  /*
+
+  fill grid_color array with "transparent" with the number of valid_data_number
+
+  It is used to indicate if gridline of the label should be displayed or not 
+
+  if "transparent" means the gridline will not going to be display
+
+  */
   grid_color_array = Array(valid_data_number).fill('transparent')
 
   let passed_value = [0];
 
   if (!label_by_year) {
+
+    /*
+
+    Convert month to full name
+
+    Example:
+
+    0 => January 
+
+    */
+
     let currentMonth = new Date(label_array[0]).toLocaleString("default", {
       month: 'long'
     });
@@ -835,23 +923,23 @@ function get_global_time() {
 
 function fill_label_array_5min() {
 
-  const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 16, 0)
-  const amountToAdd = (expectedDate - date_latest) / 1000 / 60 / 5
+  const expectedDate = new Date(latest_date.getFullYear(), latest_date.getMonth(), latest_date.getDate(), 16, 0)
+  const amountToAdd = (expectedDate - latest_date) / 1000 / 60 / 5
   label_array.push.apply(label_array, Array(Math.ceil(amountToAdd / range)).fill(expectedDate.getDate()))
 
 }
 
 function fill_label_array_1min() {
-  const expectedDate = new Date(date_latest.getFullYear(), date_latest.getMonth(), date_latest.getDate(), 15, 59)
+  const expectedDate = new Date(latest_date.getFullYear(), latest_date.getMonth(), latest_date.getDate(), 15, 59)
 
 
-  const amountToAdd = (expectedDate - date_latest) / 1000 / 60;
+  const amountToAdd = (expectedDate - latest_date) / 1000 / 60;
 
   //Add null dataset to array with numbers of minutes left to the close market which is 4 p.m.
   //first fill the label_array to full hour (60 min)
-  label_array.push.apply(label_array, Array(Math.floor((59 - date_latest.getMinutes()) / range)).fill(date_latest.getHours()))
+  label_array.push.apply(label_array, Array(Math.floor((59 - latest_date.getMinutes()) / range)).fill(latest_date.getHours()))
 
-  for (let i = date_latest.getHours() + 1; i < 16; i++) label_array.push.apply(label_array, Array(60 / range).fill(i))
+  for (let i = latest_date.getHours() + 1; i < 16; i++) label_array.push.apply(label_array, Array(60 / range).fill(i))
 
   //at last 16:00
   label_array.push(16)
@@ -863,7 +951,7 @@ let closed_price = null
 function find_closed_price() {
   if (!closed_price) {
     for (let i = raw_data.length - 1; i >= 0; i--) {
-      if (date_latest.getDate() !== format_date(raw_data[i].date).getDate()) {
+      if (latest_date.getDate() !== format_date(raw_data[i].date).getDate()) {
         closed_price = raw_data[i].close
         return raw_data[i].close;
       }
@@ -1330,7 +1418,7 @@ function retore_all_values(expected_content = 'Latest Price') {
 function restore_and_fetch(time_range_name, expected_content) {
   retore_all_values(expected_content)
   if (!all_fetch_data[time_range_name]) {
-    fetchData(symbol, timestamp).then(function(result) {
+    fetch_data(symbol, timestamp).then(function(result) {
       all_fetch_data[time_range_name] = result
       raw_data = filter_data(result, parseInt(timestamp))
       format_data(difference_time)
@@ -1533,7 +1621,7 @@ function setup(index) {
   timestamp = "1min"
   //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
   difference_time = 0
-  Promise.all([get_global_time(), fetchData(symbol, timestamp)]).then(function(values) {
+  Promise.all([get_global_time(), fetch_data(symbol, timestamp)]).then(function(values) {
 
 
     all_fetch_data[variable_name] = values[1]
@@ -1728,4 +1816,3 @@ back_button.addEventListener("click", load_main_page)
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
-
