@@ -1,3 +1,794 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<head>
+    <style>
+* :not(#price > *) {
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#parent_of_canvas > canvas {
+  position: absolute;
+  top: 20vh;
+  width: inherit;
+  height: inherit;
+}
+
+#starting > canvas{
+  width: 65vw !important;
+  position: absolute;
+  height: 60vh !important;
+  top: 35vh;
+  left: 5vw;
+  border:none;
+  
+}
+
+#info_price {
+  z-index: 9999;
+  position: absolute;
+  left: 40%;
+  top: 22.5%;
+  color: #52c4fa;
+  font-weight: bold;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+#right_area > #parent_of_canvas {
+   display: none;
+  border-radius: 10px;
+
+  position: relative;
+  top: 5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: calc(2vw);
+  padding-top: 100px;
+  margin: 5px;
+  margin-left: 0;
+  height: 75vh;
+  width: 70vw;
+  display: none;
+
+}
+
+svg{
+  position:absolute;
+  left: 20%;
+  top:-25%;
+}
+text:first-child{
+  
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw1 10s forwards;
+  font-style: italic ;
+}
+text:last-child{
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+
+  font-family: sans-serif;
+  font-style: italic;
+  transition: appearing 3s ;
+}
+
+@keyframes appearing{
+  from{
+    opacity: 0.3;
+  }
+}
+@keyframes draw1 {
+
+  to{
+    stroke-dashoffset: 0;
+     fill: whitesmoke;
+  }
+}
+
+@keyframes draw2 {
+
+  to{
+    stroke-dashoffset: 0;
+     fill: red;
+  }
+}
+
+#right_area {
+  position: absolute;
+  top: 0;
+  height: 100vh;
+  width: 75%;
+  background-color:   rgba(0,0,0,0.8);;
+  left: calc(25% + 2.5px);
+
+
+
+
+
+}
+#info_date {
+  font-size:16px;
+ margin-top: calc(-6.5vh);
+  color: white;
+  visibility: hidden;
+  white-space: nowrap;
+
+}
+
+
+#search_engine > input[type=text] {
+  z-index: 999;
+  border-radius: 4px;
+  border: 1px solid grey;
+  position: fixed;
+  margin: 15px calc(1vw);
+  padding: 7.5px calc(2.5vw);
+    background-color: rgba(90,88,92,0.8);
+  width: calc(17vw);
+  
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+  color: white;
+
+}
+
+#search_engine > #search_icon {
+  position: fixed;
+  top: 3.6%;
+  left: 1.4%;
+  color: rgba(230,230,230);
+  font-weight: normal;
+  border:none;
+  background:none
+}
+
+ #search_engine > #deletebutton {
+  background-color: #848386;
+  border: none;  
+   border-radius: 50%;
+   visibility: hidden;
+
+  color: rgba(83, 81, 86, 0.8); 
+   font-weight: normal;
+  padding: 0;
+  width: 17.5px;
+  height: 17.5px;
+   position: fixed;
+   left:21vw;
+   top: 3.5vh;
+   
+   z-index: 999;
+    
+}
+
+
+input[type=text]:focus-visible {
+  outline: 4px solid rgba(59, 106, 180, 0.95);
+}
+
+
+#price {
+  float: right;
+  position: absolute;
+  right: 4vw;
+  top: 1.5vh;
+}
+
+#dollar {
+  font-size: 2em;
+  margin-right: 40px;
+  color: white;
+}
+
+#percent {
+  margin-bottom: calc(0.75vh);
+}
+
+#meta_element>#range {
+  position: absolute;
+  top: 10%;
+  left: 0;
+  font-weight: bolder;
+  font-size: calc(2vw);
+  text-align: center;
+  margin: 10px;
+}
+
+#range>button {
+  margin: calc(1vh) calc(1vw);
+  border-radius: 25%;
+  background-color: black;
+  width: 3.25vw;
+  color: white;
+  border: none;
+  font-weight: bold;
+  padding: calc(2vh) calc(1vh);
+  min-width: min-content;
+}
+
+#meta_element>#name {
+  position: absolute;
+  top: 2.5vh;
+  left: 5vw;
+}
+
+#name>h2 {
+  color: white;
+  font-size: 2.25em;
+  display: inline;
+}
+
+#name>h4 {
+  margin-left: calc(2vw);
+  display: inline;
+  color: grey;
+}
+
+#range > hr {
+  width: 71.5vw;
+  margin: 0;
+  color: white;
+}
+#left_area > .vertical_line{
+  border-left: 3px solid  grey;
+  height: 200vh;
+  position: fixed;
+  margin: 0;
+  left: 25%;
+  top: 0%;
+
+}
+#left_area > #bottom_section
+{
+  position: fixed;
+  bottom: 0vh;
+  left: 0vw;
+  width: 25vw;
+  height: 5vh;
+  background-color: rgba(66,62,70);
+  display: flex;
+  align-items: center;
+}
+
+#left_area > #search_engine{
+  background-color: rgb(83,83,83);
+  width: 25%;
+   height: 100vh;
+   overflow: hidden;
+}
+#left_area > #search_result{
+  height: 85vh;
+  position: fixed;
+  top: 10vh;
+  left: 1%;
+  width: 23%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-bottom: 25vh;
+ box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;
+  border:  2px solid rgb(83,79,83,0.75);
+}
+
+
+#bottom_section > #market_status{
+color: rgba(144,133,138,1);
+position: absolute;
+right: 5%;
+font-family: sans-serif;
+text-transform: capitalize;
+}
+#bottom_section > #current_time{
+  color: rgba(144,133,128,1);
+  font-size: 12px;
+  position: absolute;
+  font-family: sans-serif;
+  left: 5%;
+}
+
+.warning {
+  width: 100vw;
+  height: 7.5vh;
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+  justify-content: center;
+  font-size: 2em;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: rgb(249, 180, 45);
+  font-weight: bold;
+  text-indent: 10px;
+  position: fixed;
+  bottom: 0;
+  transition: all 1s;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+}
+
+.remove_button {
+  color: black;
+  font-weight: 600;
+  font-size: 1.2em;
+  background: none;
+  border: none;
+}
+
+.remove_button:after {
+  display: inline-block;
+  content: "\00d7";
+}
+
+button,
+a:hover {
+  cursor: pointer;
+}
+
+.remove_class {
+  transition: opacity 1.5s ease-out;
+  opacity: 0;
+}
+
+.loader {
+  border: 2vw solid rgba(243, 243, 243, 0.8);
+  border-radius: 50%;
+  border-top: 2vw solid rgba(128, 128, 128, 0.9);
+  width: 20vw;
+  height: 20vw;
+  position: absolute;
+  left: 35%;
+  top: 25%;
+  animation: rotate 1.5s linear infinite;
+}
+#loader{
+  border: 1vw solid rgba(243, 243, 243, 0.8);
+  border-radius: 50%;
+  border-top: 1vw solid rgba(128, 128, 128, 0.9);
+  width: 10vw;
+  height: 10vw;
+  position: absolute;
+  left: 22.5%;
+  top: 25%;
+  animation: rotate 1.5s linear infinite;
+
+}
+
+.small_loader {
+  border: 0.4vw solid rgba(243, 243, 243, 0.8);
+  border-radius: 50%;
+  border-top: 0.4vw solid rgba(128, 128, 128, 0.9);
+  width: 2vw;
+  height: 2vw;
+  animation: rotate 1.5s linear infinite;
+  position: absolute;
+  top: 1.5vh;
+  right: 10vw;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#search_result #symbol{
+  color: whitesmoke;
+  display: inline;
+  font-size: 1.5em;
+  text-transform: uppercase;
+   margin: 1vw;
+ 
+
+}
+
+#search_result > div[id^='element_'] {
+  padding-top: 2.5vh;
+  border-top:1px solid rgba(250,250,250,0.6);
+  margin: 0 ;
+   position: relative;
+  left: 5%;
+  width: 21vw;
+  height: 12.5vh;
+
+
+}
+ div[id^='element_'] > *{
+  pointer-events: none;
+ }
+
+#search_result #exchange_market_symbol{
+  color: #717176;
+  font-size: 0.9em;
+}
+#search_result #company_name{
+  color: #99989a;
+  width: 15vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  top: 10%;
+  left: 5%;
+;
+}
+
+#starting_buttons > div{
+padding-top: 2.5vh;
+  border:1px solid rgba(250,250,250,0.6);
+  border-radius: 10px;
+  margin: 0;
+  margin-top: 1.5vh;
+  margin-bottom: 4vh;
+  width: 21vw;
+  height: 15vh;
+    position: relative;
+left: 1vw;
+top: 2vh;
+
+  
+}
+#stock_market_button {
+
+  background: linear-gradient(90deg,#0000 33%,whitesmoke 50%,#0000 66%) rgba(220,220,220,0.9);
+
+  background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+}
+@keyframes moving{
+  from{
+    background-position: right;
+  }to{
+    background-position: left;
+  }
+
+}
+#stock_market_button > h2{
+ background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+  background-image: radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 35%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 99%, #5d4a1f 100%);
+  position: absolute;
+  left: 1.75vw;
+  top: -0.25vh;
+}
+#stock_market_button > div{
+  color: rgba(135, 135, 135, 0.95);
+  position: absolute;
+  top: 10vh;
+  left: 1.75vw;
+
+}
+#watch_list{
+   background: linear-gradient(90deg,#0000 33%,white  50%,#0000 66%) #d3d3d3 ;
+
+  background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+}
+#watch_list > h2{
+  position: absolute;
+  left: 1.75vw;
+  top: 3vh;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+
+}
+#simulator > h2{
+    position: absolute;
+  left: 1.75vw;
+  top: 3vh;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+
+
+}
+#simulator{
+  background: linear-gradient(90deg,#0000 33%,rgba(240,240,240,0.8) 50%,#0000 66%) rgba(220,220,220,0.9);
+   background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+
+}
+ 
+#search_result #current_price{
+    position: relative;
+    right: -80%;
+    top: -30%;
+    color: white;
+}
+
+#search_result > #header{
+  color: white;
+  position: relative;
+  left: 5%
+
+}
+#search_result > h3{
+  color: rgba(250,250,250,0.8);
+  margin-top: 10vh;
+}
+.active{
+  background-color:rgba(127, 128, 133, 0.95);
+  border-radius: 10px;
+}
+
+#add_to_watchlist{
+  color: white;
+  font-weight: bold;
+  position: absolute;
+  right: 5%;
+  top: -4.5%;
+  background-color: #4eacf8;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 1.1em;
+  white-space: nowrap;
+  border: none;
+}
+.has_clicked{
+  background-color: transparent !important;
+  color: #4eacf8 !important;
+  border: 2px solid #4eacf8 !important;
+}
+#back_button{
+  position: absolute;
+  left: 27%;
+  top: 1%;
+  font-size: 1.8em;
+  color:  grey;
+  border: none;
+  background: none;
+  z-index: 999;
+}
+
+
+#back_button,#search_icon{
+  visibility: hidden;
+}
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    </style>
+</head>
+<body>
+
+
+  <script src="https://kit.fontawesome.com/44f674442e.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div id='left_area'>
+<div id='search_engine'>
+
+<input type='text' placeholder="Search...">
+<!--decimal code for html for the delete symbol X-->
+<button id='back_button'><i class="fa-solid fa-angle-left"></i></button>
+<button id='deletebutton'>&times;</button>
+<button id='search_icon' ><i class="fa-solid fa-magnifying-glass" ></i></button>
+
+</div>
+<div id='search_result'>
+
+</div>
+
+<div class='vertical_line'></div>
+<div id='bottom_section'>
+<div id='market_status'>Market Status</div>
+<div id='current_time'>00:00:00</div>
+</div>
+
+
+</div>
+
+<div id='right_area'>
+  <div id='starting'>
+    <svg  width="600" height="600">
+  <text fill='transparent'  x="50%" y="50%"  text-anchor="middle" stroke="white" stroke-width="5.5" font-size="110">Stock market</text>
+  <text  fill='red'x="50%" y="60%"  text-anchor="middle" stroke="red" stroke-width="2.5" font-size='35' ></text>
+</svg>
+<canvas id='animated_effect'></canvas>
+</div>
+<div id='parent_of_canvas'>
+  <button id='add_to_watchlist'>+Add to Watchlist</button>_
+
+<div id='meta_element'>
+
+    <div id='name'>
+      <h2>Symbol</h2>
+      <h4>Full Name</h4>
+
+    </div>
+    <div id='price'>
+      <span id='dollar'><span class='small_loader' ></span></span>
+      <span id='percent'></span><br>
+    </div>
+
+    <div id='range'>
+      <hr>
+      <button id='one_day'>1D</button>
+      <button id='one_week'>1W</button>
+      <button id='one_month'>1M</button>
+      <button id='two_month'>2M</button>
+      <button id='three_month'>3M</button>
+      <button id='six_month'>6M</button>
+      <button id='one_year'>1Y</button>
+      <button id='two_year'>2Y</button>
+      <button id='five_year'>5Y</button>
+      <button id='ten_year'>10Y</button>
+      <button id='all_time'>All</button>
+      <hr>
+       <div id='info_date'></div>
+    </div>
+
+  </div>
+
+  <div class='loader'></div>
+
+  <canvas id="chart"></canvas>
+</div>
+<div id='#othervalue'>
+<div id='customToolTip'></div>
+</div>
+</div>
+    <div id='info_price'></div>
+
+
+
+<!-- Chrome doesn't allow use web webworker from local file, this I have to use a script and blob to set the web worker. But after I build up the web sever, it could be put in a separate file to increase code readbility -->
+<script id='web_worker_one' type='javascript/worker'>
+self.onmessage = function(e) {
+  start_fetching_data(e.data).then(function(result){
+    self.postMessage(JSON.stringify(result))
+  });
+  };
+
+
+function start_fetching_data(symbol){
+  return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol.toUpperCase()}&outputsize=full&apikey=YEKKF1VPCHPGBLE7`)
+  .then(res=> res.json())
+  .then(data =>{
+   const all_data =data["Time Series (Daily)"]    
+   console.log(all_data,Object.keys(all_data))
+    
+    const organized_data = []
+    //ES2020 adds the feature of Intl.NumberFormat() constructor, we could use Intl.NumberFormat() constructor here to format the large number properly (e.g. 1000 => 1k)
+    const formatter = Intl.NumberFormat('en', { notation: 'compact' })
+ Object.keys(all_data).forEach((info,index)=>{
+      organized_data.push({
+        "date":info,
+        "price":parseInt(all_data[info]["4. close"]),
+         "volume":formatter.format(all_data[info]["5. volume"])
+      })
+       
+     })
+     
+      return organized_data.sort(({
+      date: a
+    }, {
+      date: b
+    }) => a < b ? -1 : (a > b ? 1 : 0));
+  
+
+    })
+  
+}
+
+</script>
+
+<script id='web_worker_two' type='javascript/worker'>
+  self.onmessage = function(e) {
+  fetching_symbol().then(function(result){
+      self.postMessage(JSON.stringify(result))
+      const all_data = result;
+      let symbolname_list = {}
+      let character_list = []
+       
+       all_data.forEach(i=>{
+        //i["0"][0] => first character of the symbol
+      if(!character_list.includes(i["0"][0])){
+         character_list.push(i["0"][0])
+         symbolname_list[i["0"][0]] = []
+        }
+         symbolname_list[i["0"][0]].push(i["0"])
+      })
+
+
+      //convert the object to array contain object
+      symbolname_list = Object.keys(symbolname_list).map(key => {
+       return  symbolname_list[key];
+      })
+
+
+      self.postMessage(JSON.stringify(symbolname_list))
+      const price_list = all_data.map(i=>{
+        return i["2"]
+      })
+      self.postMessage(JSON.stringify(price_list))
+
+      const full_name_list = all_data.map(i=>{
+
+        return i["1"]
+      })
+      self.postMessage(JSON.stringify(full_name_list))
+
+  });
+  };
+
+  function fetching_symbol(){
+    //apikey=FXLQF9OPEP8ROBMD
+    //apikey=c38b723e031c88753f0c9e66f505f557
+    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
+  .then(res=> res.json())
+  .then(data =>{
+    let symbol_list = data;
+    console.log(symbol_list)
+  symbol_list = symbol_list.filter(i=>{
+    //check if the symbol contains only the characters (e.g "a1.b" or "ab.ll" will not pass the test)
+    //i["name"][0] => The first character in i["name"]
+    return i["type"] === 'stock' && /^[a-zA-Z]+$/.test(i["symbol"]) &&  isNaN(i["name"][0]) && i["price"] !== 0;
+   }).sort((a,b) =>{
+    return a['symbol'].localeCompare(b["symbol"])
+  })
+
+  for(let i =0;i<symbol_list.length;i++){
+    //rename all the object.keys to integer to minimize the size of JSON string and improve peformance
+    
+    //Duplictate the values with keys 'symbol' and name as 0
+     Object.defineProperty(symbol_list[i], "0",
+      Object.getOwnPropertyDescriptor(symbol_list[i], "symbol"));
+      Object.defineProperty(symbol_list[i], "1",
+      Object.getOwnPropertyDescriptor(symbol_list[i], "name"));
+      Object.defineProperty(symbol_list[i], "2",
+      Object.getOwnPropertyDescriptor(symbol_list[i], "price"));
+        Object.defineProperty(symbol_list[i], "3",
+      Object.getOwnPropertyDescriptor(symbol_list[i], "exchange"));
+            Object.defineProperty(symbol_list[i], "4",
+      Object.getOwnPropertyDescriptor(symbol_list[i], "exchangeShortName"));
+
+      //Now delete now previous Object keys and values
+      delete symbol_list[i]['symbol']
+     delete symbol_list[i]['name']
+     delete symbol_list[i]['price']
+     delete symbol_list[i]['exchange']
+     delete symbol_list[i]['exchangeShortName']
+    delete symbol_list[i]['type']
+  }
+
+  /*Now the symbol_list will look something like this:
+  {"0":"CMCSA",
+  "1":"Comcast Corporation",
+  "2":43.8,
+  "3":"NASDAQ Global Select",
+  "4":"NASDAQ"}
+  */
+   return symbol_list
+ })
+
+  }
+
+  </script>
+ 
+ 
+<script>
 //write alias to document.querySelector to shorten the code
 const select = document.querySelector.bind(document)
 const selectAll = document.querySelectorAll.bind(document)
@@ -12,7 +803,7 @@ const context = canvas.getContext('2d')
 ,loader = select('.loader')
 ,my_watched_button = select('#add_to_watchlist')
 , delete_button = select('#deletebutton')
-,data_section = select("#data_section")
+,search_result = select("#search_result")
 ,search_icon = select('#search_icon')
 ,back_button = select('#back_button')
 
@@ -86,15 +877,25 @@ let isWaiting_two = false
 //Boolean value to indicate if user is waiting for all stock symbols data (will be true if user types something in the search engine before all stock symbols data loaded)
 let isWaiting_three = false;
 
-//label_array contains the x-axis label value for each data
-//grid_color_array contains the color for every vertical gridline for each data
-//symbol_full_list => an array contains objects that have the full data return by the API
-//symbol_price_list => an array contains all price values of stocks
-//symbol_symbol_list => an array contains array with all stocks symbol (each subarray is separating by first character e.g. symbol_symbol_list[0] contains all the symbol starts with a )
-//symbol_full_name_list => an array contains all full name of all stocks 
+/*
+
+label_array contains the x-axis label value for each data
+
+grid_color_array contains the color for every vertical gridline for each data
+
+symbol_full_list => an array contains objects that have the full data return by the API
+
+symbol_price_list => an array contains all price values of stocks
+
+symbol_symbol_list => an array contains array with all stocks symbol (each subarray is separating by first character e.g. symbol_symbol_list[0] contains all the symbol starts with a )
+
+symbol_full_name_list => an array contains all full name of all stocks 
+
+*/
+
 let [label_array, grid_color_array, symbol_full_list, symbol_price_list, symbol_symbol_list, symbol_full_name_list] = new Array(6).fill([])
 
-//Try to get watch_list from localStorage, if there is no data, declared as []
+//Try to get my_watch_list from localStorage, if there is no data, declared as []
 let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'))
 
 if (!my_watched_list) my_watched_list = []
@@ -121,9 +922,8 @@ delete_button.addEventListener('click', (e) => {
 
 
 function search_through(search_keyword) {
-  search_keyword = search_keyword.toUpperCase()
+  //Note search_keyword will always be uppercase 
   const list = [[],[],[]]
-  console.log(list)
   for (let i = 0; i < symbol_symbol_list.length; i++) {
 
     /*
@@ -203,9 +1003,9 @@ function search_through(search_keyword) {
 /* 
 if there is item in my watch list, search over it 
 
-data.data_section['0'] => symbol of the stock
+data.search_result['0'] => symbol of the stock
 
-data.data_section['1'] => full name of the stock
+data.search_result['1'] => full name of the stock
 
 if symbol of the stock in my watch_list starts with the search keyword, push it
 
@@ -214,12 +1014,12 @@ or the company name of the stock in my watch_list contains the keywords, push it
 
 */
 
-console.log(list)
   if (my_watched_list.length > 0) {
 
     my_watched_list.forEach((data, index) => {
      
-      if (data.data_section['0'].startsWith(search_keyword) || data.data_section['1'].toUpperCase().includes(search_keyword))
+      if (data.search_result['0'].startsWith(search_keyword) || data.search_result['1'].toUpperCase().includes(search_keyword))
+
         list[2].push(index)
 
 
@@ -230,38 +1030,76 @@ console.log(list)
   //make sure the results from search array by symbol doesn't include the index in my watch_list
   list[0] = list[0].filter(i=>!list[2].includes(i))
 
-  //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol
+  //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol so there is no duplicate item appears in search result
   list[1] = list[1].filter(i => !list[2].includes(i) && !list[0].includes(i))
+
   create_sections(list)
+
 }
 
 input.addEventListener('keyup', (e) => {
 
   const search_value = input.value.toUpperCase()
-  if (search_value === "") {
+  if (search_value.trim() === "") {
     delete_button.style.visibility = 'hidden'
     return
   }
   delete_button.style.visibility = 'visible'
 
-  //immediately return if key is not a valid letter 
-  // keycode > 64 && keycode < 91 represents letter keys
-  if (e.keyCode <= 64 && e.keyCode >= 91) return;
+  /*
+
+  immediately return if key is not a alphabet letter or delete or backspace key
+
+  Warning: do not use keyCode, it is not depricated, use key instead
+
+  /[a-z]/i => match a-z case insenstive 
+
+  */
+  if (!e.key.match(/[a-z]/i) || key !== "Backspace" || key !== "Delete" || e.key.length !== 1 ) return;
+  
+
+   /*
+
+   if symbol has not been loaded from web worker, then add loader effect to search result section  
+
+   isWaiting_three:true indicates that is waiting for symbol data
+
+ */
 
   if (symbol_full_name_list.length === 0) {
-    data_section.innerHTML = `
+
+    search_result.innerHTML = `
        <div id='loader'></div>
-       `
-    isWaiting_three = true
-    return
+       `;
+    isWaiting_three = true;
+
+    return;
+
   }
 
   search_through(search_value)
 
-
 })
 
 
+/*
+
+return fetch Data by symbol and range of the data
+
+return array contains object data structure
+
+Example:
+
+0 {date: "2022-06-10 09:30:00", open: 159.16, low: 158.95, high: 159.94, close: 159.63, volume: 131955}
+1 {date: "2022-06-10 09:31:00", open: 159.55, low: 159.53, high: 160.38, close: 160.32, volume: 31434}
+
+This API only returns data for 1 day to 2 month 
+
+Range refers to the difference between every two dataset 
+
+Example: 1min 5min 15min 1hour 4hours
+
+*/
 function fetchData(symbol, range) {
   //apikey=c38b723e031c88753f0c9e66f505f557
   //apikey=136fb4fa07e6ac6ae9a246d24029dfbc
@@ -498,7 +1336,7 @@ function create_watch_list_section(data, isSearch) {
   //data.length 0 means no matched result in searching my watched list, so return
   if (isSearch && data.length === 0 || my_watched_list.length === 0) return;
 
-  data_section.innerHTML += `
+  search_result.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
 
@@ -507,12 +1345,12 @@ function create_watch_list_section(data, isSearch) {
   isSearch ? search_result = data.slice() : search_result = my_watched_list.slice()
   search_result =
     my_watched_list.forEach(i => {
-      data_section.innerHTML += `
+      search_result.innerHTML += `
 <div id='element_${i.index}'>
-  <div id='symbol'>${i.data_section['0']}</div>
-  <span id='exchange_market_symbol'>${i.data_section["4"]}</span>
-  <div id='company_name'>${i.data_section["1"]}</div>
-  <div id='current_price'>${i.data_section["2"].toFixed(2)}</div>
+  <div id='symbol'>${i.search_result['0']}</div>
+  <span id='exchange_market_symbol'>${i.search_result["4"]}</span>
+  <div id='company_name'>${i.search_result["1"]}</div>
+  <div id='current_price'>${i.search_result["2"].toFixed(2)}</div>
 </div>
      `
     })
@@ -520,11 +1358,11 @@ function create_watch_list_section(data, isSearch) {
 }
 
 function search_or_recommand_section(data, isSearch) {
-  data_section.innerHTML = ""
+  search_result.innerHTML = ""
   create_watch_list_section(data[2], isSearch)
 
 
-  data_section.innerHTML += `
+  search_result.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   let display_list = [];
 
@@ -584,7 +1422,7 @@ function search_or_recommand_section(data, isSearch) {
 
   display_list.forEach((data, index) => {
 
-    data_section.innerHTML += `
+    search_result.innerHTML += `
     <div id='element_${data.index}'>
     <div id='symbol'>${data.data['0']}</div>
     <span id='exchange_market_symbol'>${data.data["4"]}</span>
@@ -609,18 +1447,18 @@ function search_or_recommand_section(data, isSearch) {
 }
 
 function create_sections(data) {
-  data_section.innerHTML = ""
+  search_result.innerHTML = ""
   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
   //data.slice(0,2) exclude the my watchList data 
 
   if (Array.isArray(data[2]) && !data.slice(0, 2).some(i => i.length > 0)) {
-    data_section.innerHTML = `<h3>No result for "${input.value}" </h3>`
-    data_section.style.textAlign = 'center'
+    search_result.innerHTML = `<h3>No result for "${input.value}" </h3>`
+    search_result.style.textAlign = 'center'
     return
   }
 
 
-  data_section.style.textAlign = 'left'
+  search_result.style.textAlign = 'left'
 
   Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
@@ -1407,7 +2245,7 @@ window.onload = function() {
 
 
 function load_main_page() {
-  select('#data_section').innerHTML = `
+  select('#search_result').innerHTML = `
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
@@ -1425,7 +2263,7 @@ function load_main_page() {
   `
   select('#stock_market_button').addEventListener('click', function() {
     if (symbol_full_name_list.length === 0) {
-      data_section.innerHTML = `
+      search_result.innerHTML = `
        <div id='loader'></div>
        `
       isWaiting_two = true
@@ -1652,7 +2490,7 @@ select('#add_to_watchlist').addEventListener('click', function(event) {
     const index_of_stock = select(" div[id^='element_'].active").id.split('element_')[1]
     my_watched_list.push({
       index: index_of_stock,
-      data_section: symbol_full_list[index_of_stock],
+      search_result: symbol_full_list[index_of_stock],
       date_added: global_time.toString().substring(4, 24)
     })
 
@@ -1670,6 +2508,23 @@ back_button.addEventListener("click", load_main_page)
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
 })
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+  </body>
+ 
+
+ 
 
 
 
