@@ -12,7 +12,7 @@ const context = canvas.getContext('2d')
 ,loader = select('.loader')
 ,my_watched_button = select('#add_to_watchlist')
 , delete_button = select('#deletebutton')
-,search_result = select("#search_result")
+,search_result_section = select("#search_result")
 ,search_icon = select('#search_icon')
 ,back_button = select('#back_button')
 
@@ -644,7 +644,7 @@ function create_watch_list_section(data, isSearch) {
   //data.length 0 means no matched result in searching my watched list, so return
   if (isSearch && data.length === 0 || my_watched_list.length === 0) return;
 
-  search_result.innerHTML += `
+  search_result_section.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
 
@@ -666,11 +666,11 @@ function create_watch_list_section(data, isSearch) {
 }
 
 function search_or_recommand_section(data, isSearch) {
-  search_result.innerHTML = ""
+  search_result_section.innerHTML = ""
   create_watch_list_section(data[2], isSearch)
 
 
-  search_result.innerHTML += `
+  search_result_section.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   let display_list = [];
 
@@ -730,7 +730,7 @@ function search_or_recommand_section(data, isSearch) {
 
   display_list.forEach((data, index) => {
 
-    search_result.innerHTML += `
+    search_result_section.innerHTML += `
     <div id='element_${data.index}'>
     <div id='symbol'>${data.data['0']}</div>
     <span id='exchange_market_symbol'>${data.data["4"]}</span>
@@ -755,18 +755,18 @@ function search_or_recommand_section(data, isSearch) {
 }
 
 function create_sections(data) {
-  search_result.innerHTML = ""
+  search_result_section.innerHTML = ""
   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
   //data.slice(0,2) exclude the my watchList data 
 
   if (Array.isArray(data[2]) && !data.slice(0, 2).some(i => i.length > 0)) {
-    search_result.innerHTML = `<h3>No result for "${input.value}" </h3>`
-    search_result.style.textAlign = 'center'
+    search_result_section.innerHTML = `<h3>No result for "${input.value}" </h3>`
+    search_result_section.style.textAlign = 'center'
     return
   }
 
 
-  search_result.style.textAlign = 'left'
+  search_result_section.style.textAlign = 'left'
 
   Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
@@ -1686,6 +1686,7 @@ window.onload = function() {
   so only make them visible when the script of them successfully loaded
 
   */
+
   const script = document.createElement('script');
   script.setAttribute('src',"https://kit.fontawesome.com/44f674442e.js")
   document.body.appendChild(script) 
@@ -1729,7 +1730,7 @@ window.onload = function() {
 
 
 function load_main_page() {
-  select('#search_result').innerHTML = `
+  search_result_section.innerHTML = `
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
@@ -1747,7 +1748,7 @@ function load_main_page() {
   `
   select('#stock_market_button').addEventListener('click', function() {
     if (symbol_full_name_list.length === 0) {
-      search_result.innerHTML = `
+      search_result_section.innerHTML = `
        <div id='loader'></div>
        `
       isWaiting_two = true
