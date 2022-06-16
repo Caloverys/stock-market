@@ -1098,7 +1098,7 @@ function create_chart() {
       selectAll('#range > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = "#52c4fa"
 
-
+      
       let left_position = parseFloat(window.getComputedStyle(info_price).getPropertyValue('left'))
 
       let this_position_x = chart.tooltip._active[0].element.x;
@@ -1229,6 +1229,7 @@ function create_chart() {
 
         context.closePath();
 
+
         context.restore();
 
         context.save();
@@ -1261,7 +1262,7 @@ function create_chart() {
 
         info_price.style.color = strokeColor;
 
-        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 + canvas_pos.left + 'px';
+        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 + info_price.getBoundingClientRect().left + 'px';
 
      }
 
@@ -1357,7 +1358,10 @@ function create_chart() {
         context.fillText("Previous Price:", myChart.chartArea.right - size_1.width - fontSize / 1.5, yValue + size_1.height);
 
         context.fillText(line.text, myChart.chartArea.right - size_2.width - fontSize / 1.5, yValue + size_1.height + size_2.height);
+        context.setLineDash([])
+         console.log(context)
         context.restore();
+         console.log(context)
         context.save()
         context.closePath()
 
@@ -1711,7 +1715,7 @@ window.onload = function() {
 
 
   //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
-  
+
   context.strokeStyle = '#52c4fa';
   context.fillStyle = "#52c4fa";
   context.setLineDash([])
