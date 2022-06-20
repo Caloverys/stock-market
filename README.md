@@ -1,4 +1,7 @@
 # stock.html
+
+[Full Demo](https://codepen.io/caloverys/pen/XWVzBVN)
+
 This is the a personal project I make to simulate the Apply stock software.
 
 ***Notice this is the project where still unfinished and need keep updating. It is not the finial version***
