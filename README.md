@@ -1,6 +1,6 @@
 # stock.html
 
-[Full Demo](https://codepen.io/caloverys/pen/XWVzBVN)
+[Full Demo](https://codepen.io/caloverys/full/XWVzBVN)
 
 This is the a personal project I make to simulate the Apply stock software.
 
