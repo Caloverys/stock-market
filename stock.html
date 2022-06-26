@@ -5,21 +5,18 @@
 
 <head>
 
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel='stylesheet' href='stock.css'>
 
 </head>
 
 <body>  
-  <script src="https://use.fontawesome.com/523d8f4491.js"></script>
-  <script src="https://kit.fontawesome.com/44f674442e.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div id='left_area'>
 <div id='search_engine'>
 
 <input type='text' placeholder="Search...">
 <!--decimal code for html for the delete symbol X-->
-<button id='back_button' onclick='console.log("here")'><i class="fa-solid fa-angle-left"></i></button>
+<button id='back_button'><i class="fa-solid fa-angle-left"></i></button>
 <button id='deletebutton'>&times;</button>
 <button id='search_icon' ><i class="fa-solid fa-magnifying-glass" ></i></button>
 
@@ -88,7 +85,6 @@
 </div>
 </div>
     <div id='info_price'></div>
-
 
 
 <!-- Chrome doesn't allow use web webworker from local file, this I have to use a script and blob to set the web worker. But after I build up the web sever, it could be put in a separate file to increase code readbility -->
@@ -224,9 +220,12 @@ function start_fetching_data(symbol){
   }
 
   </script>
- 
- 
+  <script src='variable.js'></script>
+  <script src='prototype_function.js'></script>
+<script src='starting_page.js'></script>
 <script src='stock.js'></script>
+
+
 
 </body>
 
