@@ -1,25 +1,11 @@
-//write alias to document.querySelector to shorten the code
-const select = document.querySelector.bind(document)
-const selectAll = document.querySelectorAll.bind(document)
-const canvas =select('#chart')
-const context = canvas.getContext('2d')
-, dataset = []
-, detail_dataset = []
-, info_price = select('#info_price')
-, info_date = select('#info_date')
-, parent_of_canvas = select('#parent_of_canvas')
-, input = select('input[type=text]')
-,loader = select('.loader')
-,my_watched_button = select('#add_to_watchlist')
-, delete_button = select('#deletebutton')
-,search_result_section = select("#search_result")
-,search_icon = select('#search_icon')
-,back_button = select('#back_button')
-
-
-
-
-
+//return true if stock is earning and return false if stock is losing money
+function return_color() {
+  //raw_data[0].close give us latest/current stock price
+  if (timestamp === '1min')
+    return raw_data[raw_data.length - 1].close >= find_closed_price()
+  else
+    return dataset[0] <= dataset[dataset.length - 1] 
+}
 
 //the index of raw_data that the user is hovering at
 let current_Index = 0
@@ -30,8 +16,6 @@ let max_value, min_value;
 //Array contains the orginial data retrieved from the API 
 let raw_data;
 
-//date object contains the global time in EDT timezone 
-let global_time;
 
 //Contains the current ClientX value
 let clientX;
@@ -373,23 +357,7 @@ canvas.addEventListener('mouseup', ()=>isMouseDown = false)
 
 
 
-function format_date(dateobject) {
-  /*
 
-  Some broswers  doesn't recognize a speicific date format 
-
-  Example: 2022-06-10 10:45:00 
-
-  This will return Invalid Date in safari 
-
-  The always best way is to reformat to ISO string 
-
-
-
-  */
-
-  return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7) - 1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
-}
 
 
 
@@ -644,7 +612,7 @@ function create_watch_list_section(data, isSearch) {
   //data.length 0 means no matched result in searching my watched list, so return
   if (isSearch && data.length === 0 || my_watched_list.length === 0) return;
 
-  search_result_section.innerHTML += `
+  search_result.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
 
@@ -666,11 +634,11 @@ function create_watch_list_section(data, isSearch) {
 }
 
 function search_or_recommand_section(data, isSearch) {
-  search_result_section.innerHTML = ""
+  search_result.innerHTML = ""
   create_watch_list_section(data[2], isSearch)
 
 
-  search_result_section.innerHTML += `
+  search_result.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   let display_list = [];
 
@@ -730,7 +698,7 @@ function search_or_recommand_section(data, isSearch) {
 
   display_list.forEach((data, index) => {
 
-    search_result_section.innerHTML += `
+    search_result.innerHTML += `
     <div id='element_${data.index}'>
     <div id='symbol'>${data.data['0']}</div>
     <span id='exchange_market_symbol'>${data.data["4"]}</span>
@@ -755,170 +723,26 @@ function search_or_recommand_section(data, isSearch) {
 }
 
 function create_sections(data) {
-  search_result_section.innerHTML = ""
+  search_result.innerHTML = ""
   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
   //data.slice(0,2) exclude the my watchList data 
 
   if (Array.isArray(data[2]) && !data.slice(0, 2).some(i => i.length > 0)) {
-    search_result_section.innerHTML = `<h3>No result for "${input.value}" </h3>`
-    search_result_section.style.textAlign = 'center'
+    search_result.innerHTML = `<h3>No result for "${input.value}" </h3>`
+    search_result.style.textAlign = 'center'
     return
   }
 
 
-  search_result_section.style.textAlign = 'left'
+  search_result.style.textAlign = 'left'
 
   Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
 }
 
 
-function create_small_animated_chart() {
-
-  setTimeout(() => {
-    const last_text_element = select('text:last-child')
-    last_text_element.textContent = "Let's get start!"
-    last_text_element.style.animation = "draw2 12s forwards, appearing 3s "
-  }, 10000)
-  const data_one = []
-  const data_two = [];
-  let previous_point_one = 50;
-  let previous_point_two = 40
-  for (let i = 0; i < 500; i++) {
-    data_one.push({
-      x: i,
-      y: previous_point_one
-    })
-    previous_point_one += 5 - Math.random() * 10
-    data_two.push({
-      x: i,
-      y: previous_point_two
-    })
-    previous_point_two += 5 - Math.random() * 10
-  }
-  //10 seconds animation
-  const delay = 10000 / data_one.length;
-  const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
-
-  const animation = {
-    x: {
-      type: 'number',
-      easing: 'linear',
-
-      duration: delay,
-      from: NaN,
-      delay(ctx) {
-        if (ctx.type !== 'data' || ctx.xStarted) return 0;
-        ctx.xStarted = true;
-        return ctx.index * delay;
-      }
-    },
-    y: {
-      type: 'number',
-      easing: 'linear',
-      duration: 10000 / data_one.length,
-      from: previousY,
-      delay(ctx) {
-        if (ctx.type !== 'data' || ctx.yStarted) return 0;
-        ctx.yStarted = true;
-        return ctx.index * delay;
-      }
-    }
-  }
-  const starting_chart = new Chart(select('#animated_effect'), {
-    type: 'line',
-    data: {
-      datasets: [{
-          borderColor: "red",
-          borderWidth: 1.5,
-          radius: 0,
-          pointHoverRadius: 0,
-          data: data_one,
-        },
-        {
-          borderColor: "lawngreen",
-          borderWidth: 1,
-          radius: 0,
-          pointHoverRadius: 0,
-          data: data_two,
-        }
-      ]
-    },
-    options: {
-      animation,
-      responsive: true,
-      maintainAspectRatio: false,
-      tooltips: {
-        enabled: false
-      },
-      interaction: {
-        intersect: false
-      },
-      plugins: {
-        tooltip: {
-          enabled: false
-        },
-        legend: false
-      },
-      scales: {
-        x: {
-          type: 'linear',
-          ticks: {
-            //only disable the x-axis label_array from showing 
-            display: false
-          },
-          grid: {
-            //display:false
-            color: "rgba(256,256,256,0.25)"
-          }
-        },
-        y: {
-          ticks: {
-            //only disable the y-axis label_array from showing 
-            display: false
-          },
-          grid: {
-            //display:false
-            color: "rgba(256,256,256,0.25)"
-          }
-
-        }
-      }
-    }
-  })
-
-}
 
 
-function size_calculation(word, fontSize) {
-  const div = document.body.appendChild(document.createElement('div'));
-  div.textContent = word;
-  div.style.cssText = `
-  font-size:${fontSize}px;
-  width:auto;
-  position:absolute;
-  visibility:hidden;
-  `
-  //object destrusturing: const {} = object; ES6 feature 
-  const {
-    width,
-    height
-  } = window.getComputedStyle(div)
-
-  div.remove();
-  return ({
-    width: parseFloat(width),
-    height: parseFloat(height)
-  })
-}
-
-
-function get_global_time() {
-  //fetch the time from new york timezone 
-  return fetch("https://worldtimeapi.org/api/timezone/america/new_york")
-    .then(res => res.json())
-    .then(raw_data => new Date(raw_data.datetime))
-}
 
 
 function fill_label_array_5min() {
@@ -962,71 +786,10 @@ function find_closed_price() {
 }
 
 
-function return_color() {
-  //raw_data[0].close give us latest/current stock price
-  if (timestamp === '1min')
-    return (raw_data[raw_data.length - 1].close >= find_closed_price() ? "lawngreen" : "red")
-  else
-    return dataset[0] <= dataset[dataset.length - 1] ? "lawngreen" : "red"
-}
 
 
 
-function return_linearGarident(color) {
-  const canvasHeight = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('height'))
-  const gradient = context.createLinearGradient(0, 0, 0, canvasHeight)
-  if (color) {
-    gradient.addColorStop(0, "#52c4fa");
-    gradient.addColorStop(0.3, "rgba(82,196,250,0.3)");
-    gradient.addColorStop(0.3, "rgba(82,196,250,0.3)");
-    gradient.addColorStop(1, 'transparent')
 
-  } else if (return_color().includes("red")) {
-    gradient.addColorStop(0, "rgba(255,0,0,0.8)");
-    gradient.addColorStop(0.3, "rgba(255,0,0,0.3)");
-    gradient.addColorStop(0.3, "rgba(255,0,0,0.3)");
-    gradient.addColorStop(1, 'transparent')
-
-    gradient.addColorStop(1, 'transparent')
-  } else if (return_color().includes("green")) {
-    gradient.addColorStop(0, "rgba(124,252,0,0.8)");
-    gradient.addColorStop(0.3, "rgba(124,252,0,0.3)");
-    gradient.addColorStop(0.3, "rgba(124,252,0,0.3)");
-    gradient.addColorStop(1, 'transparent')
-  }
-  return gradient
-
-}
-
-
-function return_horizontal_gradient(color, pos_start, pos_end) {
-  const horizontal_Gradient = context.createLinearGradient(0, pos_start, 0, pos_end)
-
-  if (color === "red") {
-
-    horizontal_Gradient.addColorStop(0, "rgba(255,0,0,0.3)");
-    horizontal_Gradient.addColorStop(0.3, "rgba(255,0,0,0.1)");
-    horizontal_Gradient.addColorStop(0.3, "rgba(255,0,0,0.15)");
-    horizontal_Gradient.addColorStop(1, 'transparent')
-
-  } else if (color === 'lawngreen') {
-    horizontal_Gradient.addColorStop(0, "rgba(124,252,0,0.3)");
-    horizontal_Gradient.addColorStop(0.3, "rgba(124,252,0,0.1)");
-    horizontal_Gradient.addColorStop(0.3, "rgba(124,252,0,0.15)");
-    horizontal_Gradient.addColorStop(1, 'transparent')
-
-  }
-  return horizontal_Gradient
-}
-
-
-function return_market_status() {
-  //390 => 60 * 6 (from 9:30 to 16:00) + 30
-  //return true if market open and return false if market close
-  return (global_time.getHours() < 16 && global_time.getHours() > 8&& global_time.getDay() !== 6 && global_time.getDay() !== 0 ? true : false)
-
-
-}
 
 function filter_data(input_data, time_range) {
   if (window.innerWidth > 1100) window.range = 1
@@ -1617,120 +1380,13 @@ function assign_web_worker_one() {
   worker.postMessage(symbol);
 }
 
-function assign_web_worker_two() {
-
-  const blob = new Blob([
-    select('#web_worker_two').textContent
-  ], {
-    type: "text/javascript"
-  })
-
-  const worker = new Worker(window.URL.createObjectURL(blob));
-
-  worker.onmessage = function(e) {
-    /* 
-
-    In order to improve efficency and optimize performance, the object keys have all been renamed, now the symbol_list looks  something like this:
-
-    {
-    "0":"CMCSA",
-    "1":"Comcast Corporation",
-     "2":43.8,
-     "3":"NASDAQ Global Select",
-     "4":"NASDAQ"
-     }
-
-    */
-
-    /*
-
-    Use following code to check the type of the return data to determine which list it should go to
-
-    Note that typeof array is also an object 
-    
-    */
-    const retrieved_data = JSON.parse(e.data)
-    if (Array.isArray(retrieved_data[0])) symbol_symbol_list = retrieved_data
-
-    else if (isNaN(retrieved_data[0]) && retrieved_data[0].length > 0) symbol_full_name_list = retrieved_data
-
-    else if (!isNaN(retrieved_data[0])) symbol_price_list = retrieved_data
-
-    else if (typeof retrieved_data[0] === "object") symbol_full_list = retrieved_data
-
-    if (symbol_price_list.length > 0 && symbol_symbol_list.length > 0 && symbol_full_list.length > 0 && symbol_full_name_list.length > 0) {
-
-      if (isWaiting_two)
-        create_sections(symbol_full_name_list)
-
-      else if (isWaiting_three)
-        search_through(input.value.toUpperCase())
-    }
-
-
-  }
- 
-  worker.postMessage("Start");
-
-}
 
 
 
-
-window.onload = function() {
-
-  /*
-
-  The two symbol (search symbol and left arrow) is loaded from the web
-
-  so only make them visible when the script of them successfully loaded
-
-  */
-
-  const script = document.createElement('script');
-  script.setAttribute('src',"https://kit.fontawesome.com/44f674442e.js")
-  document.body.appendChild(script) 
-  script.onload = () =>{
-
-    back_button.style.visibility = 'visible';
-    search_icon.style.visibility = 'visible'
-
-  } 
-
-  create_small_animated_chart()
-  assign_web_worker_two()
-
-  get_global_time().then(function(result) {
-    global_time = new Date(result)
-    select('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";
-    const time_element = select("#current_time")
-    let time = global_time
-    time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
-    setInterval(() => {
-      time = new Date(time.getTime() + 1000)
-      time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
-    }, 1000)
-    load_main_page()
-
-  })
-
-
-  //Note that we should only change the default value for canvas after the chart is successfully created, otherwise, the default value I set will be overwritten by chart.js when it creating the graph.
-
-  context.strokeStyle = '#52c4fa';
-  context.fillStyle = "#52c4fa";
-  context.setLineDash([])
-  context.strokeStyle = '#52c4fa'
-  context.lineWidth = window.innerWidth / 500 > 2.5 ? window.innerWidth / 500 : 2.5
-  context.globalCompositeOperation = 'destination-over'
-  context.save()
-
-
-}
 
 
 function load_main_page() {
-  search_result_section.innerHTML = `
+  select('#search_result').innerHTML = `
   <div id='starting_buttons'>
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
@@ -1748,7 +1404,7 @@ function load_main_page() {
   `
   select('#stock_market_button').addEventListener('click', function() {
     if (symbol_full_name_list.length === 0) {
-      search_result_section.innerHTML = `
+      search_result.innerHTML = `
        <div id='loader'></div>
        `
       isWaiting_two = true
