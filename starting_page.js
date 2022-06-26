@@ -11,19 +11,18 @@
     .then(res => res.json())
 
     .then(time =>{
-    	window.global_time = new Date(time)
-        market_status_element.textContent = return_market_status() ? "Market Open" : "Market Closed";
-    const time_element = select("#current_time")
-    let time = global_time
-    time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
+    	console.log(time)
+    	window.global_time = new Date(time.datetime);
+    	        market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
+    time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
     setInterval(() => {
-      time = new Date(time.getTime() + 1000)
-      time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
+      global_time = new Date(global_time.getTime() + 1000)
+      time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
+      market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
     }, 1000)
     load_main_page()
     })
 
-    .then()
 
 
 
@@ -113,23 +112,125 @@
 })();
 
 
- 
 
-  
+function create_small_animated_chart() {
 
-  get_global_time().then(function(result) {
-    global_time = new Date(result)
-    select('#market_status').textContent = return_market_status() ? "Market Open" : "Market Closed";
-    const time_element = select("#current_time")
-    let time = global_time
-    time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
-    setInterval(() => {
-      time = new Date(time.getTime() + 1000)
-      time_element.textContent = time.toString().split(" GMT")[0] + ' EDT';
-    }, 1000)
-    load_main_page()
+  setTimeout(() => {
+    const last_text_element = select('text:last-child')
+    last_text_element.textContent = "Let's get start!"
+    last_text_element.style.animation = "draw2 12s forwards, appearing 3s "
+  }, 10000)
+  const data_one = []
+  const data_two = [];
+  let previous_point_one = 50;
+  let previous_point_two = 40
+  for (let i = 0; i < 500; i++) {
+    data_one.push({
+      x: i,
+      y: previous_point_one
+    })
+    previous_point_one += 5 - Math.random() * 10
+    data_two.push({
+      x: i,
+      y: previous_point_two
+    })
+    previous_point_two += 5 - Math.random() * 10
+  }
+  //10 seconds animation
+  const delay = 10000 / data_one.length;
+  const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
 
+  const animation = {
+    x: {
+      type: 'number',
+      easing: 'linear',
+
+      duration: delay,
+      from: NaN,
+      delay(ctx) {
+        if (ctx.type !== 'data' || ctx.xStarted) return 0;
+        ctx.xStarted = true;
+        return ctx.index * delay;
+      }
+    },
+    y: {
+      type: 'number',
+      easing: 'linear',
+      duration: 10000 / data_one.length,
+      from: previousY,
+      delay(ctx) {
+        if (ctx.type !== 'data' || ctx.yStarted) return 0;
+        ctx.yStarted = true;
+        return ctx.index * delay;
+      }
+    }
+  }
+  const starting_chart = new Chart(select('#animated_effect'), {
+    type: 'line',
+    data: {
+      datasets: [{
+          borderColor: "red",
+          borderWidth: 1.5,
+          radius: 0,
+          pointHoverRadius: 0,
+          data: data_one,
+        },
+        {
+          borderColor: "lawngreen",
+          borderWidth: 1,
+          radius: 0,
+          pointHoverRadius: 0,
+          data: data_two,
+        }
+      ]
+    },
+    options: {
+      animation,
+      responsive: true,
+      maintainAspectRatio: false,
+      tooltips: {
+        enabled: false
+      },
+      interaction: {
+        intersect: false
+      },
+      plugins: {
+        tooltip: {
+          enabled: false
+        },
+        legend: false
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          ticks: {
+            //only disable the x-axis label_array from showing 
+            display: false
+          },
+          grid: {
+            //display:false
+            color: "rgba(256,256,256,0.25)"
+          }
+        },
+        y: {
+          ticks: {
+            //only disable the y-axis label_array from showing 
+            display: false
+          },
+          grid: {
+            //display:false
+            color: "rgba(256,256,256,0.25)"
+          }
+
+        }
+      }
+    }
   })
+
+}
+
+
+
 
 
 
