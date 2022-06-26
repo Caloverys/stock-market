@@ -48,6 +48,10 @@ let earn_money_color = 'lawngreen';
 
 let gridline_color = "rgba(256,256,256,0.25)";
 
+let [symbol_full_list, symbol_price_list, symbol_symbol_list, symbol_full_name_list] = new Array(4).fill([]);
+
+let global_time,myChart,starting_chart;
+
 
 
 
