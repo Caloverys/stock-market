@@ -3,25 +3,32 @@
 
    create_small_animated_chart();
 
-   assign_web_worker_two();
+   if(symbol_full_list.length === 0 ) assign_web_worker_two();
     
     //fetch the time from new york timezone 
+
+    if(!global_time){
    fetch("https://worldtimeapi.org/api/timezone/america/new_york")
 
     .then(res => res.json())
 
     .then(time =>{
-    	console.log(time)
-    	window.global_time = new Date(time.datetime);
+
+    	global_time = new Date(time.datetime);
     	        market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
-    time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
-    setInterval(() => {
+        time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
+
+        setInterval(() => {
       global_time = new Date(global_time.getTime() + 1000)
       time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
       market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
-    }, 1000)
-    load_main_page()
+      }, 1000)
+    load_main_page();
+
     })
+}
+
+
 
 
 
@@ -107,9 +114,48 @@
  
   worker.postMessage("Start");
 
+};
+
+ function load_main_page() {
+  search_result.innerHTML = `
+  <div id='starting_buttons'>
+  <div id='stock_market_button'>
+  <h2>Stock Market</h2>
+  <div>Status: 
+  <span style='color:${global_time.return_market_status() ? "lawngreen" : "red"}'>${return_market_status() ? "Market Open" : "Market Closed"}</span>
+  </div>
+  </div>
+  <div id='watch_list' '>
+  <h2 style='background-image:${return_color_gradient()}'>My Watch List</h2>
+  </div>
+  <div id='simulator'>
+  <h2 style='background-image:${return_color_gradient()}'>Stock simulator</h2>
+  </div>
+  </div>
+  `
+  select('#stock_market_button').addEventListener('click', function() {
+   /* if (symbol_full_name_list.length === 0) {
+      search_result.innerHTML = `
+       <div id='loader'></div>
+       `
+      isWaiting_two = true
+    } else create_sections(symbol_full_name_list)
+
+    
+  })*/
+
+});
 }
 
-})();
+  function return_color_gradient() {
+  const color_list = ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#f05463", "#40B5AD", "#A52A2A", "#e833c7"];
+  const color_one = color_list[Math.floor(Math.random() * color_list.length)]
+  color_list.splice(color_one, 1)
+  const color_two = color_list[Math.floor(Math.random() * color_list.length)]
+
+  return `-webkit-linear-gradient(left,${color_one},${color_two})`
+}
+
 
 
 
@@ -165,7 +211,7 @@ function create_small_animated_chart() {
       }
     }
   }
-  const starting_chart = new Chart(select('#animated_effect'), {
+  starting_chart = new Chart(select('#animated_effect'), {
     type: 'line',
     data: {
       datasets: [{
@@ -228,6 +274,13 @@ function create_small_animated_chart() {
   })
 
 }
+
+
+})();
+
+
+
+
 
 
 
