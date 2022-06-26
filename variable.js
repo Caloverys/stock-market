@@ -1,13 +1,5 @@
 /*
 
-Variables declared in this files are all variable that will need to be access in different JS files.\
-
-Put it in a separate js file for better viewing purpose
-
-*/
-
-/*
-
 use Function.prototype.bind() to write alias for document.querySelector and document.querySelectorAll to shorten the code
 
 */
@@ -44,7 +36,9 @@ const context = canvas.getContext('2d')
 
 ,back_button = select('#back_button')
 
-,market_status_element = select('#market_status');
+,market_status_element = select('#market_status')
+
+,time_element = select("#current_time");
 
 let hover_color = '#52c4fa';
 
@@ -53,7 +47,6 @@ let lose_money_color = 'red';
 let earn_money_color = 'lawngreen';
 
 let gridline_color = "rgba(256,256,256,0.25)";
-
 
 
 
