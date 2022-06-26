@@ -23,8 +23,6 @@ let clientX;
 //Contains the date (time) for newest data retreieved from website
 let latest_date;
 
-//Contains the stock price chart object 
-let myChart;
 
 //Boolean value return from function isInCanvas to check if mouse position is inside the chart or not
 let isInsideChart;
@@ -86,7 +84,7 @@ symbol_full_name_list => an array contains all full name of all stocks
 
 */
 
-let [label_array, grid_color_array, symbol_full_list, symbol_price_list, symbol_symbol_list, symbol_full_name_list] = new Array(6).fill([])
+let [label_array, grid_color_array] = new Array(6).fill([])
 
 //Try to get my_watch_list from localStorage, if there is no data, declared as []
 let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'))
@@ -1384,45 +1382,9 @@ function assign_web_worker_one() {
 
 
 
+/*
 
-function load_main_page() {
-  select('#search_result').innerHTML = `
-  <div id='starting_buttons'>
-  <div id='stock_market_button'>
-  <h2>Stock Market</h2>
-  <div>Status: 
-  <span style='color:${return_market_status() ? "green" : "red"}'>${return_market_status() ? "Market Open" : "Market Closed"}</span>
-  </div>
-  </div>
-  <div id='watch_list' '>
-  <h2 style='background-image:${return_color_gradient()}'>My Watch List</h2>
-  </div>
-  <div id='simulator'>
-  <h2 style='background-image:${return_color_gradient()}'>Stock simulator</h2>
-  </div>
-  </div>
-  `
-  select('#stock_market_button').addEventListener('click', function() {
-    if (symbol_full_name_list.length === 0) {
-      search_result.innerHTML = `
-       <div id='loader'></div>
-       `
-      isWaiting_two = true
-    } else create_sections(symbol_full_name_list)
-
-    
-  })
-
-}
-
-function return_color_gradient() {
-  const color_list = ['#58D68D', '#F1C40F', '#68C4EC', '#EC7063', "#F39C12", "#f05463", "#40B5AD", "#A52A2A", "#e833c7"];
-  const color_one = color_list[Math.floor(Math.random() * color_list.length)]
-  color_list.splice(color_one, 1)
-  const color_two = color_list[Math.floor(Math.random() * color_list.length)]
-
-  return `-webkit-linear-gradient(left,${color_one},${color_two})`
-}
+*/
 
 
 
@@ -1644,8 +1606,36 @@ select('#add_to_watchlist').addEventListener('click', function(event) {
 
 })
 
-back_button.addEventListener("click", load_main_page)
 
 window.addEventListener('beforeunload', function(e) {
   localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
+});
+
+
+back_button.addEventListener("click", function(){
+  document.querySelectorAll('script').forEach(script=>{
+    if(script.src.includes("starting_page.js")){
+
+      const head = document.querySelector('head');
+      const script_tag = document.createElement('script');
+      script_tag.src = script.src;
+      script.remove();
+      document.querySelector('head').appendChild(script_tag);
+      if(starting_chart) starting_chart.destroy();
+      if(myChart) myChart.destroy();
+
+    }
+
+
+  })
+    
+
 })
+
+
+
+
+
+
+
+
