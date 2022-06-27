@@ -2,9 +2,9 @@
 function return_color() {
   //raw_data[0].close give us latest/current stock price
   if (timestamp === '1min')
-    return raw_data[raw_data.length - 1].close >= find_closed_price()
+    return raw_data[raw_data.length - 1].close >= find_closed_price() ? "lawngreen" : "red";
   else
-    return dataset[0] <= dataset[dataset.length - 1] 
+    return dataset[0] <= dataset[dataset.length - 1]  ? "lawngreen" : "red";
 }
 
 //the index of raw_data that the user is hovering at
@@ -811,7 +811,7 @@ function create_chart() {
   window.static_Index = null
   const annotation = {
     id: 'annotationline',
-/*
+
     afterDraw: function(chart) {
       if (!chart.tooltip._active.length || !isInsideChart) {
         info_price.style.visibility = 'hidden'
@@ -851,7 +851,7 @@ function create_chart() {
       It will move as the mouse move
 
       */
-/*
+
       context.beginPath();
       context.strokeStyle = strokeColor;
       context.globalCompositeOperation = 'source-over';
@@ -895,7 +895,7 @@ function create_chart() {
 
       So we need to use context.restore followed by a context.save() in order by keep the customized property for further used.
 
-      */
+       */
 
       
       /*
@@ -905,7 +905,7 @@ function create_chart() {
       If user mousedown, then draw the following line.
 
       */
-/*
+
       if(!isMouseDown){
         static_clientY = null;
         static_clientX = null;
@@ -927,11 +927,11 @@ function create_chart() {
         The position of it will not be changed unless user mouseup 
 
         */
-/*
+
         context.beginPath();
 
         context.moveTo(static_clientX, myChart.chartArea.top);
-        //context.lineTo(static_clientX, myChart.chartArea.bottom);
+        context.lineTo(static_clientX, myChart.chartArea.bottom);
 
         context.strokeStyle = strokeColor;
 
@@ -974,7 +974,7 @@ function create_chart() {
 
         */
 
-/*
+
         context.fillStyle = return_horizontal_gradient(strokeColor, myChart.chartArea.top, myChart.chartArea.bottom);
 
         context.fillRect(starting_pos, myChart.chartArea.top, ending_pos - starting_pos, myChart.chartArea.height);
@@ -1014,7 +1014,7 @@ function create_chart() {
      we need to redeclare the left_position after left_position changed
 
      */
-/*
+
 
       left_position = parseFloat(window.getComputedStyle(info_price).getPropertyValue('left'))
 
@@ -1026,8 +1026,8 @@ function create_chart() {
 
         info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
 
-      
-    }*/
+    
+    }
 
   }
 
@@ -1037,7 +1037,7 @@ function create_chart() {
     afterDraw: function(chartInstance) {
       //Immediately return if horizontalLine doesn't register to the chart
 
-    //  if (!chartInstance.options.horizontalLine) return;
+     if (!chartInstance.options.horizontalLine) return;
         /* 
 
         we could assign several horizontalLine and loop over it to draw all of them
@@ -1047,7 +1047,7 @@ function create_chart() {
         horizontalLine[0] does the job
 
         */
-      /*  
+      
         const line = chartInstance.options.horizontalLine[0];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1;
 
@@ -1060,7 +1060,7 @@ function create_chart() {
 
         context.moveTo(myChart.chartArea.left, yValue);
 
-        //context.lineTo(myChart.chartArea.right, yValue);
+        context.lineTo(myChart.chartArea.right, yValue);
 
         context.strokeStyle = 'white';
 
@@ -1077,8 +1077,8 @@ function create_chart() {
         */
 
         const fontSize = window.innerWidth / 100 * 1.25
-        const size_1 = size_calculation("Previous Price:", fontSize);
-        const size_2 = size_calculation(line.text, fontSize);
+        const size_1 = "Previous Price:".size_calculation(fontSize);
+        const size_2 = (line.text.toString()).size_calculation(fontSize);
 
         context.font = `${fontSize}px sans-serif`;
         context.fillText("Previous Price:", myChart.chartArea.right - size_1.width - fontSize / 1.5, yValue + size_1.height);
@@ -1120,9 +1120,9 @@ function create_chart() {
         label_array: 'stock price',
         data: dataset,
         fill: true,
-        backgroundColor: return_linearGarident(),
+        backgroundColor: return_vertical_linear_garident(false),
         pointHoverRadius: 0,
-        hoverBackgroundColor: return_linearGarident('color'),
+        hoverBackgroundColor: return_vertical_linear_garident(true),
         hoverBorderColor: "rgba(82,196,250,0.8)",
         borderColor: return_color()
       }]
