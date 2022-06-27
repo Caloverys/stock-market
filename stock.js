@@ -292,19 +292,6 @@ Example: 1min 5min 15min 1hour 4hours
 
 
 */
-function fetch_data(symbol, range) {
-  /*
-
-  apikey=c38b723e031c88753f0c9e66f505f557
-  apikey=136fb4fa07e6ac6ae9a246d24029dfbc
-  apikey=ee684c5f9b04a3e914f9e39630f0f929
-
-  */
-
-  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
-    .then(res => res.json())
-
-}
 
 
 document.body.addEventListener('mousemove', e => {
@@ -326,26 +313,8 @@ document.body.addEventListener('mousemove', e => {
 
 })
 
-/*
-
-Detect if the mouse is in the chart (not the whole canvas)
-
-return a boolean value to indicate that
-
-*/
-
-function isInCanvas(posX, posY) {
-
-  //immediately return false if myChart has not be created
-  if (!myChart) return false;
-
-  const canvas_pos = canvas.getBoundingClientRect();
-
-  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
 
 
-
-}
 
 //will return false if mousedown but not inside chart
 canvas.addEventListener('mousedown', ()=>isMouseDown = (isInsideChart ? true : false))
@@ -379,7 +348,7 @@ function format_data(difference_range) {
 
   //get the current latest date 
 
-  latest_date = format_date(raw_data[raw_data.length - 1].date)
+  latest_date = raw_data[raw_data.length - 1].date.format_date();
   
   /*
 
@@ -393,11 +362,11 @@ function format_data(difference_range) {
 
   raw_data.forEach((item, index) => {
 
-    if (format_date(item.date) >= smallest_accept_time) {
+    if (item.date.format_date() >= smallest_accept_time) {
 
-      label_array.push(format_date(item.date))
-      detail_dataset.push(item)
-      dataset.push(item.close.toFixed(2))
+      label_array.push(item.date.format_date());
+      detail_dataset.push(item);
+      dataset.push(item.close.toFixed(2));
 
     }
 
@@ -421,7 +390,7 @@ function format_data(difference_range) {
 
     grid_color_array = Array(label_array.length).fill("transparent")
 
-    for (let i = 30 / range; i < label_array.length; i += 60 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
+    for (let i = 30 / range; i < label_array.length; i += 60 / range) grid_color_array[i] = gridline_color;
 
 
   } else if (timestamp === "5min") {
@@ -430,7 +399,7 @@ function format_data(difference_range) {
 
     grid_color_array = Array(label_array.length).fill("transparent")
 
-    for (let i = 0; i < label_array.length; i += Math.ceil(79 / range)) grid_color_array[i] = "rgba(255,255,255,0.4)"
+    for (let i = 0; i < label_array.length; i += Math.ceil(79 / range)) grid_color_array[i] = gridline_color
 
 
   } else if (timestamp === "30min") {
@@ -441,7 +410,7 @@ function format_data(difference_range) {
       return startingDate
     })
     grid_color_array = Array(label_array.length).fill("transparent");
-    for (let i = 0; i < label_array.length; i += 70 / range) grid_color_array[i] = "rgba(255,255,255,0.4)"
+    for (let i = 0; i < label_array.length; i += 70 / range) grid_color_array[i] = gridline_color;
 
 
   } else if (timestamp === '1hour') {
@@ -467,10 +436,10 @@ function format_data(difference_range) {
 
     for (let i = 0; i < label_array.length; i++) {
       if (passed_range.includes(i))
-        grid_color_array[i] = "rgba(255,255,255,0.4)"
+        grid_color_array[i] = gridline_color;
     }
   }
-  grid_color_array[grid_color_array.length - 1] = "rgba(255,255,255,0.4)"
+  grid_color_array[grid_color_array.length - 1] = gridline_color
 }
 
 
@@ -598,10 +567,10 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
   for (let i = 0; i < label_array.length; i++) {
     if (passed_value.includes(i))
-      grid_color_array[i] = "rgba(255,255,255,0.4)"
+      grid_color_array[i] = gridline_color;
   }
 
-  grid_color_array[grid_color_array.length - 1] = "rgba(255,255,255,0.4)"
+  grid_color_array[grid_color_array.length - 1] = gridline_color;
 
 
 }
@@ -768,22 +737,16 @@ function fill_label_array_1min() {
 
 }
 
-let closed_price = null
 
 function find_closed_price() {
-  if (!closed_price) {
     for (let i = raw_data.length - 1; i >= 0; i--) {
-      if (latest_date.getDate() !== format_date(raw_data[i].date).getDate()) {
+      if (latest_date.getDate() !== raw_data[i].date.format_date().getDate()) {
         closed_price = raw_data[i].close
         return raw_data[i].close;
       }
     }
-  }
-  return closed_price
 
 }
-
-
 
 
 
@@ -814,7 +777,7 @@ function filter_data(input_data, time_range) {
         date: b
       }) => a < b ? -1 : (a > b ? 1 : 0))
       .filter(i =>
-        format_date(i.date).getMinutes() % (range * time_range) === 0
+        i.date.format_date().getMinutes() % (range * time_range) === 0
       )
   }
 
@@ -824,14 +787,14 @@ function filter_data(input_data, time_range) {
       date: b
     }) => a < b ? -1 : (a > b ? 1 : 0))
     .filter(i =>
-      format_date(i.date).getHours() % (range * time_range / 60) === 0 && format_date(i.date).getMinutes() === 0
+      i.date.format_date().getHours() % (range * time_range / 60) === 0 && i.date.format_date().getMinutes() === 0
     )
 
 }
 
 function judge_color() {
 
-  if (current_Index === static_Index) return "#52c4fa";
+  if (current_Index === static_Index) return hover_color;
 
   else if (current_Index > static_Index) return dataset[current_Index] >= dataset[static_Index] ? "lawngreen" : "red";
 
@@ -848,7 +811,7 @@ function create_chart() {
   window.static_Index = null
   const annotation = {
     id: 'annotationline',
-
+/*
     afterDraw: function(chart) {
       if (!chart.tooltip._active.length || !isInsideChart) {
         info_price.style.visibility = 'hidden'
@@ -857,7 +820,7 @@ function create_chart() {
         return;
       } else isVisible = true;
       selectAll('#range > button').forEach(i => i.style.visibility = 'hidden')
-      info_price.style.color = "#52c4fa"
+      info_price.style.color = hover_color;
 
       
       let left_position = parseFloat(window.getComputedStyle(info_price).getPropertyValue('left'))
@@ -870,7 +833,7 @@ function create_chart() {
 
       const pos_X = canvas.getBoundingClientRect().left + myChart.chartArea.left - info_price.offsetWidth / 2;
 
-      const strokeColor = (!isMouseDown ? '#52c4fa' : judge_color())
+      const strokeColor = (!isMouseDown ? hover_color : judge_color())
 
       //Notice: do not remove following if statements for improving performance, the following if statement helps user reach the dataset[0] or dataset[dataset.length-1], without the line it will not be much too smooth and easy to reach it due to too many data points in the chart
 
@@ -888,7 +851,7 @@ function create_chart() {
       It will move as the mouse move
 
       */
-
+/*
       context.beginPath();
       context.strokeStyle = strokeColor;
       context.globalCompositeOperation = 'source-over';
@@ -921,6 +884,7 @@ function create_chart() {
 
       context.save();
 
+
       /*
 
       The state saved by context.save() could only be restored only once.
@@ -941,6 +905,7 @@ function create_chart() {
       If user mousedown, then draw the following line.
 
       */
+/*
       if(!isMouseDown){
         static_clientY = null;
         static_clientX = null;
@@ -962,11 +927,11 @@ function create_chart() {
         The position of it will not be changed unless user mouseup 
 
         */
-
+/*
         context.beginPath();
 
         context.moveTo(static_clientX, myChart.chartArea.top);
-        context.lineTo(static_clientX, myChart.chartArea.bottom);
+        //context.lineTo(static_clientX, myChart.chartArea.bottom);
 
         context.strokeStyle = strokeColor;
 
@@ -1009,7 +974,7 @@ function create_chart() {
 
         */
 
-
+/*
         context.fillStyle = return_horizontal_gradient(strokeColor, myChart.chartArea.top, myChart.chartArea.bottom);
 
         context.fillRect(starting_pos, myChart.chartArea.top, ending_pos - starting_pos, myChart.chartArea.height);
@@ -1049,7 +1014,7 @@ function create_chart() {
      we need to redeclare the left_position after left_position changed
 
      */
-
+/*
 
       left_position = parseFloat(window.getComputedStyle(info_price).getPropertyValue('left'))
 
@@ -1062,7 +1027,7 @@ function create_chart() {
         info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
 
       
-    }
+    }*/
 
   }
 
@@ -1072,7 +1037,7 @@ function create_chart() {
     afterDraw: function(chartInstance) {
       //Immediately return if horizontalLine doesn't register to the chart
 
-      if (!chartInstance.options.horizontalLine) return;
+    //  if (!chartInstance.options.horizontalLine) return;
         /* 
 
         we could assign several horizontalLine and loop over it to draw all of them
@@ -1082,7 +1047,7 @@ function create_chart() {
         horizontalLine[0] does the job
 
         */
-        
+      /*  
         const line = chartInstance.options.horizontalLine[0];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1;
 
@@ -1095,7 +1060,7 @@ function create_chart() {
 
         context.moveTo(myChart.chartArea.left, yValue);
 
-        context.lineTo(myChart.chartArea.right, yValue);
+        //context.lineTo(myChart.chartArea.right, yValue);
 
         context.strokeStyle = 'white';
 
@@ -1132,7 +1097,6 @@ function create_chart() {
   };
 
   if (timestamp === "1min") Chart.register(horizontalLine);
-
   /*
 
   if previous chart existed
@@ -1213,7 +1177,7 @@ function create_chart() {
       scales: {
         y: {
           grid: {
-            color: 'rgba(255,255,255,0.4)',
+            color: gridline_color,
             borderColor: "rgba(255,255,255,0.65)",
             borderWidth: 2.5
 
@@ -1416,13 +1380,13 @@ function setup(index) {
   timestamp = "1min"
   //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
   difference_time = 0
-  Promise.all([get_global_time(), fetch_data(symbol, timestamp)]).then(function(values) {
+ fetch_data(symbol, timestamp).then(function(values) {
 
 
-    all_fetch_data[variable_name] = values[1]
+    all_fetch_data[variable_name] = values;
 
 
-    raw_data = filter_data(values[1], parseInt(timestamp))
+    raw_data = filter_data(values, parseInt(timestamp))
     format_data(difference_time)
 
     const price_element = select('#price')
@@ -1456,46 +1420,7 @@ function setup(index) {
 window.addEventListener('resize', function() {
   if (select('.warning')) return;
 
-  const warning = document.createElement('div');
-  const button_style = `
-  color:rgba(0,0,200,0.8);
-border:none; 
-background:none;
-text-decoration:underline;
-font-size:0.8em`
-  warning.innerHTML = `
-  <div style='position:absolute;left:1vw;">
-  <span style='font-weight:900;font-size:1.3em'>⚠</span>
-  Warning: 
-  </div>
-  <span style='font-weight:500; color:rgba(0,0,0,0.8); font-size:0.9em'>Window get resized</span>  
-  <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue; margin-left:5px;margin-top:5px;'>Learn more</a>
-  <button class='resize_button' style='${button_style};position:fixed; right:10%;'>Resize</button>
-  <button class='remove_button' style='position:fixed; right:3%;'></button>
-  `
-  warning.className = 'warning'
-  const timeout = setTimeout(() => warning.remove(), 5000)
 
-  const remove_button = warning.querySelector('.remove_button')
-  remove_button.addEventListener('click', () => {
-    window.clearTimeout(timeout)
-    warning.classList.add('remove_class')
-    setTimeout(() => warning.remove(), 500)
-  })
-
-
-  warning.querySelector('.resize_button').addEventListener('click', function() {
-
-    retore_all_values()
-    if (timestamp) {
-      raw_data = filter_data(all_fetch_data[variable_name], parseInt(timestamp))
-      format_data(difference_time)
-    } else button_being_clicked.click()
-
-    create_chart()
-    warning.remove()
-  })
-  document.body.appendChild(warning)
 })
 
 select('#one_day').addEventListener('click', function() {
@@ -1606,31 +1531,6 @@ select('#add_to_watchlist').addEventListener('click', function(event) {
 
 })
 
-
-window.addEventListener('beforeunload', function(e) {
-  localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
-});
-
-
-back_button.addEventListener("click", function(){
-  document.querySelectorAll('script').forEach(script=>{
-    if(script.src.includes("starting_page.js")){
-
-      const head = document.querySelector('head');
-      const script_tag = document.createElement('script');
-      script_tag.src = script.src;
-      script.remove();
-      document.querySelector('head').appendChild(script_tag);
-      if(starting_chart) starting_chart.destroy();
-      if(myChart) myChart.destroy();
-
-    }
-
-
-  })
-    
-
-})
 
 
 
