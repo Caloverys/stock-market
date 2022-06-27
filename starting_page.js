@@ -122,7 +122,7 @@
   <div id='stock_market_button'>
   <h2>Stock Market</h2>
   <div>Status: 
-  <span style='color:${global_time.return_market_status() ? "lawngreen" : "red"}'>${return_market_status() ? "Market Open" : "Market Closed"}</span>
+  <span style='color:${global_time.return_market_status() ? "green" : "red"}'>${global_time.return_market_status() ? "Market Open" : "Market Closed"}</span>
   </div>
   </div>
   <div id='watch_list' '>
@@ -277,6 +277,8 @@ function create_small_animated_chart() {
 
 
 })();
+
+
 
 
 
