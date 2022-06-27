@@ -134,7 +134,7 @@
   </div>
   `
   select('#stock_market_button').addEventListener('click', function() {
-   /* if (symbol_full_name_list.length === 0) {
+    if (symbol_full_name_list.length === 0) {
       search_result.innerHTML = `
        <div id='loader'></div>
        `
@@ -142,7 +142,7 @@
     } else create_sections(symbol_full_name_list)
 
     
-  })*/
+ 
 
 });
 }
