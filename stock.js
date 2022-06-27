@@ -246,7 +246,7 @@ input.addEventListener('keyup', (e) => {
   /[a-z]/i => match a-z case insenstive 
 
   */
-  if (!e.key.match(/[a-z]/i) || key !== "Backspace" || key !== "Delete" || e.key.length !== 1 ) return;
+  if (!e.key.match(/[a-z]/i) || key === "Backspace" || key === "Delete" || e.key.length !== 1 ) return;
   
 
    /*
