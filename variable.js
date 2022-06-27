@@ -46,7 +46,7 @@ let lose_money_color = 'red';
 
 let earn_money_color = 'lawngreen';
 
-let gridline_color = "rgba(256,256,256,0.25)";
+let gridline_color = "rgba(256,256,256,0.4)";
 
 let [symbol_full_list, symbol_price_list, symbol_symbol_list, symbol_full_name_list] = new Array(4).fill([]);
 
