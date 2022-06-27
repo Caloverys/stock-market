@@ -55,23 +55,22 @@ function return_vertical_linear_garident(is_hover) {
     
   const canvasHeight = parseInt(window.getComputedStyle(parent_of_canvas).getPropertyValue('height'))
   const gradient = context.createLinearGradient(0, 0, 0, canvasHeight);
-  const color = color.return_color_in_rgba();
   if (is_hover) {
-    gradient.addColorStop(0, `rgba(${hover_color},0.8)`);
-    gradient.addColorStop(0.3, `rgba(${hover_color},0.3)`);
-    gradient.addColorStop(0.3, `rgba(${hover_color},0.3)`);
+    gradient.addColorStop(0, `rgba(${hover_color.return_color_in_rgba()},0.8)`);
+    gradient.addColorStop(0.3, `rgba(${hover_color.return_color_in_rgba()},0.3)`);
+    gradient.addColorStop(0.3, `rgba(${hover_color.return_color_in_rgba()},0.3)`);
 
   } else{
 
   	if (return_color()) {
-  	    gradient.addColorStop(0, `rgba(${earn_money_color},0.8)`);
-        gradient.addColorStop(0.3, `rgba(${earn_money_color},0.3)`);
-        gradient.addColorStop(0.3, `rgba(${earn_money_color},0.3)`);
+  	    gradient.addColorStop(0, `rgba(${earn_money_color.return_color_in_rgba()},0.8)`);
+        gradient.addColorStop(0.3, `rgba(${earn_money_color.return_color_in_rgba()},0.3)`);
+        gradient.addColorStop(0.3, `rgba(${earn_money_color.return_color_in_rgba()},0.3)`);
 
     } else{
-  	    gradient.addColorStop(0, `rgba(${lose_money_color},0.8)`);
-        gradient.addColorStop(0.3, `rgba(${lose_money_color},0.3)`);
-        gradient.addColorStop(0.3, `rgba(${lose_money_color},0.3)`);
+  	    gradient.addColorStop(0, `rgba(${lose_money_color.return_color_in_rgba()},0.8)`);
+        gradient.addColorStop(0.3, `rgba(${lose_money_color.return_color_in_rgba()},0.3)`);
+        gradient.addColorStop(0.3, `rgba(${lose_money_color.return_color_in_rgba()},0.3)`);
     }
   } 
   gradient.addColorStop(1, 'transparent')
@@ -136,9 +135,111 @@ Object.prototype.format_date = function(){
 
   */
 
-  return new Date(dateobject.substring(0, 4), dateobject.substring(5, 7) - 1, dateobject.substring(8, 10), dateobject.substring(11, 13), dateobject.substring(14, 16), "00")
+  return new Date(this.substring(0, 4),this.substring(5, 7) - 1, this.substring(8, 10), this.substring(11, 13), this.substring(14, 16), "00")
 }
 
+
+function create_warning(){
+	const warning = document.createElement('div');
+  warning.innerHTML = `
+  <div style='position:absolute;left:1vw;">
+  <span style='font-weight:900;font-size:1.3em'>⚠</span>
+  Warning: 
+  </div>
+  <span style='font-weight:500; color:rgba(0,0,0,0.8); font-size:0.9em'>Window get resized</span>  
+  <a style='text-decoration:underline; font-style:italic; font-weight:500;font-size:0.5em;color:darkblue; margin-left:5px;margin-top:5px;'>Learn more</a>
+  <button class='resize_button' style='position:fixed; right:10%;'>Resize</button>
+  <button class='remove_button' style='position:fixed; right:3%;'></button>
+  `
+  warning.className = 'warning'
+  const timeout = setTimeout(() => warning.remove(), 5000)
+
+  const remove_button = warning.querySelector('.remove_button')
+  remove_button.addEventListener('click', () => {
+    window.clearTimeout(timeout)
+    warning.classList.add('remove_class')
+    setTimeout(() => warning.remove(), 500)
+  })
+
+  /*
+  warning.querySelector('.resize_button').addEventListener('click', function() {
+
+    retore_all_values()
+    if (timestamp) {
+      raw_data = filter_data(all_fetch_data[variable_name], parseInt(timestamp))
+      format_data(difference_time)
+    } else button_being_clicked.click()
+
+    create_chart()
+    warning.remove()
+  })
+  */
+  document.body.appendChild(warning)
+};
+
+
+/*
+
+Detect if the mouse is in the chart (not the whole canvas)
+
+return a boolean value to indicate that
+
+*/
+
+function isInCanvas(posX, posY) {
+
+  //immediately return false if myChart has not be created
+  if (!myChart) return false;
+
+  const canvas_pos = canvas.getBoundingClientRect();
+
+  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
+
+}
+
+function fetch_data(symbol, range) {
+  /*
+
+  apikey=c38b723e031c88753f0c9e66f505f557
+  apikey=136fb4fa07e6ac6ae9a246d24029dfbc
+  apikey=ee684c5f9b04a3e914f9e39630f0f929
+
+  */
+
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
+    .then(res => res.json())
+
+}
+
+
+
+window.addEventListener('beforeunload', function(e) {
+  localStorage.setItem('my_watched_list', JSON.stringify(my_watched_list));
+});
+
+
+back_button.addEventListener("click", function(){
+  document.querySelectorAll('script').forEach(script=>{
+    if(script.src.includes("starting_page.js")){
+
+      const head = document.querySelector('head');
+      const script_tag = document.createElement('script');
+      script_tag.src = script.src;
+      script.remove();
+      document.querySelector('head').appendChild(script_tag);
+      if(starting_chart) starting_chart.destroy();
+      else if(myChart) myChart.destroy();
+
+    }
+
+  })
+    
+
+})
+
+function create_price_label(){
+
+}
 
 
 
