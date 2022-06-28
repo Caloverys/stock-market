@@ -246,7 +246,7 @@ input.addEventListener('keyup', (e) => {
   /[a-z]/i => match a-z case insenstive 
 
   */
-  if (!e.key.match(/[a-z]/i) || key === "Backspace" || key === "Delete" || e.key.length !== 1 ) return;
+  if (!e.key.match(/[a-z]/i) || e.key === "Backspace" || e.key === "Delete" || e.key.length !== 1 ) return;
   
 
    /*
@@ -358,7 +358,8 @@ function format_data(difference_range) {
 
   */
 
-  const smallest_accept_time = new Date(new Date(global_time.setDate(global_time.getDate() - difference_range)).setHours(9,30))
+  const smallest_accept_time = new Date(new Date(global_time).setDate(global_time.getDate() - difference_range)).setHours(9,30);
+  console.log(smallest_accept_time)
 
   raw_data.forEach((item, index) => {
 
@@ -384,7 +385,7 @@ function format_data(difference_range) {
     //convert label arrays to hours
     label_array = label_array.map(i => new Date(i).getHours())
 
-    if (return_market_status()) fill_label_array_1min()
+    if (global_time.return_market_status()) fill_label_array_1min()
 
     label_array = label_array.map(i => i + (i < 12 ? 'am' : 'pm'))
 
@@ -1078,6 +1079,7 @@ function create_chart() {
 
         const fontSize = window.innerWidth / 100 * 1.25
         const size_1 = "Previous Price:".size_calculation(fontSize);
+        //console.log(line.text)
         const size_2 = (line.text.toString()).size_calculation(fontSize);
 
         context.font = `${fontSize}px sans-serif`;
@@ -1085,9 +1087,7 @@ function create_chart() {
 
         context.fillText(line.text, myChart.chartArea.right - size_2.width - fontSize / 1.5, yValue + size_1.height + size_2.height);
         context.setLineDash([])
-         console.log(context)
         context.restore();
-         console.log(context)
         context.save()
         context.closePath()
 
@@ -1123,7 +1123,7 @@ function create_chart() {
         backgroundColor: return_vertical_linear_garident(false),
         pointHoverRadius: 0,
         hoverBackgroundColor: return_vertical_linear_garident(true),
-        hoverBorderColor: "rgba(82,196,250,0.8)",
+        hoverBorderColor: hover_color,
         borderColor: return_color()
       }]
     },
@@ -1304,7 +1304,8 @@ function restore_and_fetch(time_range_name, expected_content) {
 
     })
   } else {
-    raw_data = filter_data(all_fetch_data[time_range_name], parseInt(timestamp))
+    raw_data = filter_data(all_fetch_data[time_range_name], parseInt(timestamp));
+    console.log(raw_data);
     format_data(difference_time)
     create_chart()
 
@@ -1464,16 +1465,16 @@ function buttons_click_function(event, parameter_list) {
     button_being_clicked = event.target
     return
   }
-  raw_data = all_fetch_data[variable_name]
-  console.log(parameter_list)
+  raw_data = all_fetch_data[variable_name];
+  console.log(raw_data);
   format_data_two(...parameter_list)
   create_chart()
 }
 
 
 select('#three_month').addEventListener('click', function(event) {
-  difference_time = 3
-  buttons_click_function(event,[difference_time, false, 0])
+  difference_time = 3;
+  buttons_click_function(event,[difference_time, false, 0]);
 })
 
 select("#six_month").addEventListener('click', function(event) {
