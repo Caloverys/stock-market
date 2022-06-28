@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+
 //return true if stock is earning and return false if stock is losing money
 function return_color() {
   //raw_data[0].close give us latest/current stock price
@@ -6,9 +14,8 @@ function return_color() {
   else
     return dataset[0] <= dataset[dataset.length - 1]  ? "lawngreen" : "red";
 }
-
 //the index of raw_data that the user is hovering at
-let current_Index = 0
+let current_Index = 0;
 
 //max and min value existed in the selected time 
 let max_value, min_value;
@@ -55,8 +62,6 @@ let symbol;
 //The horizontal line that display previous value (for 1 day range only)
 let horizontalLine;
 
-//Return Boolean value that indicates whether the vertical line drawn by the hover event existed (visible)
-let isVisible = true;
 
 
 //Boolean value to check if user is waiting for the data (will be true if user click the button before the data about a specific data loaded)
@@ -247,7 +252,7 @@ input.addEventListener('keyup', (e) => {
   /[a-z]/i => match a-z case insenstive 
 
   */
-  if (!e.key.match(/[a-z]/i) || e.key === "Backspace" || e.key === "Delete" || e.key.length !== 1 ) return;
+  if (!e.key.match(/[a-z]/i) && e.key !== "Backspace" && e.key !== "Delete"  ) return;
   
 
    /*
@@ -260,7 +265,7 @@ input.addEventListener('keyup', (e) => {
 
   if (symbol_full_name_list.length === 0) {
 
-    search_result.innerHTML = `
+    search_result_element.innerHTML = `
        <div id='loader'></div>
        `;
     isWaiting_three = true;
@@ -297,9 +302,10 @@ Example: 1min 5min 15min 1hour 4hours
 
 document.body.addEventListener('mousemove', e => {
 
-  isInsideChart = isInCanvas(e.clientX, e.clientY)
+  isInsideChart = isInCanvas(e.clientX, e.clientY);
+  //console.log(isInsideChart);
 
-  if (isInsideChart && isVisible) {
+  if (isInsideChart) {
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
@@ -584,8 +590,8 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 function create_watch_list_section(data, isSearch) {
   //data.length 0 means no matched result in searching my watched list, so return
   if (isSearch && data.length === 0 || my_watched_list.length === 0) return;
-
-  search_result.innerHTML += `
+    
+  search_result_element.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
 
@@ -607,11 +613,12 @@ function create_watch_list_section(data, isSearch) {
 }
 
 function search_or_recommand_section(data, isSearch) {
-  search_result.innerHTML = ""
+
+ search_result_element.innerHTML = ""
   create_watch_list_section(data[2], isSearch)
 
 
-  search_result.innerHTML += `
+  search_result_element.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   let display_list = [];
       console.log(data)
@@ -678,7 +685,7 @@ function search_or_recommand_section(data, isSearch) {
 
 
 
-    search_result.innerHTML += `
+    search_result_element.innerHTML += `
     <div id='element_${data.index}'>
     <div id='symbol'>${data.data['0']}</div>
     <span id='exchange_market_symbol'>${data.data["4"]}</span>
@@ -703,18 +710,18 @@ function search_or_recommand_section(data, isSearch) {
 }
 
 function create_sections(data) {
-  search_result.innerHTML = ""
+  search_result_element.innerHTML = ""
   //array.some => run a test to all the elements and return true if at least one element passes the tests (not required for all the elements (it will be array.every)) 
   //data.slice(0,2) exclude the my watchList data 
 
   if (Array.isArray(data[2]) && !data.slice(0, 2).some(i => i.length > 0)) {
-    search_result.innerHTML = `<h3>No result for "${input.value}" </h3>`
-    search_result.style.textAlign = 'center'
+    search_result_element.innerHTML = `<h3>No result for "${input.value}" </h3>`
+    search_result_element.style.textAlign = 'center'
     return
   }
 
 
-  search_result.style.textAlign = 'left'
+  search_result_element.style.textAlign = 'left'
 
   Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
@@ -826,12 +833,8 @@ function create_chart() {
     id: 'annotationline',
 
     afterDraw: function(chart) {
-      if (!chart.tooltip._active.length || !isInsideChart) {
-        info_price.style.visibility = 'hidden'
-        info_date.style.visibility = 'hidden'
-        isVisible = false;
-        return;
-      } else isVisible = true;
+      if (!chart.tooltip._active.length || !isInsideChart) return;
+     
       selectAll('#range > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = hover_color;
 
@@ -1001,7 +1004,8 @@ function create_chart() {
 
         info_price.style.color = strokeColor;
 
-        info_price.style.left = (starting_pos + ending_pos) / 2 - info_price.offsetWidth / 2 + info_price.getBoundingClientRect().left + 'px';
+        info_price.style.left = (starting_pos + ending_pos)/2 - info_price.offsetWidth/2 + canvas.getBoundingClientRect().left+ 'px';
+        console.log(starting_pos,ending_pos)
 
      }
 
@@ -1010,12 +1014,12 @@ function create_chart() {
 
       info_date.style.visibility = 'visible';
 
+      if (isMouseDown || current_Index === valid_data_number - 1) return;
+
+
       if (left_position >= pos_X + myChart.chartArea.width / label_array.length * valid_data_number) {
         info_price.style.left = pos_X + myChart.chartArea.width / label_array.length * valid_data_number + "px"
       }
-
-      if (isMouseDown && current_Index !== static_Index || current_Index === valid_data_number - 1) return;
-
 
       info_price.style.left = clientX - info_price.offsetWidth / 2 + "px";
       
@@ -1261,7 +1265,7 @@ function create_chart() {
               if (isMouseDown) {
                 const current_value = dataset[current_Index];
                 const previous_value = dataset[static_Index]
-                const sign = (judge_color() === 'lawngreen' ? "+" : "-")
+                const sign = (judge_color() === 'lawngreen' ? "+" : "-");
                 //Already use white-space: pre-wrap for info_price and info_date so the white space will be significent and "       " will not be parse as " "
                 info_price.innerHTML = sign + Math.abs(current_value - previous_value).toFixed(2) + "          " + sign + (Math.abs(current_value / previous_value - 1) * 100).toFixed(2) + '%'
 
