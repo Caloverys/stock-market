@@ -84,7 +84,7 @@ symbol_full_name_list => an array contains all full name of all stocks
 
 */
 
-let [label_array, grid_color_array] = new Array(6).fill([])
+let [label_array, grid_color_array] = new Array(2).fill([])
 
 //Try to get my_watch_list from localStorage, if there is no data, declared as []
 let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'))
@@ -224,7 +224,8 @@ or the company name of the stock in my watch_list contains the keywords, push it
   //make sure the results from search array by company name doesn't include the index in my watch_list or index in search array by symbol so there is no duplicate item appears in search result
   list[1] = list[1].filter(i => !list[2].includes(i) && !list[0].includes(i))
 
-  create_sections(list)
+  create_sections(list);
+  console.log(list)
 
 }
 
@@ -576,6 +577,10 @@ function format_data_two(difference, isYear, filter_value, filter_data_range = 1
 
 }
 
+
+
+
+
 function create_watch_list_section(data, isSearch) {
   //data.length 0 means no matched result in searching my watched list, so return
   if (isSearch && data.length === 0 || my_watched_list.length === 0) return;
@@ -590,7 +595,7 @@ function create_watch_list_section(data, isSearch) {
   search_result =
     my_watched_list.forEach(i => {
       search_result.innerHTML += `
-<div id='element_${i.index}'>
+ <div id='element_${i.index}'>
   <div id='symbol'>${i.search_result['0']}</div>
   <span id='exchange_market_symbol'>${i.search_result["4"]}</span>
   <div id='company_name'>${i.search_result["1"]}</div>
@@ -609,10 +614,11 @@ function search_or_recommand_section(data, isSearch) {
   search_result.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   let display_list = [];
+      console.log(data)
 
   if (!isSearch) {
     //The list contains 15 random non-repeating choosed index for data that going to be displayed
-    let rest_list = data.slice().filter(i => my_watched_list.indexOf(i) === -1)
+    let rest_list = data.slice();
     while (display_list.length < 15) {
       const selected_index = Math.floor(Math.random() * rest_list.length)
       if (symbol_full_list[selected_index]["2"] < 100) continue;
@@ -639,23 +645,27 @@ function search_or_recommand_section(data, isSearch) {
     } else {
       let rest_list = data[0].slice()
       while (display_list.length < 15 && rest_list.length > 0) {
-        const selected_index = Math.floor(Math.random() * rest_list.length)
-        if (symbol_full_list[selected_index]["2"] < 100) continue;
+        //debugger
+        const selected_index = Math.floor(Math.random() * rest_list.length);
+        console.log(symbol_full_list[selected_index]["2"],display_list,rest_list)
+        if (symbol_full_list[selected_index]["2"] < 10) continue;
+         const index = rest_list[selected_index];
         display_list.push({
-          index: selected_index,
-          data: symbol_full_list[selected_index]
+          index: index,
+          data: symbol_full_list[index]
         })
         rest_list.splice(selected_index, 1)
       }
 
       if (display_list.length < 15) {
-        rest_list = data[0].slice()
+        rest_list = data[1].slice()
         while (display_list.length < 15 && rest_list.length > 0) {
           const selected_index = Math.floor(Math.random() * rest_list.length)
           if (symbol_full_list[selected_index]["2"] < 100) continue;
+          const index = rest_list[selected_index];
           display_list.push({
-            index: selected_index,
-            data: symbol_full_list[selected_index]
+            index: index,
+            data: symbol_full_list[index]
           })
           rest_list.splice(selected_index, 1)
 
@@ -665,6 +675,8 @@ function search_or_recommand_section(data, isSearch) {
   }
 
   display_list.forEach((data, index) => {
+
+
 
     search_result.innerHTML += `
     <div id='element_${data.index}'>
