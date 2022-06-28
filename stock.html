@@ -7,7 +7,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel='stylesheet' href='stock.css'>
-
 </head>
 
 <body>  
@@ -86,7 +85,8 @@
 </div>
 </div>
     <div id='info_price'></div>
-
+    <script src='variable.js' ></script>
+  <script src='prototype_function.js'></script>
 
 <!-- Chrome doesn't allow use web webworker from local file, this I have to use a script and blob to set the web worker. But after I build up the web sever, it could be put in a separate file to increase code readbility -->
 <script id='web_worker_one' type='javascript/worker'>
@@ -221,14 +221,12 @@ function start_fetching_data(symbol){
   }
 
   </script>
-  <script src='variable.js'></script>
-  <script src='prototype_function.js'></script>
-<script src='starting_page.js'></script>
-<script src='stock.js'></script>
+<script src='starting_page.js' ></script>
+
 <!--<script src="https://combinatronics.com/Caloverys/stock.html/main/stock.js"></script>-->
 
 
-
+<script src='stock.js' defer></script>
 </body>
 
 </html>
