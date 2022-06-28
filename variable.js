@@ -4,10 +4,10 @@ use Function.prototype.bind() to write alias for document.querySelector and docu
 
 */
 
+
 const select = document.querySelector.bind(document);
 
 const selectAll = document.querySelectorAll.bind(document);
-
 const canvas = select('#chart');
 
 const context = canvas.getContext('2d')
@@ -30,7 +30,6 @@ const context = canvas.getContext('2d')
 
 , delete_button = select('#deletebutton')
 
-,search_result = select("#search_result")
 
 ,search_icon = select('#search_icon')
 
@@ -38,7 +37,9 @@ const context = canvas.getContext('2d')
 
 ,market_status_element = select('#market_status')
 
-,time_element = select("#current_time");
+,time_element = select("#current_time")
+
+,search_result_element = select('#search_result');
 
 let hover_color = '#52c4fa';
 
@@ -52,9 +53,13 @@ let [symbol_full_list, symbol_price_list, symbol_symbol_list, symbol_full_name_l
 
 let global_time,myChart,starting_chart;
 
+let [label_array, grid_color_array] = new Array(2).fill([]);
 
+let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'));
 
+//Try to get my_watch_list from localStorage, if there is no data, declared as [];
 
+if (!my_watched_list) my_watched_list = []
 
 
 
