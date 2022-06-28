@@ -12,13 +12,10 @@
 <body>  
 <div id='left_area'>
 <div id='search_engine'>
-
 <input type='text' placeholder="Search...">
 <!--decimal code for html for the delete symbol X-->
-<button id='back_button'><i class="fa-solid fa-angle-left"></i></button>
 <button id='deletebutton'>&times;</button>
 <button id='search_icon' ><i class="fa-solid fa-magnifying-glass" ></i></button>
-
 </div>
 <div id='search_result'>
 
@@ -34,6 +31,7 @@
 </div>
 
 <div id='right_area'>
+  <button id='back_button'><i class="fa-solid fa-angle-left"></i></button>
   <div id='starting'>
     <svg  width="600" height="600">
   <text fill='transparent'  x="50%" y="50%"  text-anchor="middle" stroke="white" stroke-width="5.5" font-size="110">Stock market</text>
@@ -226,7 +224,8 @@ function start_fetching_data(symbol){
 <!--<script src="https://combinatronics.com/Caloverys/stock.html/main/stock.js"></script>-->
 
 
-<script src='stock.js' defer></script>
+<script type="text/javascript" src='stock.js'></script>
+<script src ='screen_control.js'></script>
 </body>
 
 </html>
