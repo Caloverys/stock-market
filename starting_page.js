@@ -1,5 +1,7 @@
+
 (function(){
    load_all_buttons();
+   console.log('what')
 
    create_small_animated_chart();
 
@@ -70,6 +72,7 @@
   const worker = new Worker(window.URL.createObjectURL(blob));
 
   worker.onmessage = function(e) {
+  	console.log(search_result)
     /* 
 
     In order to improve efficency and optimize performance, the object keys have all been renamed, now the symbol_list looks  something like this:
@@ -277,6 +280,9 @@ function create_small_animated_chart() {
 
 
 })();
+
+
+
 
 
 
