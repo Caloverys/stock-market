@@ -64,13 +64,16 @@ font-size:0.8em
 
 }
 
+#svg{
+  position: absolute;
+  left: calc(50% - 600px/2);
+  top: 1%;
+}
 svg{
   position:absolute;
-  left: 20%;
-  top:-25%;
+  height: 30vh;
 }
 text:first-child{
-  
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
   animation: draw1 10s forwards;
@@ -107,12 +110,12 @@ text:last-child{
 }
 
 #right_area {
-  position: absolute;
-  top: 0;
+  position:relative;
   height: 100vh;
   width: 75%;
   background-color: rgba(0,0,0,0.8);
-  left: calc(25% + 2.5px);
+  float: right;
+  top: -100vh;
 
 
 
@@ -551,8 +554,8 @@ top: 2vh;
 }
 #back_button{
   position: absolute;
-  left: 27%;
-  top: 1%;
+  left: 2%;
+  top: 2%;
   font-size: 1.8em;
   color:  grey;
   border: none;
