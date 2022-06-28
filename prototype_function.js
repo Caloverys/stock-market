@@ -1,4 +1,5 @@
 
+
 Object.prototype.return_market_status = function() {
 
 	/*
@@ -62,7 +63,7 @@ function return_vertical_linear_garident(is_hover) {
 
   } else{
 
-  	if (return_color()) {
+  	if (return_color().includes('green')) {
   	    gradient.addColorStop(0, `rgba(${earn_money_color.return_color_in_rgba()},0.8)`);
         gradient.addColorStop(0.3, `rgba(${earn_money_color.return_color_in_rgba()},0.3)`);
         gradient.addColorStop(0.3, `rgba(${earn_money_color.return_color_in_rgba()},0.3)`);
@@ -79,20 +80,20 @@ function return_vertical_linear_garident(is_hover) {
 }
 
 
-function return_horizontal_gradient(is_earning, pos_start, pos_end) {
+function return_horizontal_gradient(color, pos_start, pos_end) {
   const horizontal_Gradient = context.createLinearGradient(0, pos_start, 0, pos_end)
 
-  if (is_earning) {
+  if (color.includes('green')) {
 
-  	 horizontal_Gradient.addColorStop(0, `rgba(${earn_money_color},0.3)`);
-        horizontal_Gradient.addColorStop(0.3, `rgba(${earn_money_color},0.1)`);
-       horizontal_Gradient.addColorStop(0.3, `rgba(${earn_money_color},0.15)`);
+  	 horizontal_Gradient.addColorStop(0, `rgba(${earn_money_color.return_color_in_rgba()},0.3)`);
+        horizontal_Gradient.addColorStop(0.3, `rgba(${earn_money_color.return_color_in_rgba()},0.1)`);
+       horizontal_Gradient.addColorStop(0.3, `rgba(${earn_money_color.return_color_in_rgba()},0.15)`);
 
   } else {
 
-   horizontal_Gradient.addColorStop(0, `rgba(${lose_money_color},0.3)`);
-        horizontal_Gradient.addColorStop(0.3, `rgba(${lose_money_color},0.1)`);
-        horizontal_Gradient.addColorStop(0.3, `rgba(${lose_money_color},0.15)`);
+   horizontal_Gradient.addColorStop(0, `rgba(${lose_money_color.return_color_in_rgba()},0.3)`);
+        horizontal_Gradient.addColorStop(0.3, `rgba(${lose_money_color.return_color_in_rgba()},0.1)`);
+        horizontal_Gradient.addColorStop(0.3, `rgba(${lose_money_color.return_color_in_rgba()},0.15)`);
 
 
   }
@@ -193,7 +194,7 @@ function isInCanvas(posX, posY) {
 
   const canvas_pos = canvas.getBoundingClientRect();
 
-  return myChart.chartArea.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
+  return myChart.chartArea.left + canvas_pos.left <= posX && posX <= myChart.chartArea.right + canvas_pos.left && myChart.chartArea.top <= posY - canvas_pos.top && posY - canvas_pos.top <= myChart.chartArea.bottom;
 
 }
 
@@ -218,7 +219,7 @@ window.addEventListener('beforeunload', function(e) {
 });
 
 
-back_button.addEventListener("click", function(){
+my_watched_button.addEventListener("click", function(){
   document.querySelectorAll('script').forEach(script=>{
     if(script.src.includes("starting_page.js")){
 
@@ -237,9 +238,33 @@ back_button.addEventListener("click", function(){
 
 })
 
-function create_price_label(){
 
-}
+
+
+
+
+my_watched_button.addEventListener('click', function(event) {
+
+  if (!event.target.classList.contains('has_clicked')) {
+    event.target.classList.add('has_clicked')
+    event.target.innerHTML = '&#10004;Added'
+
+    //select item with id starts with element_ and with class name active
+    const index_of_stock = select(" div[id^='element_'].active").id.split('element_')[1]
+    my_watched_list.push({
+      index: index_of_stock,
+      search_result: symbol_full_list[index_of_stock],
+      date_added: global_time.toString().substring(4, 24)
+    })
+
+  } else {
+    event.target.classList.remove('has_clicked')
+    event.target.textContent = '+Add to Watchlist'
+    my_watched_list = my_watched_list.filter(i => i['index'] !== select(" div[id^='element_'].active").id.split('element_')[1])
+
+  }
+
+})
 
 
 
