@@ -8,6 +8,7 @@ body {
 
 }
 
+
 .resize_button{
    color:rgba(0,0,200,0.8);
     border:none; 
@@ -115,9 +116,6 @@ text:last-child{
 
 
 
-
-
-
 }
 #info_date {
   font-size:16px;
@@ -130,10 +128,8 @@ text:last-child{
 
 
 #search_engine > input[type=text] {
-  z-index: 999;
   border-radius: 4px;
   border: 1px solid grey;
-  position: fixed;
   margin: 15px calc(1vw);
   padding: 7.5px calc(2.5vw);
     background-color: rgba(90,88,92,0.8);
@@ -144,32 +140,30 @@ text:last-child{
 
 }
 
+
 #search_engine > #search_icon {
-  position: fixed;
-  top: 3.6%;
-  left: 1.4%;
   color: rgba(230,230,230);
-  font-weight: normal;
-  border:none;
-  background:none
+  left: 5%;
+  background: none;
 }
-
- #search_engine > #deletebutton {
-  background-color: #848386;
-  border: none;  
-   border-radius: 50%;
-   visibility: hidden;
-
-  color: rgba(83, 81, 86, 0.8); 
-   font-weight: normal;
-  padding: 0;
-  width: 17.5px;
+#search_icon,#deletebutton{
+  position: absolute;
+   width: 17.5px;
   height: 17.5px;
-   position: fixed;
-   left:21vw;
-   top: 3.5vh;
-   
-   z-index: 999;
+    font-weight: normal;
+  background-color: #848386;
+    top: calc(50% - 17.5px/2);
+      border: none; 
+         z-index: 999;
+
+
+}
+ #search_engine > #deletebutton {
+  
+   border-radius: 50%;
+  color: rgba(83, 81, 86, 0.8); 
+  padding: 0;
+    right: 10%;
     
 }
 
@@ -263,10 +257,10 @@ input[type=text]:focus-visible {
 }
 
 #left_area > #search_engine{
-  background-color: rgb(83,83,83);
-  width: 25%;
-   height: 100vh;
    overflow: hidden;
+   position: relative;
+   width: 25vw;
+
 }
 #left_area > #search_result{
   height: 85vh;
@@ -279,8 +273,14 @@ input[type=text]:focus-visible {
   padding-bottom: 25vh;
  box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;
   border:  2px solid rgb(83,79,83,0.75);
+  border-radius: 5px;
 }
 
+#left_area{
+ width: 25%;
+   height: 100vh;
+    background-color: rgb(83,83,83);
+}
 
 #bottom_section > #market_status{
 color: rgba(144,133,138,1);
