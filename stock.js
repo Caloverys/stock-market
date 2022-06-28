@@ -24,6 +24,10 @@ let max_value, min_value;
 let raw_data;
 
 
+//Return Boolean value that indicates whether the vertical line drawn by the hover event existed (visible)
+let isVisible = true;
+
+
 //Contains the current ClientX value
 let clientX;
 
@@ -89,12 +93,10 @@ symbol_full_name_list => an array contains all full name of all stocks
 
 */
 
-let [label_array, grid_color_array] = new Array(2).fill([])
 
-//Try to get my_watch_list from localStorage, if there is no data, declared as []
-let my_watched_list = JSON.parse(localStorage.getItem('my_watched_list'))
 
-if (!my_watched_list) my_watched_list = []
+
+
 
 
 const all_fetch_data = {
@@ -303,9 +305,8 @@ Example: 1min 5min 15min 1hour 4hours
 document.body.addEventListener('mousemove', e => {
 
   isInsideChart = isInCanvas(e.clientX, e.clientY);
-  //console.log(isInsideChart);
 
-  if (isInsideChart) {
+  if (isInsideChart && isVisble) {
     clientX = e.clientX;
     info_price.style.visibility = 'visible'
     info_date.style.visibility = 'visible'
@@ -383,16 +384,16 @@ function format_data(difference_range) {
 
   valid_data_number = label_array.length;
 
-  max_value = Math.max.apply(null, dataset)
-  min_value = Math.min.apply(null, dataset)
+  max_value = Math.max.apply(null, dataset);
+  min_value = Math.min.apply(null, dataset);
 
   
   if (timestamp === '1min') {
 
     //convert label arrays to hours
-    label_array = label_array.map(i => new Date(i).getHours())
+    label_array = label_array.map(i => new Date(i).getHours());
 
-    if (global_time.return_market_status()) fill_label_array_1min()
+    if (global_time.return_market_status()) fill_label_array_1min();
 
     label_array = label_array.map(i => i + (i < 12 ? 'am' : 'pm'))
 
@@ -597,10 +598,9 @@ function create_watch_list_section(data, isSearch) {
 
   let search_result = []
   //by checking if data existed to know if this is result from search or recommand
-  isSearch ? search_result = data.slice() : search_result = my_watched_list.slice()
-  search_result =
-    my_watched_list.forEach(i => {
-      search_result.innerHTML += `
+  isSearch ? search_result = data.slice() : search_result = my_watched_list.slice();
+   search_result.forEach(i => {
+      search_result_element.innerHTML += `
  <div id='element_${i.index}'>
   <div id='symbol'>${i.search_result['0']}</div>
   <span id='exchange_market_symbol'>${i.search_result["4"]}</span>
@@ -833,7 +833,10 @@ function create_chart() {
     id: 'annotationline',
 
     afterDraw: function(chart) {
-      if (!chart.tooltip._active.length || !isInsideChart) return;
+      if (!chart.tooltip._active.length || !isInsideChart){
+        isVisble = false;
+        return;
+      } else isVisble = true;
      
       selectAll('#range > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = hover_color;
@@ -1525,28 +1528,6 @@ select('#all_time').addEventListener('click', function() {
 })
 
 
-select('#add_to_watchlist').addEventListener('click', function(event) {
-
-  if (!event.target.classList.contains('has_clicked')) {
-    event.target.classList.add('has_clicked')
-    event.target.innerHTML = '&#10004;Added'
-
-    //select item with id starts with element_ and with class name active
-    const index_of_stock = select(" div[id^='element_'].active").id.split('element_')[1]
-    my_watched_list.push({
-      index: index_of_stock,
-      search_result: symbol_full_list[index_of_stock],
-      date_added: global_time.toString().substring(4, 24)
-    })
-
-  } else {
-    event.target.classList.remove('has_clicked')
-    event.target.textContent = '+Add to Watchlist'
-    my_watched_list = my_watched_list.filter(i => i['index'] !== select(" div[id^='element_'].active").id.split('element_')[1])
-
-  }
-
-})
 
 
 
