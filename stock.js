@@ -218,7 +218,7 @@ or the company name of the stock in my watch_list contains the keywords, push it
      
       if (data.search_result['0'].startsWith(search_keyword) || data.search_result['1'].toUpperCase().includes(search_keyword))
 
-        list[2].push(index)
+        list[2].push(data)
 
 
     })
@@ -595,17 +595,18 @@ function create_watch_list_section(data, isSearch) {
   search_result_element.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
-
+   console.log(data,isSearch)
   let search_result = []
   //by checking if data existed to know if this is result from search or recommand
   isSearch ? search_result = data.slice() : search_result = my_watched_list.slice();
-   search_result.forEach(i => {
+  console.log(search_result)
+   search_result.forEach(stock => {
       search_result_element.innerHTML += `
- <div id='element_${i.index}'>
-  <div id='symbol'>${i.search_result['0']}</div>
-  <span id='exchange_market_symbol'>${i.search_result["4"]}</span>
-  <div id='company_name'>${i.search_result["1"]}</div>
-  <div id='current_price'>${i.search_result["2"].toFixed(2)}</div>
+ <div id='element_${stock.index}'>
+  <div id='symbol'>${stock.search_result['0']}</div>
+  <span id='exchange_market_symbol'>${stock.search_result["4"]}</span>
+  <div id='company_name'>${stock.search_result["1"]}</div>
+  <div id='current_price'>${stock.search_result["2"].toFixed(2)}</div>
 </div>
      `
     })
@@ -616,7 +617,7 @@ function search_or_recommand_section(data, isSearch) {
 
  search_result_element.innerHTML = ""
   create_watch_list_section(data[2], isSearch)
-
+   console.log(data,isSearch)
 
   search_result_element.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
@@ -680,6 +681,7 @@ function search_or_recommand_section(data, isSearch) {
       }
     }
   }
+  console.log(display_list)
 
   display_list.forEach((data, index) => {
 
@@ -722,6 +724,7 @@ function create_sections(data) {
 
 
   search_result_element.style.textAlign = 'left'
+  console.log(data)
 
   Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
