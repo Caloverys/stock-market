@@ -181,7 +181,7 @@ input[type=text]:focus-visible {
   float: right;
   position: absolute;
   right: 4vw;
-  top: 1.5vh;
+  top: 0;
 }
 
 #dollar {
