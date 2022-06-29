@@ -760,7 +760,7 @@ function find_closed_price() {
     for (let i = raw_data.length - 1; i >= 0; i--) {
       if (latest_date.getDate() !== raw_data[i].date.format_date().getDate()) {
         closed_price = raw_data[i].close
-        return raw_data[i].close;
+        return raw_data[i].close.toFixed(2);
       }
     }
   }
