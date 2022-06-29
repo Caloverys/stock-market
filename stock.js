@@ -412,11 +412,15 @@ function format_data(difference_range) {
 
 
   } else if (timestamp === "30min") {
-    let startingDate = new Date(label_array[0]).getDate()
+    let startingDate = new Date(label_array[0]);
+    console.log(startingDate)
     label_array = label_array.map(i => {
-      const label_date = new Date(i).getDate()
-      if (label_date >= startingDate + 7) startingDate = label_date
-      return startingDate
+
+      const label_date = new Date(i);
+      console.log(label_date,startingDate)
+      //console.log(new Date(new Date(startingDate).setDate(startingDate.getDate() + 7)),startingDate.setDate(new Date(startingDate).getDate() + 7),label_date)
+      if (label_date >= new Date(startingDate).setDate(startingDate.getDate() + 7)) startingDate = label_date
+      return startingDate.getDate();
     })
     grid_color_array = Array(label_array.length).fill("transparent");
     for (let i = 0; i < label_array.length; i += 70 / range) grid_color_array[i] = gridline_color;
@@ -1320,8 +1324,10 @@ function restore_and_fetch(time_range_name, expected_content) {
   if (!all_fetch_data[time_range_name]) {
     fetch_data(symbol, timestamp).then(function(result) {
       all_fetch_data[time_range_name] = result
-      raw_data = filter_data(result, parseInt(timestamp))
-      format_data(difference_time)
+      raw_data = filter_data(result, parseInt(timestamp));
+      console.log(raw_data);
+      format_data(difference_time);
+
       create_chart()
 
     })
@@ -1447,6 +1453,7 @@ window.addEventListener('resize', function() {
 })
 
 select('#one_day').addEventListener('click', function() {
+   button_add_active(event.target.id);
   timestamp = '1min'
   difference_time = 0;
   variable_name = "one_day"
@@ -1454,6 +1461,7 @@ select('#one_day').addEventListener('click', function() {
 })
 
 select('#one_week').addEventListener('click', function() {
+  button_add_active(event.target.id);
   timestamp = '5min'
   difference_time = 7
   variable_name = 'one_week'
@@ -1461,6 +1469,7 @@ select('#one_week').addEventListener('click', function() {
 })
 
 select('#one_month').addEventListener('click', function() {
+   button_add_active(event.target.id);
   timestamp = '30min'
   difference_time = 30
   variable_name = 'one_month'
@@ -1468,6 +1477,7 @@ select('#one_month').addEventListener('click', function() {
 })
 
 select('#two_month').addEventListener('click', function() {
+   button_add_active(event.target.id);
   timestamp = '1hour'
 
   difference_time = 60
@@ -1478,7 +1488,7 @@ select('#two_month').addEventListener('click', function() {
 
 
 function buttons_click_function(event, parameter_list) {
- 
+
   retore_all_values()
   timestamp = false;
   variable_name = 'all_data'
@@ -1495,40 +1505,49 @@ function buttons_click_function(event, parameter_list) {
 
 
 select('#three_month').addEventListener('click', function(event) {
+   button_add_active(event.target.id);
   difference_time = 3;
   buttons_click_function(event,[difference_time, false, 0]);
 })
 
 select("#six_month").addEventListener('click', function(event) {
+   button_add_active(event.target.id);
   difference_time = 6
   buttons_click_function(event,[difference_time, false, 0])
 })
 
 select('#one_year').addEventListener('click', function(event) {
+   button_add_active(event.target.id);
   difference_time = 1
   buttons_click_function(event, [difference_time, true, 2, 2])
 
 })
 
 select('#two_year').addEventListener('click', function(event) {
+   button_add_active(event.target.id);
   difference_time = 2
   buttons_click_function(event, [difference_time, true, 4, 3])
 })
 
 select('#five_year').addEventListener('click', function(event) {
+   button_add_active(event.target.id);
   difference_time = 5
   buttons_click_function(event, [difference_time, true, 0, 10, true])
 })
 
 select("#ten_year").addEventListener("click", function(event) {
+   button_add_active(event.target.id);
   difference_time = 10
   buttons_click_function(event, [difference_time, true, 2, 20, true])
 })
 
 select('#all_time').addEventListener('click', function() {
-  difference_time = 0
+   button_add_active(event.target.id);
+  difference_time = 0;
   buttons_click_function(event,[difference_time, true, 4, 30, true])
 })
+
+
 
 
 
