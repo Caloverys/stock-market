@@ -7,6 +7,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel='stylesheet' href='stock.css'>
+  <link rel='stylesheet' href='media_query.css'>
 </head>
 
 <body>  
@@ -172,7 +173,7 @@ function start_fetching_data(symbol){
   function fetching_symbol(){
     //apikey=FXLQF9OPEP8ROBMD
     //apikey=c38b723e031c88753f0c9e66f505f557
-    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=c38b723e031c88753f0c9e66f505f557")
+    return fetch("https://financialmodelingprep.com/api/v3/stock/list?apikey=ee684c5f9b04a3e914f9e39630f0f929")
   .then(res=> res.json())
   .then(data =>{
     let symbol_list = data;
