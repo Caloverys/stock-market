@@ -202,12 +202,12 @@ function fetch_data(symbol, range) {
   /*
 
   apikey=c38b723e031c88753f0c9e66f505f557
-  apikey=136fb4fa07e6ac6ae9a246d24029dfbc
+   demo used only : apikey=136fb4fa07e6ac6ae9a246d24029dfbc
   apikey=ee684c5f9b04a3e914f9e39630f0f929
 
   */
 
-  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=c38b723e031c88753f0c9e66f505f557`)
+  return fetch(`https://financialmodelingprep.com/api/v3/historical-chart/${range}/${symbol.toUpperCase()}?apikey=ee684c5f9b04a3e914f9e39630f0f929`)
     .then(res => res.json())
 
 }
@@ -268,7 +268,11 @@ my_watched_button.addEventListener('click', function(event) {
 
 
 
-
+function button_add_active(id){
+    if(document.querySelector('.range_button_active')) document.querySelector('.range_button_active').classList.remove('range_button_active');
+    
+    document.querySelector(`#${id}`).classList.add("range_button_active");
+}
 
 
 
