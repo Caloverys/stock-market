@@ -12,7 +12,7 @@ function return_color() {
   if (timestamp === '1min')
     return raw_data[raw_data.length - 1].close >= find_closed_price() ? "lawngreen" : "red";
   else
-    return dataset[0] <= dataset[dataset.length - 1]  ? "lawngreen" : "red";
+    return parseFloat(dataset[0]) <= parseFloat(dataset[dataset.length - 1])  ? "lawngreen" : "red";
 }
 //the index of raw_data that the user is hovering at
 let current_Index = 0;
@@ -232,7 +232,6 @@ or the company name of the stock in my watch_list contains the keywords, push it
   list[1] = list[1].filter(i => !list[2].includes(i) && !list[0].includes(i))
 
   create_sections(list);
-  console.log(list)
 
 }
 
@@ -367,7 +366,6 @@ function format_data(difference_range) {
   */
 
   const smallest_accept_time = new Date(new Date(global_time).setDate(global_time.getDate() - difference_range)).setHours(9,30);
-  console.log(smallest_accept_time)
 
   raw_data.forEach((item, index) => {
 
@@ -413,12 +411,10 @@ function format_data(difference_range) {
 
   } else if (timestamp === "30min") {
     let startingDate = new Date(label_array[0]);
-    console.log(startingDate)
     label_array = label_array.map(i => {
 
       const label_date = new Date(i);
-      console.log(label_date,startingDate)
-      //console.log(new Date(new Date(startingDate).setDate(startingDate.getDate() + 7)),startingDate.setDate(new Date(startingDate).getDate() + 7),label_date)
+     
       if (label_date >= new Date(startingDate).setDate(startingDate.getDate() + 7)) startingDate = label_date
       return startingDate.getDate();
     })
@@ -599,11 +595,9 @@ function create_watch_list_section(data, isSearch) {
   search_result_element.innerHTML += `
   <h2 id='header'>My watch list:</h2>
   `
-   console.log(data,isSearch)
   let search_result = []
   //by checking if data existed to know if this is result from search or recommand
   isSearch ? search_result = data.slice() : search_result = my_watched_list.slice();
-  console.log(search_result)
    search_result.forEach(stock => {
       search_result_element.innerHTML += `
  <div id='element_${stock.index}'>
@@ -621,12 +615,10 @@ function search_or_recommand_section(data, isSearch) {
 
  search_result_element.innerHTML = ""
   create_watch_list_section(data[2], isSearch)
-   console.log(data,isSearch)
 
   search_result_element.innerHTML += `
   <h2 id='header'>${!isSearch ? "Recommand" : "Symbols" }:</h2>`
   let display_list = [];
-      console.log(data)
 
   if (!isSearch) {
     //The list contains 15 random non-repeating choosed index for data that going to be displayed
@@ -659,7 +651,6 @@ function search_or_recommand_section(data, isSearch) {
       while (display_list.length < 15 && rest_list.length > 0) {
         //debugger
         const selected_index = Math.floor(Math.random() * rest_list.length);
-        console.log(symbol_full_list[selected_index]["2"],display_list,rest_list)
         if (symbol_full_list[selected_index]["2"] < 10) continue;
          const index = rest_list[selected_index];
         display_list.push({
@@ -685,7 +676,6 @@ function search_or_recommand_section(data, isSearch) {
       }
     }
   }
-  console.log(display_list)
 
   display_list.forEach((data, index) => {
 
@@ -727,8 +717,8 @@ function create_sections(data) {
   }
 
 
-  search_result_element.style.textAlign = 'left'
-  console.log(data)
+  search_result_element.style.textAlign = 'left';
+
 
   Array.isArray(data[0]) ? search_or_recommand_section(data, true) : search_or_recommand_section(data, false)
 
@@ -764,15 +754,17 @@ function fill_label_array_1min() {
 
 }
 
-
+let closest_price;
 function find_closed_price() {
+  if(!closest_price){
     for (let i = raw_data.length - 1; i >= 0; i--) {
       if (latest_date.getDate() !== raw_data[i].date.format_date().getDate()) {
         closed_price = raw_data[i].close
         return raw_data[i].close;
       }
     }
-
+  }
+  return closed_price;
 }
 
 
@@ -1015,7 +1007,6 @@ function create_chart() {
         info_price.style.color = strokeColor;
 
         info_price.style.left = (starting_pos + ending_pos)/2 - info_price.offsetWidth/2 + canvas.getBoundingClientRect().left+ 'px';
-        console.log(starting_pos,ending_pos)
 
      }
 
@@ -1105,7 +1096,6 @@ function create_chart() {
 
         const fontSize = window.innerWidth / 100 * 1.25
         const size_1 = "Previous Price:".size_calculation(fontSize);
-        //console.log(line.text)
         const size_2 = (line.text.toString()).size_calculation(fontSize);
 
         context.font = `${fontSize}px sans-serif`;
@@ -1325,7 +1315,6 @@ function restore_and_fetch(time_range_name, expected_content) {
     fetch_data(symbol, timestamp).then(function(result) {
       all_fetch_data[time_range_name] = result
       raw_data = filter_data(result, parseInt(timestamp));
-      console.log(raw_data);
       format_data(difference_time);
 
       create_chart()
@@ -1333,7 +1322,6 @@ function restore_and_fetch(time_range_name, expected_content) {
     })
   } else {
     raw_data = filter_data(all_fetch_data[time_range_name], parseInt(timestamp));
-    console.log(raw_data);
     format_data(difference_time)
     create_chart()
 
@@ -1382,15 +1370,16 @@ function assign_web_worker_one() {
 
 
 function setup(index) {
-  //Prevent all buttons to be clicked
-  let existed = false;
+   button_add_active('one_day');
+   closed_price = null;
+  let has_in_my_watchList = false;
   for (let i = 0; i < my_watched_list.length; i++) {
     if (my_watched_list[i].index === index) {
-      existed = true;
+      has_in_my_watchList = true;
       break;
     }
   }
-  if (!existed) {
+  if (!has_in_my_watchList) {
     my_watched_button.style.display = 'revert'
     my_watched_buttontextContent = '+Add to Watchlist'
     my_watched_button.classList.remove('has_clicked')
@@ -1498,7 +1487,6 @@ function buttons_click_function(event, parameter_list) {
     return
   }
   raw_data = all_fetch_data[variable_name];
-  console.log(raw_data);
   format_data_two(...parameter_list)
   create_chart()
 }
