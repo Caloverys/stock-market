@@ -356,12 +356,14 @@ function format_data(difference_range) {
   smallest_accept_time is the latest_date date - difference_range and set hours and minutes to open market time (9:30)
 
   */
+  console.log(raw_data)
 
-  const smallest_accept_time = new Date(new Date(global_time).setDate(global_time.getDate() - difference_range)).setHours(9,30);
+  const smallest_accept_time = new Date(new Date(latest_date).setDate(latest_date.getDate() - difference_range)).setHours(9,30);
 
   raw_data.forEach((item, index) => {
-
+console.log(smallest_accept_time,item.date)
     if (item.date.format_date() >= smallest_accept_time) {
+        
 
       label_array.push(item.date.format_date());
       detail_dataset.push(item);
@@ -818,7 +820,7 @@ function judge_color() {
 
 function create_chart(canvas,context) {
 
-  console.log(context)
+  console.log(dataset)
   window.fire = false;
   window.first_index = null
   let [static_clientX, static_clientY] = new Array(2).fill(null)
@@ -1532,6 +1534,20 @@ select('#all_time').addEventListener('click', function() {
 
 
 document.querySelector('#full_screen_button').addEventListener('click',function(){
+   const canvas_parent = canvas.parentNode;
+   const canvas_wrapper_full = document.createElement('div');
+   canvas_wrapper_full.className = 'canvas_wrapper_full';
+   canvas.classList.add('canvas_full');
+   canvas_parent.replaceChild(canvas_wrapper_full,canvas);
+   canvas_wrapper_full.appendChild(canvas);
+   const current_visible_elements = [];
+   document.querySelectorAll(':not(.canvas_wrapper_full > *):not(.canvas_wrapper_full):not(html):not(body)').forEach(elem=>{
+    if(window.getComputedStyle(elem)["display"] !=='none' && window.getComputedStyle(elem)["visibility"] !=='hidden') {
+      current_visible_elements.push(elem);
+      elem.style.visibility = 'hidden'
+     }
+
+  })
 
 })
 
