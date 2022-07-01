@@ -11,6 +11,7 @@
 </head>
 
 <body>  
+
 <div id='left_area'>
 <div id='search_engine'>
 <input type='text' placeholder="Search...">
@@ -33,6 +34,7 @@
 
 <div id='right_area'>
   <button id='back_button'><i class="fa-solid fa-angle-left"></i></button>
+    <button id='full_screen_button'><i class="fa-solid fa-compress"></i></button>
   <div id='starting'>
     <div id='svg'>
   <svg  width="600" height="600">
@@ -78,6 +80,9 @@
 
   </div>
 
+ 
+ 
+
   <div class='loader'></div>
 
   <canvas id="chart"></canvas>
@@ -105,7 +110,8 @@ function start_fetching_data(symbol){
   return fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol.toUpperCase()}&outputsize=full&apikey=YEKKF1VPCHPGBLE7`)
   .then(res=> res.json())
   .then(data =>{
-   const all_data =data["Time Series (Daily)"]    
+   const all_data =data["Time Series (Daily)"];
+   console.log(data)
    console.log(all_data,Object.keys(all_data))
     
     const organized_data = []
@@ -225,12 +231,13 @@ function start_fetching_data(symbol){
   }
 
   </script>
-<script src='starting_page.js' ></script>
 
+<script src='starting_page.js' ></script>
+  <script type="text/javascript" src='stock.js'></script>
 <!--<script src="https://combinatronics.com/Caloverys/stock.html/main/stock.js"></script>-->
 
 
-<script type="text/javascript" src='stock.js'></script>
+
 <script src ='screen_control.js'></script>
 </body>
 
