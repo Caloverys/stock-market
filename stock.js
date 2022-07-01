@@ -68,14 +68,6 @@ let horizontalLine;
 
 
 
-//Boolean value to check if user is waiting for the data (will be true if user click the button before the data about a specific data loaded)
-let isWaiting_one = true;
-
-//Boolean value to indicate if user is waiting for all stock symbols data (will be true if user click the stock_market button before all stock symbols data loaded)
-let isWaiting_two = false
-
-//Boolean value to indicate if user is waiting for all stock symbols data (will be true if user types something in the search engine before all stock symbols data loaded)
-let isWaiting_three = false;
 
 /*
 
@@ -759,8 +751,9 @@ function find_closed_price() {
   if(!closest_price){
     for (let i = raw_data.length - 1; i >= 0; i--) {
       if (latest_date.getDate() !== raw_data[i].date.format_date().getDate()) {
-        closed_price = raw_data[i].close
-        return raw_data[i].close.toFixed(2);
+        closed_price = raw_data[i].close.toFixed(2);
+        console.log(raw_data[i].close)
+        return closed_price;
       }
     }
   }
@@ -823,7 +816,9 @@ function judge_color() {
 
 
 
-function create_chart() {
+function create_chart(canvas,context) {
+
+  console.log(context)
   window.fire = false;
   window.first_index = null
   let [static_clientX, static_clientY] = new Array(2).fill(null)
@@ -1123,7 +1118,7 @@ function create_chart() {
 
 
   */
-
+console.log(find_closed_price())
 
   if (myChart) myChart.destroy();
 
@@ -1317,13 +1312,13 @@ function restore_and_fetch(time_range_name, expected_content) {
       raw_data = filter_data(result, parseInt(timestamp));
       format_data(difference_time);
 
-      create_chart()
+      create_chart(canvas,context)
 
     })
   } else {
     raw_data = filter_data(all_fetch_data[time_range_name], parseInt(timestamp));
     format_data(difference_time)
-    create_chart()
+     create_chart(canvas,context)
 
   }
 
@@ -1428,7 +1423,7 @@ function setup(index) {
     select('#name > h2').textContent = symbol_full_list[index]["0"]
     select("#name > h4").textContent = symbol_full_list[index]["1"]
 
-    create_chart()
+     create_chart(canvas,context)
     selectAll('button').forEach(i => i.style.pointerEvents = 'auto')
   })
 }
@@ -1488,7 +1483,7 @@ function buttons_click_function(event, parameter_list) {
   }
   raw_data = all_fetch_data[variable_name];
   format_data_two(...parameter_list)
-  create_chart()
+ create_chart(canvas,context)
 }
 
 
@@ -1536,14 +1531,8 @@ select('#all_time').addEventListener('click', function() {
 })
 
 
+document.querySelector('#full_screen_button').addEventListener('click',function(){
 
-
-
-
-
-
-
-
-
+})
 
 
