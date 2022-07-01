@@ -596,13 +596,23 @@ input::placeholder{
 }
 
 .canvas_full{
-  width: 80%;
-  height: 80%;
-  position: absolute;
-  left: 10%;
-  top: 10%;
-  background-color: black;
+    height: 90vh !important;
+    width: 90vw !important;
+}
+#body_wrapper{
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  opacity: 0.3;
+}
 
+.canvas_wrapper_full{
+  background-color: rgba(0,0,0,0.8);
+  height: 95%;
+  width: 95%;
+    position: fixed;
+    left: 5%;
+    top: 0;
 }
 
 
