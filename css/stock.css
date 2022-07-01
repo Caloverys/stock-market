@@ -583,6 +583,27 @@ input::placeholder{
   color: rgb(177 177 177);
 }
 
+#full_screen_button{
+  background: none;
+    border: none;
+    font-size: 1.5em;
+    pointer-events: auto;
+    position: absolute;
+    right: 8.5%;
+    z-index: 9999;
+    bottom: 10%;
+    color: white;
+}
+
+.canvas_full{
+  width: 80%;
+  height: 80%;
+  position: absolute;
+  left: 10%;
+  top: 10%;
+  background-color: black;
+
+}
 
 
 
