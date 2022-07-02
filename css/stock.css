@@ -223,6 +223,16 @@ input[type=text]:focus-visible {
 
 }
 
+#button_section{
+  width: 100%;
+  overflow-y: scroll;
+  white-space: nowrap;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+}
+#button_section::-webkit-scrollbar{
+  display: none; 
+}
 #meta_element>#name {
   position: absolute;
   top: 2.5vh;
@@ -237,8 +247,14 @@ input[type=text]:focus-visible {
 
 #name>h4 {
   margin-left: calc(2vw);
-  display: inline;
+  display: inline-block;
   color: grey;
+width: 17.5vw;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+vertical-align: top;
+
 }
 
 #range > hr {
@@ -614,7 +630,6 @@ input::placeholder{
     left: 5%;
     top: 0;
 }
-
 
 
 
