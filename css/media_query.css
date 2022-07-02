@@ -4,8 +4,14 @@
   }
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 800px) {
   #current_time{
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 630px) {
+  #name > h4{
     display: none;
   }
 }
