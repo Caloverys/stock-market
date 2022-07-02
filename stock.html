@@ -14,7 +14,7 @@
 
 <div id='left_area'>
 <div id='search_engine'>
-<input type='text' placeholder="Search...">
+<input type='text' placeholder="Search..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 <!--decimal code for html for the delete symbol X-->
 <button id='deletebutton'>&times;</button>
 <button id='search_icon' ><i class="fa-solid fa-magnifying-glass" ></i></button>
@@ -63,6 +63,7 @@
 
     <div id='range'>
       <hr>
+      <div id='button_section'>
       <button id='one_day' class='range_button range_button_active'>1D</button>
       <button id='one_week' class='range_button'>1W</button>
       <button id='one_month' class='range_button'>1M</button>
@@ -74,6 +75,7 @@
       <button id='five_year' class='range_button'>5Y</button>
       <button id='ten_year' class='range_button'>10Y</button>
       <button id='all_time' class='range_button'>All</button>
+    </div>
       <hr>
        <div id='info_date'></div>
     </div>
@@ -242,4 +244,3 @@ function start_fetching_data(symbol){
 </body>
 
 </html>
-
