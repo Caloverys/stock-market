@@ -356,12 +356,12 @@ function format_data(difference_range) {
   smallest_accept_time is the latest_date date - difference_range and set hours and minutes to open market time (9:30)
 
   */
-  console.log(raw_data)
+
 
   const smallest_accept_time = new Date(new Date(latest_date).setDate(latest_date.getDate() - difference_range)).setHours(9,30);
 
   raw_data.forEach((item, index) => {
-console.log(smallest_accept_time,item.date)
+
     if (item.date.format_date() >= smallest_accept_time) {
         
 
@@ -754,7 +754,7 @@ function find_closed_price() {
     for (let i = raw_data.length - 1; i >= 0; i--) {
       if (latest_date.getDate() !== raw_data[i].date.format_date().getDate()) {
         closed_price = raw_data[i].close.toFixed(2);
-        console.log(raw_data[i].close)
+
         return closed_price;
       }
     }
@@ -820,7 +820,7 @@ function judge_color() {
 
 function create_chart(canvas,context) {
 
-  console.log(dataset)
+
   window.fire = false;
   window.first_index = null
   let [static_clientX, static_clientY] = new Array(2).fill(null)
@@ -1053,6 +1053,8 @@ function create_chart(canvas,context) {
       //Immediately return if horizontalLine doesn't register to the chart
 
      if (!chartInstance.options.horizontalLine) return;
+
+     let reach_smallest =  false;
         /* 
 
         we could assign several horizontalLine and loop over it to draw all of them
@@ -1065,7 +1067,10 @@ function create_chart(canvas,context) {
       
         const line = chartInstance.options.horizontalLine[0];
         if (find_closed_price() > max_value + 0.15) line.y = max_value - 0.1;
-
+        else if (find_closed_price() < min_value - 0.15){
+           line.y = min_value + 0.1;
+           reach_smallest = true;
+        } 
         yValue = chartInstance.scales["y"].getPixelForValue(line.y);
 
         context.beginPath();
@@ -1096,6 +1101,9 @@ function create_chart(canvas,context) {
         const size_2 = (line.text.toString()).size_calculation(fontSize);
 
         context.font = `${fontSize}px sans-serif`;
+
+        if(reach_smallest) yValue -=size_1.height + size_2.height + 5 + context.lineWidth;
+
         context.fillText("Previous Price:", myChart.chartArea.right - size_1.width - fontSize / 1.5, yValue + size_1.height);
 
         context.fillText(line.text, myChart.chartArea.right - size_2.width - fontSize / 1.5, yValue + size_1.height + size_2.height);
@@ -1120,7 +1128,6 @@ function create_chart(canvas,context) {
 
 
   */
-console.log(find_closed_price())
 
   if (myChart) myChart.destroy();
 
