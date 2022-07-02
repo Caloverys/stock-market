@@ -1,11 +1,11 @@
 
 (function(){
-   //load_all_buttons();
+   load_all_buttons();
 
 
-  // create_small_animated_chart();
+  create_small_animated_chart();
 
-  // if(symbol_full_list.length === 0 ) assign_web_worker_two();
+   if(symbol_full_list.length === 0 ) assign_web_worker_two();
     
     //fetch the time from new york timezone 
 
@@ -18,11 +18,11 @@
 
     	global_time = new Date(time.datetime);
     	        market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
-        time_element.textContent = (window.innerWidth > 1280 ? global_time.toString().split(" GMT")[0] + ' EDT' : (global_time.toString().split(" GMT")[0] + ' EDT').substring(16)); 
+        time_element.textContent = (window.innerWidth > 1250 ? global_time.toString().substring(3).split(" GMT")[0] + ' EDT' : (global_time.toString().split(" GMT")[0] + ' EDT').substring(16)); 
 
         interval = setInterval(() => {
-      global_time = new Date(global_time.getTime() + 1000)
-      time_element.textContent = (window.innerWidth > 1280 ? global_time.toString().split(" GMT")[0] + ' EDT' : (global_time.toString().split(" GMT")[0] + ' EDT').substring(16)); 
+      global_time = new Date(global_time.getTime() + 1000);
+      time_element.textContent = (window.innerWidth > 1250 ? global_time.toString().substring(3).split(" GMT")[0] + ' EDT' : (global_time.toString().split(" GMT")[0] + ' EDT').substring(16)); 
       market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
       }, 1000)
     load_main_page();
