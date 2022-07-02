@@ -1,11 +1,11 @@
 
 (function(){
-   load_all_buttons();
-   console.log('what')
+   //load_all_buttons();
 
-   create_small_animated_chart();
 
-   if(symbol_full_list.length === 0 ) assign_web_worker_two();
+  // create_small_animated_chart();
+
+  // if(symbol_full_list.length === 0 ) assign_web_worker_two();
     
     //fetch the time from new york timezone 
 
@@ -18,11 +18,11 @@
 
     	global_time = new Date(time.datetime);
     	        market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
-        time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
+        time_element.textContent = (window.innerWidth > 1280 ? global_time.toString().split(" GMT")[0] + ' EDT' : (global_time.toString().split(" GMT")[0] + ' EDT').substring(16)); 
 
-        setInterval(() => {
+        interval = setInterval(() => {
       global_time = new Date(global_time.getTime() + 1000)
-      time_element.textContent = global_time.toString().split(" GMT")[0] + ' EDT';
+      time_element.textContent = (window.innerWidth > 1280 ? global_time.toString().split(" GMT")[0] + ' EDT' : (global_time.toString().split(" GMT")[0] + ' EDT').substring(16)); 
       market_status_element.textContent = global_time.return_market_status() ? "Market Open" : "Market Closed";
       }, 1000)
     load_main_page();
@@ -123,17 +123,21 @@
   search_result.innerHTML = `
   <div id='starting_buttons'>
   <div id='stock_market_button'>
-  <h2>Stock Market</h2>
-  <div>Status: 
-  <span style='color:${global_time.return_market_status() ? "green" : "red"}'>${global_time.return_market_status() ? "Market Open" : "Market Closed"}</span>
-  </div>
-  </div>
-  <div id='watch_list' '>
-  <h2 style='background-image:${return_color_gradient()}'>My Watch List</h2>
-  </div>
-  <div id='simulator'>
-  <h2 style='background-image:${return_color_gradient()}'>Stock simulator</h2>
-  </div>
+
+    <div>
+      <h2>Stock Market</h2>
+      <div class='status'>
+        Status:
+        <span style='color:${global_time.return_market_status() ? "green" : "red"}'>${global_time.return_market_status() ? "Market Open" : "Market Closed"}</span>
+        </div>
+      </div>
+    </div>
+    <div id='watch_list'>
+      <h2 style='background-image:${return_color_gradient()}'>My Watch List</h2>
+    </div>
+    <div id='simulator'>
+      <h2 style='background-image:${return_color_gradient()}'>Stock simulator</h2>
+    </div>
   </div>
   `
   select('#stock_market_button').addEventListener('click', function() {
@@ -280,7 +284,6 @@ function create_small_animated_chart() {
 
 
 })();
-
 
 
 
