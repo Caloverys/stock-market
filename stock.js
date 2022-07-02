@@ -307,7 +307,7 @@ document.body.addEventListener('mousemove', e => {
 
     info_price.style.visibility = 'hidden'
     info_date.style.visibility = 'hidden'
-    selectAll('#range > button').forEach(i => i.style.visibility = 'visible')
+    selectAll('#range > #button_section > button').forEach(i => i.style.visibility = 'visible')
   }
 
 })
@@ -834,7 +834,7 @@ function create_chart(canvas,context) {
         return;
       } else isVisble = true;
      
-      selectAll('#range > button').forEach(i => i.style.visibility = 'hidden')
+      selectAll('#range > #button_section > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = hover_color;
 
       
@@ -1550,5 +1550,4 @@ document.querySelector('#full_screen_button').addEventListener('click',function(
   })
 
 })
-
 
