@@ -275,6 +275,8 @@ vertical-align: top;
   top: 0%;
 
 }
+
+
 #left_area > #bottom_section
 {
   position: fixed;
@@ -285,6 +287,7 @@ vertical-align: top;
   background-color: rgba(66,62,70);
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 #left_area > #search_engine{
@@ -312,20 +315,21 @@ vertical-align: top;
    height: 100vh;
     background-color: rgb(83,83,83);
 }
-
-#bottom_section > #market_status{
+#bottom_section > *{
 color: rgba(144,133,138,1);
 position: absolute;
-right: 5%;
 font-family: sans-serif;
+}
+
+#bottom_section > #market_status{
+right: 3%;
 text-transform: capitalize;
+font-size: max(1vw,3vh)
 }
 #bottom_section > #current_time{
   color: rgba(144,133,128,1);
-  font-size: 12px;
-  position: absolute;
-  font-family: sans-serif;
-  left: 5%;
+  font-size: max(0.8vw,2.25vh);
+  left: 3%;
 }
 
 .warning {
@@ -456,24 +460,25 @@ a:hover {
 }
 
 #starting_buttons > div{
-padding-top: 2.5vh;
   border:1px solid rgba(250,250,250,0.6);
   border-radius: 10px;
-  margin: 0;
+  margin: 1vw;
   margin-top: 1.5vh;
   margin-bottom: 4vh;
-  width: 21vw;
+  font-size: 0.9em;
+
   height: 15vh;
-    position: relative;
-left: 1vw;
-top: 2vh;
+  display: flex;
+align-items: center;
+justify-content: left;
+padding-left: 2vw;
+
 
   
 }
 #stock_market_button {
 
   background: linear-gradient(90deg,#0000 33%,whitesmoke 50%,#0000 66%) rgba(220,220,220,0.9);
-
   background-size: 300% 100%;
   animation: moving 1.25s infinite;
 }
@@ -485,47 +490,55 @@ top: 2vh;
   }
 
 }
-#stock_market_button > h2{
- background-clip: text;
+
+#stock_market_button  h2,#watch_list > h2,#simulator > h2{
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   color:transparent;
+
+}
+#stock_market_button  h2{
+
   background-image: radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 35%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 99%, #5d4a1f 100%);
+  /*
   position: absolute;
   left: 1.75vw;
   top: -0.25vh;
+  */
 }
-#stock_market_button > div{
+#stock_market_button > div > .status{
   color: rgba(135, 135, 135, 0.95);
-  position: absolute;
-  top: 10vh;
-  left: 1.75vw;
+ margin-top: -1.5vh;
 
 }
 #watch_list{
    background: linear-gradient(90deg,#0000 33%,white  50%,#0000 66%) #d3d3d3 ;
-
   background-size: 300% 100%;
   animation: moving 1.25s infinite;
 }
+#watch_list,#simulator{
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
 #watch_list > h2{
+  /*
   position: absolute;
   left: 1.75vw;
   top: 3vh;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color:transparent;
+  */
+
 
 }
 #simulator > h2{
+  /*
     position: absolute;
   left: 1.75vw;
   top: 3vh;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color:transparent;
+  */
+
 
 
 }
