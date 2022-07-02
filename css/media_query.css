@@ -8,10 +8,14 @@
   #current_time{
     display: none;
   }
+  #market_status{
+    position: static !important;
+  }
 }
 
 @media only screen and (max-width: 630px) {
   #name > h4{
     display: none;
   }
+
 }
