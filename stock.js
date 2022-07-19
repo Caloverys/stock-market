@@ -1541,7 +1541,6 @@ select('#all_time').addEventListener('click', function() {
 
 
 document.querySelector('#full_screen_button').addEventListener('click',function(){
-  document.body.classList.add('full_screen_mode')
-
-
+  if(document.body.classList.contains('full_screen_mode')) document.body.classList.remove('full_screen_mode')
+  else document.body.classList.add('full_screen_mode')
 })
