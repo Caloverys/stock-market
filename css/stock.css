@@ -201,6 +201,7 @@ input[type=text]:focus-visible {
   font-size: calc(2vw);
   text-align: center;
   margin: 10px;
+  width: 100%;
 }
 
 .range_button {
@@ -230,8 +231,9 @@ input[type=text]:focus-visible {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
   scrollbar-width: none;
 }
+
 #button_section::-webkit-scrollbar{
-  display: none; 
+  display: none;
 }
 #meta_element>#name {
   position: absolute;
@@ -258,7 +260,7 @@ vertical-align: top;
 }
 
 #range > hr {
-  width: 72vw;
+  width: 97.5%;
   margin: 0;
   position: relative;
   left: -2%;
@@ -579,7 +581,7 @@ justify-content: center;
   color: white;
   font-weight: bold;
   position: absolute;
-  right: 5%;
+  left: 7.25%;
   top: -4.5%;
   background-color: #4eacf8;
   padding: 6px 20px;
@@ -643,6 +645,33 @@ input::placeholder{
     left: 5%;
     top: 0;
 }
+
+
+
+.full_screen_mode #parent_of_canvas{
+       position: absolute !important;
+ left: -22vw !important;
+    background-color: rgb(59 58 58);
+    width: 90vw !important;
+    top: 4vh !important;
+
+}
+.full_screen_mode #left_area{
+    opacity:0.5;
+
+}
+
+.full_screen_mode #right_area{
+    background-color: rgb(0 0 0 / 16%);
+  }
+.full_screen_mode #chart{
+  height: 70vh !important;
+    width: 90vw !important;
+}
+.full_screen_mode #back_button{
+  display: none !important;
+}
+
 
 
 
