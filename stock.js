@@ -307,7 +307,7 @@ document.body.addEventListener('mousemove', e => {
 
     info_price.style.visibility = 'hidden'
     info_date.style.visibility = 'hidden'
-    selectAll('#range > #button_section > button').forEach(i => i.style.visibility = 'visible')
+    selectAll('#button_section > button').forEach(i => i.style.visibility = 'visible')
   }
 
 })
@@ -359,7 +359,7 @@ function format_data(difference_range) {
 
 
   const smallest_accept_time = new Date(new Date(latest_date).setDate(latest_date.getDate() - difference_range)).setHours(9,30);
-
+  console.log(smallest_accept_time)
   raw_data.forEach((item, index) => {
 
     if (item.date.format_date() >= smallest_accept_time) {
@@ -373,7 +373,7 @@ function format_data(difference_range) {
 
   })
 
-
+  console.log(detail_dataset)
   valid_data_number = label_array.length;
 
   max_value = Math.max.apply(null, dataset);
@@ -834,7 +834,7 @@ function create_chart(canvas,context) {
         return;
       } else isVisble = true;
      
-      selectAll('#range > #button_section > button').forEach(i => i.style.visibility = 'hidden')
+      selectAll('#button_section > button').forEach(i => i.style.visibility = 'hidden')
       info_price.style.color = hover_color;
 
       
@@ -1541,20 +1541,7 @@ select('#all_time').addEventListener('click', function() {
 
 
 document.querySelector('#full_screen_button').addEventListener('click',function(){
-   const canvas_parent = canvas.parentNode;
-   const canvas_wrapper_full = document.createElement('div');
-   canvas_wrapper_full.className = 'canvas_wrapper_full';
-   canvas.classList.add('canvas_full');
-   canvas_parent.replaceChild(canvas_wrapper_full,canvas);
-   canvas_wrapper_full.appendChild(canvas);
-   const current_visible_elements = [];
-   document.querySelectorAll(':not(.canvas_wrapper_full > *):not(.canvas_wrapper_full):not(html):not(body)').forEach(elem=>{
-    if(window.getComputedStyle(elem)["display"] !=='none' && window.getComputedStyle(elem)["visibility"] !=='hidden') {
-      current_visible_elements.push(elem);
-      elem.style.visibility = 'hidden'
-     }
+  document.body.classList.add('full_screen_mode')
 
-  })
 
 })
-
