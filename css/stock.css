@@ -591,6 +591,7 @@ justify-content: center;
   font-size: 1.1em;
   white-space: nowrap;
   border: none;
+  width: max-content;
 }
 .has_clicked{
   background-color: transparent !important;
@@ -622,7 +623,7 @@ input::placeholder{
     font-size: 1.5em;
     pointer-events: auto;
     position: absolute;
-    right: 8.5%;
+    right: 7.5%;
     z-index: 9999;
     bottom: 10%;
     color: white;
@@ -689,6 +690,7 @@ input::placeholder{
   top:  2vh !important;
 }
 .full_screen_mode #full_screen_button{
-  right: 7.5vw !important;
   bottom: 14vh !important;
+  right: 47.5w !important;
+
 }
