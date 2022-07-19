@@ -225,7 +225,9 @@ input[type=text]:focus-visible {
 }
 
 #button_section{
-  width: 100%;
+  width: 67.5vw;
+  position: absolute;
+  left: 0;
   overflow-y: scroll;
   white-space: nowrap;
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
@@ -673,5 +675,20 @@ input::placeholder{
 }
 
 
+.full_screen_mode #button_section{
+      width: 75vw !important;
+    position: absolute !important;
+    left: 5vw !important;
+}
 
-
+.full_screen_mode #add_to_watchlist{
+    right: 30vw !important;
+    top: 5% !important;
+}
+.full_screen_mode #price{
+  top:  2vh !important;
+}
+.full_screen_mode #full_screen_button{
+  right: 7.5vw !important;
+  bottom: 14vh !important;
+}
