@@ -346,8 +346,10 @@ Example:
 function format_data(difference_range) {
 
   //get the current latest date 
-
+   console.log(raw_data,raw_data[raw_data.length - 1])
   latest_date = raw_data[raw_data.length - 1].date.format_date();
+
+
   
   /*
 
@@ -628,10 +630,7 @@ function search_or_recommand_section(data, isSearch) {
 
     }
   } else {
-    //use XML here to search for html tag by content
-    //const matched_element = document.evaluate(`//h2[text()='My watch list:']`,
-    // document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-    //if (matched_element) matched_element.remove()
+
     if (data[0].length + data[1].length < 15) {
       display_list = data[0].slice().concat(data[1]).map(i => {
         return {
@@ -1403,13 +1402,45 @@ function setup(index) {
   //specify the date difference being used in the format function, for 1 day, it is 0, 1 week is 7, 1 month is 30....
   difference_time = 0
  fetch_data(symbol, timestamp).then(function(values) {
-
-
+   
     all_fetch_data[variable_name] = values;
 
+    raw_data = filter_data(values, parseInt(timestamp));
+    try{
+      format_data(difference_time)
+    }catch(err){
+      const center_container = document.createElement('div');
+      center_container.className ='center_container';
+      center_container.style.marginTop = '30vh';
+      const whole_div = document.createElement('div');
+      const div = document.createElement('div');
+      div.style.fontWeight = "bolder";
+      div.textContent = "Chart Unavailable";
+            whole_div.appendChild(div);
+      if(window.navigator.onLine){
+        const div_status = document.createElement('div');
+        div_status.textContent = `Network Status: ${window.navigator.onLine + navigator.connection.downlink ? `(speed ${navigator.connection.downlink == 10 ? " > 10" : navigator.connection.downlink}` : "" }`
+         whole_div.appendChild(div_status);
+        if(window.navigator.onLine === "off"){
+          const no_internet = document.createElement('div');
+          no_internet.textContent = "Stock isn't connect to the internet";
+           whole_div.appendChild(no_internet)
+        }
+      }
+          //use XML here to search for html tag by content
 
-    raw_data = filter_data(values, parseInt(timestamp))
-    format_data(difference_time)
+          const XML = `//div[text()="Stock isn't connect to the internet"]`
+    if(!document.evaluate(XML,document,null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue){
+      const div = document.createElement('div');
+      div.textContent = 'It is not your problem, it is our problem';
+      whole_div.appendChild(div)
+
+    }
+    center_container.appendChild(whole_div);
+    parent_of_canvas.appendChild(center_container);
+    loader.style.display = 'none';
+
+    }
 
     const price_element = select('#price')
     price_element.querySelector('#dollar').innerHTML = raw_data[raw_data.length - 1].close.toFixed(2);
@@ -1419,7 +1450,7 @@ function setup(index) {
     percentage.textContent = (return_color().includes('green') ? "+" : "-") + Math.abs(difference / find_closed_price() * 100).toFixed(2) + "%";
     percentage.style.color = return_color();
     info_price.textContent = find_closed_price();
-
+      
     if (!select('#price_name')) {
       const created_span = document.createElement('div')
       created_span.style.color = 'grey';
