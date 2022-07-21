@@ -1,33 +1,702 @@
-@media only screen and (max-height: 500px) {
-  #price_name{
-    display: none;
-  }
+* :not(#price > *) {
+  user-select: none;
 }
 
-@media only screen and (max-width: 800px) {
-  #current_time{
-    display: none;
-  }
-  #market_status{
-    position: static !important;
-  }
-}
-
-@media only screen and (max-width: 630px) {
-  #name > h4{
-    display: none;
-  }
+body {
+  margin: 0;
+  overflow: hidden;
 
 }
 
-@media only screen and (max-width: 1175px) {
-  #button_section{
-    padding-left: 2vw;
+
+.resize_button{
+   color:rgba(0,0,200,0.8);
+    border:none; 
+ background:none;
+text-decoration:underline;
+font-size:0.8em
+}
+
+#parent_of_canvas > canvas {
+  position: absolute;
+  top: 20vh;
+  width: inherit;
+  height: inherit;
+}
+
+#starting > canvas{
+  width: 65vw !important;
+  position: absolute;
+  height: 60vh !important;
+  top: 35vh;
+  left: 5vw;
+  border:none;
+  
+}
+
+#info_price {
+  z-index: 9999;
+  position: absolute;
+  left: 40%;
+  top: 22.5%;
+  color: #52c4fa;
+  font-weight: bold;
+  visibility: hidden;
+  white-space: pre;
+}
+
+#right_area > #parent_of_canvas {
+   display: none;
+  border-radius: 10px;
+
+  position: relative;
+  top: 5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: calc(2vw);
+  padding-top: 100px;
+  margin: 5px;
+  margin-left: 0;
+  height: 75vh;
+  width: 70vw;
+  display: none;
+
+}
+
+#svg{
+  position: absolute;
+  left: calc(50% - 600px/2);
+  top: 1%;
+}
+svg{
+  position:absolute;
+  height: 30vh;
+}
+text:first-child{
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw1 10s forwards;
+  font-style: italic ;
+}
+text:last-child{
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+
+  font-family: sans-serif;
+  font-style: italic;
+  transition: appearing 3s ;
+}
+
+@keyframes appearing{
+  from{
+    opacity: 0.3;
+  }
+}
+@keyframes draw1 {
+
+  to{
+    stroke-dashoffset: 0;
+     fill: whitesmoke;
   }
 }
 
-@media only screen and (max-width: 1050px) {
-  #current_price{
-    display: none;
+@keyframes draw2 {
+
+  to{
+    stroke-dashoffset: 0;
+     fill: red;
   }
+}
+
+#right_area {
+  position:relative;
+  height: 100vh;
+  width: 75%;
+  background-color: rgba(0,0,0,0.8);
+  float: right;
+  top: -100vh;
+
+
+
+}
+#info_date {
+  font-size:16px;
+ margin-top: calc(-6.5vh);
+  color: white;
+  visibility: hidden;
+  white-space: pre;
+
+}
+
+
+#search_engine > input[type=text] {
+  border-radius: 4px;
+  border: 1px solid grey;
+  margin: 15px calc(1vw);
+  padding: 7.5px calc(2.5vw);
+    background-color: rgba(90,88,92,0.8);
+  width: calc(17vw);
+  
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+  color: white;
+
+}
+
+
+#search_engine > #search_icon {
+  color: rgba(230,230,230);
+  left: 5%;
+  background: none;
+}
+#search_icon,#deletebutton{
+  position: absolute;
+   width: 17.5px;
+  height: 17.5px;
+    font-weight: normal;
+  background-color: #848386;
+    top: calc(50% - 17.5px/2);
+      border: none; 
+         z-index: 999;
+         visibility: hidden;
+
+
+}
+ #search_engine > #deletebutton {
+  
+   border-radius: 50%;
+  color: rgba(83, 81, 86, 0.8); 
+  padding: 0;
+    right: 10%;
+    
+}
+
+
+input[type=text]:focus-visible {
+  outline: 4px solid rgba(59, 106, 180, 0.95);
+}
+
+
+#price {
+  float: right;
+  position: absolute;
+  right: 4vw;
+  top: 0;
+}
+
+#dollar {
+  font-size: 2em;
+  margin-right: 40px;
+  color: white;
+}
+
+#percent {
+  margin-bottom: calc(0.75vh);
+}
+
+#meta_element>#range {
+  position: absolute;
+  top: 10%;
+  font-weight: bolder;
+  font-size: calc(2vw);
+  text-align: center;
+  margin: 10px;
+  width: 100%;
+}
+
+.range_button {
+  margin: 1.25vh 1vw;
+  border-radius: 25%;
+  background-color: transparent;
+  width: 3.25vw;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 18px;
+  position: relative;
+  left: -2%;
+  padding: 1.35vh 0.75vw;
+  min-width: min-content;
+}
+
+.range_button_active{
+  background-color: rgb(117 111 111 / 79%) !important;
+
+}
+
+#button_section{
+  width: 67.5vw;
+  position: absolute;
+  left: 0;
+  overflow-y: scroll;
+  white-space: nowrap;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+}
+
+#button_section::-webkit-scrollbar{
+  display: none;
+}
+#meta_element>#name {
+  position: absolute;
+  top: 2.5vh;
+  left: 5vw;
+}
+
+#name>h2 {
+  color: white;
+  font-size: 2.25em;
+  display: inline;
+}
+
+#name>h4 {
+  margin-left: calc(2vw);
+  display: inline-block;
+  color: grey;
+width: 17.5vw;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+vertical-align: top;
+
+}
+
+#range > hr {
+  width: 97.5%;
+  margin: 0;
+  position: relative;
+  left: -2%;
+  border: none;
+  height: 1.5px;
+  background-color: #848386c7;
+}
+#left_area > .vertical_line{
+  border-left: 3px solid  grey;
+  height: 200vh;
+  position: fixed;
+  margin: 0;
+  left: 25%;
+  top: 0%;
+
+}
+
+
+#left_area > #bottom_section
+{
+  position: fixed;
+  bottom: 0vh;
+  left: 0vw;
+  width: 25vw;
+  height: 5vh;
+  background-color: rgba(66,62,70);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#left_area > #search_engine{
+   overflow: hidden;
+   position: relative;
+   width: 25vw;
+
+}
+#left_area > #search_result{
+  height: 85vh;
+  position: fixed;
+  top: 10vh;
+  left: 1%;
+  width: 23%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-bottom: 25vh;
+ box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;
+  border:  2px solid rgb(83,79,83,0.75);
+  border-radius: 5px;
+}
+
+#left_area{
+ width: 25%;
+   height: 100vh;
+    background-color: rgb(83,83,83);
+}
+#bottom_section > *{
+color: rgba(144,133,138,1);
+position: absolute;
+font-family: sans-serif;
+}
+
+#bottom_section > #market_status{
+right: 3%;
+text-transform: capitalize;
+font-size: max(1vw,3vh)
+}
+#bottom_section > #current_time{
+  color: rgba(144,133,128,1);
+  font-size: max(0.8vw,2.25vh);
+  left: 3%;
+}
+
+.warning {
+  width: 100vw;
+  height: 7.5vh;
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+  justify-content: center;
+  font-size: 2em;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: rgb(249, 180, 45);
+  font-weight: bold;
+  text-indent: 10px;
+  position: fixed;
+  bottom: 0;
+  transition: all 1s;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+}
+
+.remove_button {
+  color: black;
+  font-weight: 600;
+  font-size: 1.2em;
+  background: none;
+  border: none;
+}
+
+.remove_button:after {
+  display: inline-block;
+  content: "\00d7";
+}
+
+button,
+a:hover {
+  cursor: pointer;
+}
+
+.remove_class {
+  transition: opacity 1.5s ease-out;
+  opacity: 0;
+}
+
+.loader {
+  border: 2vw solid rgba(243, 243, 243, 0.8);
+  border-radius: 50%;
+  border-top: 2vw solid rgba(128, 128, 128, 0.9);
+  width: 20vw;
+  height: 20vw;
+  position: absolute;
+  left: 35%;
+  top: 25%;
+  animation: rotate 1.5s linear infinite;
+}
+#loader{
+  border: 1vw solid rgba(243, 243, 243, 0.8);
+  border-radius: 50%;
+  border-top: 1vw solid rgba(128, 128, 128, 0.9);
+  width: 10vw;
+  height: 10vw;
+  position: absolute;
+  left: 22.5%;
+  top: 25%;
+  animation: rotate 1.5s linear infinite;
+
+}
+
+.small_loader {
+  border: 0.4vw solid rgba(243, 243, 243, 0.8);
+  border-radius: 50%;
+  border-top: 0.4vw solid rgba(128, 128, 128, 0.9);
+  width: 2vw;
+  height: 2vw;
+  animation: rotate 1.5s linear infinite;
+  position: absolute;
+  top: 1.5vh;
+  right: 10vw;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#search_result #symbol{
+  color: whitesmoke;
+  display: inline;
+  font-size: 1.5em;
+  text-transform: uppercase;
+   margin: 1vw;
+ 
+
+}
+
+#search_result > div[id^='element_'] {
+  padding-top: 2.5vh;
+  border-top:1px solid rgb(136 136 136 / 60%);
+  margin: 0 ;
+   position: relative;
+  left: 5%;
+  width: 21vw;
+  height: 12.5vh;
+
+
+}
+ div[id^='element_'] > *{
+  pointer-events: none;
+ }
+
+#search_result #exchange_market_symbol{
+  color: #717176;
+  font-size: 0.9em;
+}
+#search_result #company_name{
+  color: #99989a;
+  width: 15vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  top: 10%;
+  left: 5%;
+;
+}
+
+#starting_buttons > div{
+  border:1px solid rgba(250,250,250,0.6);
+  border-radius: 10px;
+  margin: 1vw;
+  margin-top: 1.5vh;
+  margin-bottom: 4vh;
+  font-size: 0.9em;
+
+  height: 15vh;
+  display: flex;
+align-items: center;
+justify-content: left;
+padding-left: 2vw;
+
+
+  
+}
+#stock_market_button {
+
+  background: linear-gradient(90deg,#0000 33%,whitesmoke 50%,#0000 66%) rgba(220,220,220,0.9);
+  background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+}
+@keyframes moving{
+  from{
+    background-position: right;
+  }to{
+    background-position: left;
+  }
+
+}
+
+#stock_market_button  h2,#watch_list > h2,#simulator > h2{
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color:transparent;
+
+}
+#stock_market_button  h2{
+
+  background-image: radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 35%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 99%, #5d4a1f 100%);
+  /*
+  position: absolute;
+  left: 1.75vw;
+  top: -0.25vh;
+  */
+}
+#stock_market_button > div > .status{
+  color: rgba(135, 135, 135, 0.95);
+ margin-top: -1.5vh;
+
+}
+#watch_list{
+   background: linear-gradient(90deg,#0000 33%,white  50%,#0000 66%) #d3d3d3 ;
+  background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+}
+#watch_list,#simulator{
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+#watch_list > h2{
+  /*
+  position: absolute;
+  left: 1.75vw;
+  top: 3vh;
+  */
+
+
+}
+#simulator > h2{
+  /*
+    position: absolute;
+  left: 1.75vw;
+  top: 3vh;
+  */
+
+
+
+}
+#simulator{
+  background: linear-gradient(90deg,#0000 33%,rgba(240,240,240,0.8) 50%,#0000 66%) rgba(220,220,220,0.9);
+   background-size: 300% 100%;
+  animation: moving 1.25s infinite;
+
+}
+ 
+#search_result #current_price{
+    position: relative;
+    right: -80%;
+    top: -30%;
+    color: white;
+}
+
+#search_result > #header{
+  color: white;
+  position: relative;
+  left: 5%
+
+}
+#search_result > h3{
+  color: rgba(250,250,250,0.8);
+  margin-top: 10vh;
+}
+.active{
+  background-color:rgba(127, 128, 133, 0.95);
+  border-radius: 10px;
+  border: none !important;
+}
+.active + div{
+  border: none !important;
+}
+
+#add_to_watchlist{
+  color: white;
+  font-weight: bold;
+  position: absolute;
+  left: 7.25%;
+  top: -4.5%;
+  background-color: #4eacf8;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 1.1em;
+  white-space: nowrap;
+  border: none;
+  width: max-content;
+}
+.has_clicked{
+  background-color: transparent !important;
+  color: #4eacf8 !important;
+  border: 2px solid #4eacf8 !important;
+}
+#back_button{
+  position: absolute;
+  left: 2%;
+  top: 2%;
+  font-size: 1.8em;
+  color:  grey;
+  border: none;
+  background: none;
+  z-index: 999;
+}
+
+#price_name{
+  color: grey;
+}
+
+input::placeholder{
+  color: rgb(177 177 177);
+}
+
+#full_screen_button{
+  background: none;
+    border: none;
+    font-size: 1.5em;
+    pointer-events: auto;
+    position: absolute;
+    right: 7.5%;
+    z-index: 9999;
+    bottom: 10%;
+    color: white;
+}
+
+.canvas_full{
+    height: 90vh !important;
+    width: 90vw !important;
+}
+#body_wrapper{
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  opacity: 0.3;
+}
+
+.canvas_wrapper_full{
+  background-color: rgba(0,0,0,0.8);
+  height: 95%;
+  width: 95%;
+    position: fixed;
+    left: 5%;
+    top: 0;
+}
+
+
+
+.full_screen_mode #parent_of_canvas{
+       position: absolute !important;
+ left: -22vw !important;
+    background-color: rgb(59 58 58);
+    width: 90vw !important;
+    top: 4vh !important;
+
+}
+.full_screen_mode #left_area{
+    opacity:0.5;
+
+}
+
+.full_screen_mode #right_area{
+    background-color: rgb(0 0 0 / 16%);
+  }
+.full_screen_mode #chart{
+  height: 70vh !important;
+    width: 90vw !important;
+}
+.full_screen_mode #back_button{
+  display: none !important;
+}
+
+
+.full_screen_mode #button_section{
+      width: 75vw !important;
+    position: absolute !important;
+    left: 5vw !important;
+}
+
+.full_screen_mode #add_to_watchlist{
+    right: 30vw !important;
+    top: 5% !important;
+}
+.full_screen_mode #price{
+  top:  2vh !important;
+}
+.full_screen_mode #full_screen_button{
+  bottom: 14vh !important;
+  right: 47.5w !important;
+
+}
+
+.center_container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
