@@ -242,7 +242,23 @@ function start_fetching_data(symbol){
   <script type="text/javascript" src='stock.js'></script>
 <!--<script src="https://combinatronics.com/Caloverys/stock.html/main/stock.js"></script>-->
 
+<script>
+  let query = 'query { boards (ids: 123456789) { activity_logs (from: \"2021-07-23T00:00:00Z\", to: \"2021-07-26T00:00:00Z\") { id event data }}}';
 
+
+fetch ("https://api.monday.com/v2", {
+  method: 'post',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization' : 'YOUR_API_KEY_HERE'
+   },
+   body: JSON.stringify({
+     'query' : query
+   })
+  })
+   .then(res => res.json())
+   .then(res => console.log(JSON.stringify(res, null, 2)));
+  </script>
 
 <script src ='screen_control.js'></script>
 </body>
