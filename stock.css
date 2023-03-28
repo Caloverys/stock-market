@@ -328,11 +328,11 @@ font-family: sans-serif;
 #bottom_section > #market_status{
 right: 3%;
 text-transform: capitalize;
-font-size: max(1vw,3vh)
+  font-size: max(1vw,12px);
 }
 #bottom_section > #current_time{
   color: rgba(144,133,128,1);
-  font-size: max(0.8vw,2.25vh);
+  font-size: max(0.8vw,10px);
   left: 3%;
 }
 
@@ -699,4 +699,12 @@ input::placeholder{
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+
+
+.horizontal_center{
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
